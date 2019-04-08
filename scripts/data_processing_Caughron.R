@@ -8,7 +8,7 @@ names(fish_species) = 'species'
 
 #import SEAMAP data
 
-SEAMAP<-read.csv("~./fish_stability/SEAMAPData.csv", header = T)
+SEAMAP<-read.csv("~./fish_stability/data/SEAMAPData.csv", header = T)
 
 
 
@@ -67,4 +67,9 @@ SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME %in% gd_sci_names$speci
 #Merge species names that were inconsistently used
 anchoa_rows = grep('ANCHOA', SEAMAP_sub$SPECIESSCIENTIFICNAME)
 SEAMAP_sub$SPECIESSCIENTIFICNAME[anchoa_rows] = 'ANCHOA'
+
+#Export SEAMAP_sub to csv
+#write.csv(SEAMAP_sub, file = "SEAMAP_sub.csv")
+
+
 
