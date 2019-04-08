@@ -22,6 +22,7 @@ for (i in 1:length(uni_event)) {
 n
 sum(n)
 table(n)
+uni_event[which(n == 0)]
 
 # run check that only one date applies to each event name
 out = NULL
@@ -55,4 +56,15 @@ gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME %in%
 #uni_sci_sp = unique(SEAMAP$SPECIESSCIENTIFICNAME)
 #write.csv(uni_sci_sp[!(uni_sci_sp %in% gd_sci_names)], './sp_names_filtered_out.csv', row.names=F)
 
+
+#manually enter in small subset of species that lack common names
+gd_sci_names = read.csv('./gd_sci_names.csv')
+names(gd_sci_names) = 'species'
+
+SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME %in% gd_sci_names$species)
+
+
+#Merge species names that were inconsistently used
+anchoa_rows = grep('ANCHOA', SEAMAP_sub$SPECIESSCIENTIFICNAME)
+SEAMAP_sub$SPECIESSCIENTIFICNAME[anchoa_rows] = 'ANCHOA'
 
