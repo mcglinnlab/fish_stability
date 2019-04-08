@@ -27,7 +27,7 @@ continents <- spTransform(continents, CRS("+proj=cea +units=km"))
 
 
 
-#Raterizing SEAMAP-SA Data
+#Rasterizing SEAMAP-SA Data
 SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
 Trawl_coord <- SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")]
 Trawl_coord$LATITUDESTART <- as.numeric(as.character(Trawl_coord$LATITUDESTART))
