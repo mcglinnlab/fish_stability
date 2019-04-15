@@ -27,16 +27,26 @@ continents <- spTransform(continents, CRS("+proj=cea +units=km"))
 
 
 
-#Rasterizing SEAMAP-SA Data
+## Rasterizing SEAMAP-SA Data ##
 SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
+
+#subsetting columns
 Trawl_coord <- SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")]
+
+#taking out repeats of the collection number
+Trawl_coord <- Trawl_coord[!duplicated(Trawl_coord),]
+
+#rasterizing
 Trawl_coord$LATITUDESTART <- as.numeric(as.character(Trawl_coord$LATITUDESTART))
 Trawl_coord$LONGITUDESTART <- as.numeric(as.character(Trawl_coord$LONGITUDESTART))
 Trawl_coord$COLLECTIONNUMBER <- as.numeric(as.character(Trawl_coord$COLLECTIONNUMBER))
 coordinates(Trawl_coord) <- ~ LONGITUDESTART + LATITUDESTART
 proj4string(Trawl_coord) <- "+proj=cea +units=km"
 Trawl_coord <- spTransform(Trawl_coord, CRS("+proj=cea +units=km"))
-Trawl_raster <- rasterize(Trawl_coord, oceans_raster)
+
+
+## Need to figure out how to sum trawls within a raster region and show that in raster ## Is it in the field call?? ##
+Trawl_raster <- rasterize(Trawl_coord, oceans_raster, sum(Trawl_coord$COLLECTIONNUMBER))
 save(Trawl_raster, file = './data/raster/trawl_raster.Rdata')
 load('./data/raster/trawl_raster.Rdata')
 
