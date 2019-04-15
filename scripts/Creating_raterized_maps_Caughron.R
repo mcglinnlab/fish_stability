@@ -11,6 +11,7 @@ library(leaflet)
 
 #Creating Map
 
+### same error comes up for both maps in rgdal: : rawTransform(projfrom, projto, ...): 54 projected points not finite ###
 
 ## map experiment Trawl Data ## How to fix rasterizing to get data to show up? 
 
