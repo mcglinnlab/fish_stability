@@ -68,8 +68,13 @@ SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME %in% gd_sci_names$speci
 anchoa_rows = grep('ANCHOA', SEAMAP_sub$SPECIESSCIENTIFICNAME)
 SEAMAP_sub$SPECIESSCIENTIFICNAME[anchoa_rows] = 'ANCHOA'
 
+#find and remove rows with nonlogical coordinates
+apply(SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")],2, summary)
+SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART > -90 & LATITUDESTART < 90)
+
+
 #Export SEAMAP_sub to csv
-#write.csv(SEAMAP_sub, file = "SEAMAP_sub.csv")
+#write.csv(SEAMAP_sub, file = "./data/SEAMAP_sub.csv")
 
 
 
