@@ -12,7 +12,7 @@ library(maptools)
 oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
 
 # create a global raster layer
-oceans <- spTransform(oceans, CRS("+proj=cea +units=km"))
+oceans <- spTransform(oceans, CRS("+proj=cea +units=km +lat_0=32.4 +lon_0=-79.6"))
 oceans_raster <- raster(oceans)
 res(oceans_raster) <- 50
 
@@ -23,7 +23,7 @@ load('./Data/raster/oceans_raster.Rdata')
 
 # making continents polygon  
 continents <- shapefile('./shapefiles/continent/continent/continent.shp')
-continents <- spTransform(continents, CRS("+proj=cea +units=km"))
+continents <- spTransform(continents, CRS("+proj=cea +units=km +lat_0=32.4 +lon_0=-79.6"))
 
 
 
@@ -31,7 +31,7 @@ continents <- spTransform(continents, CRS("+proj=cea +units=km"))
 SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
 
 #subsetting columns
-Trawl_coord <- SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")]
+Trawl_coord <- SEAMAP_sub2[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")]
 
 #taking out repeats of the collection number
 Trawl_coord <- Trawl_coord[!duplicated(Trawl_coord),]
@@ -42,7 +42,9 @@ Trawl_coord$LONGITUDESTART <- as.numeric(as.character(Trawl_coord$LONGITUDESTART
 Trawl_coord$COLLECTIONNUMBER <- as.numeric(as.character(Trawl_coord$COLLECTIONNUMBER))
 Trawl_coord$TRAWLNUMBER <- 1
 coordinates(Trawl_coord) <- ~ LONGITUDESTART + LATITUDESTART
-proj4string(Trawl_coord) <- "+proj=cea +units=km"
+proj4string(Trawl_coord) <- "+proj=cea +units=km +lat_0=32.4 +lon_0=-79.6"
+
+
 Trawl_coord <- spTransform(Trawl_coord, CRS("+proj=cea +units=km"))
 
 
