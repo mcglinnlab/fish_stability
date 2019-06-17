@@ -36,11 +36,15 @@ Trawl_coord <- SEAMAP_sub2[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBE
 #taking out repeats of the collection number
 Trawl_coord <- Trawl_coord[!duplicated(Trawl_coord),]
 
-#rasterizing
+#making coordinates numeric
 Trawl_coord$LATITUDESTART <- as.numeric(as.character(Trawl_coord$LATITUDESTART))
 Trawl_coord$LONGITUDESTART <- as.numeric(as.character(Trawl_coord$LONGITUDESTART))
 Trawl_coord$COLLECTIONNUMBER <- as.numeric(as.character(Trawl_coord$COLLECTIONNUMBER))
+
+# adding identity column called trawl number
 Trawl_coord$TRAWLNUMBER <- 1
+
+#setting lat and long columns and projection
 coordinates(Trawl_coord) <- ~ LONGITUDESTART + LATITUDESTART
 proj4string(Trawl_coord) <- "+proj=cea +units=km +lat_0=32.4 +lon_0=-79.6"
 
