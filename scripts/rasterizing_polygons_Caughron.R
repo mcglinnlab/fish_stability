@@ -31,15 +31,15 @@ continents <- spTransform(continents, CRS("+proj=longlat +units=km +lat_0=32.4 +
 SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
 
 #subsetting columns
-Trawl_coord <- SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")]
+Trawl_coord <- SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "EVENTNAME")]
 
-#taking out repeats of the collection number
+#taking out repeats of the event number
 Trawl_coord <- Trawl_coord[!duplicated(Trawl_coord),]
 
 #making coordinates numeric
 Trawl_coord$LATITUDESTART <- as.numeric(as.character(Trawl_coord$LATITUDESTART))
 Trawl_coord$LONGITUDESTART <- as.numeric(as.character(Trawl_coord$LONGITUDESTART))
-Trawl_coord$COLLECTIONNUMBER <- as.numeric(as.character(Trawl_coord$COLLECTIONNUMBER))
+Trawl_coord$COLLECTIONNUMBER <- as.numeric(as.character(Trawl_coord$EVENTNAME))
 
 #adding identity column called trawl number
 Trawl_coord$TRAWLNUMBER <- 1
@@ -53,7 +53,7 @@ coordinates(Trawl_coord) <- ~ LONGITUDESTART + LATITUDESTART
 Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, fun = sum)
 res(Trawl_raster)
 # When I plot here it gives me one large green square with 8000 trawls within so I tried adjusting resolution below#
-#plot(Trawl_raster)
+plot(Trawl_raster)
 
 Trawl_raster.disaggregate <- disaggregate(Trawl_raster, fact=10)
 res(Trawl_raster.disaggregate)
