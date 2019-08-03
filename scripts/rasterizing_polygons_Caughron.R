@@ -46,11 +46,11 @@ Trawl_coord$TRAWLNUMBER <- 1
 
 #setting lat and long columns and projection
 coordinates(Trawl_coord) <- ~ LONGITUDESTART + LATITUDESTART
-#proj4string(Trawl_coord) <- "+proj=longlat +units=km +lat_0=32.4 +lon_0=-79.6"
-
+proj4string(Trawl_coord) <- "+proj=longlat +units=km +lat_0=32.4 +lon_0=-79.6"
+#Trawl_coord <- spTransform(Trawl_coord, "+proj=longlat +units=km +lat_0=32.4 +lon_0=-79.6" )
 
 #rasterizing trawl sum data
-Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, fun = sum)
+Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
 # When I plot here it gives me one large green square with 8000 trawls within so I tried adjusting resolution below#
 plot(Trawl_raster)
@@ -58,7 +58,7 @@ plot(Trawl_raster)
 Trawl_raster.disaggregate <- disaggregate(Trawl_raster, fact=10)
 res(Trawl_raster.disaggregate)
 #With resolution increased by 10 fold still shows same big green square with 8000 trawls. Not sure why its not becoming more detailed. 
-#plot(Trawl_raster.disaggregate)
+plot(Trawl_raster.disaggregate)
 
 
 #saving Trawl Raster File
