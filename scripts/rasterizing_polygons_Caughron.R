@@ -14,7 +14,10 @@ oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
 # create a global raster layer
 oceans <- spTransform(oceans, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 oceans_raster <- raster(oceans)
-res(oceans_raster) <- 0.1
+res(oceans_raster) <- 1
+#crop extent of the oceans raster
+extent <- extent(-87,-75,20,40)
+oceans_raster <- crop(oceans_raster, extent)
 
 # saving the world raster grid
 save(oceans_raster, file = './data/raster/oceans_raster.Rdata')
@@ -53,14 +56,11 @@ proj4string(Trawl_coord) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
 Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
 # When I plot here it gives me one large green square with 8000 trawls within so I tried adjusting resolution below#
-pdf('./raster.pdf')
+#pdf('./raster.pdf')
 plot(Trawl_raster)
-dev.off()
+#dev.off()
 
-Trawl_raster.disaggregate <- disaggregate(Trawl_raster, fact=10)
-res(Trawl_raster.disaggregate)
-#With resolution increased by 10 fold still shows same big green square with 8000 trawls. Not sure why its not becoming more detailed. 
-plot(Trawl_raster.disaggregate)
+
 
 
 #saving Trawl Raster File
