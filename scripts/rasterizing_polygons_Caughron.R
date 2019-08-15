@@ -12,9 +12,9 @@ library(maptools)
 oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
 
 # create a global raster layer
-oceans <- spTransform(oceans, CRS("+proj=longlat +units=km +lat_0=32.4 +lon_0=-79.6"))
+oceans <- spTransform(oceans, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 oceans_raster <- raster(oceans)
-res(oceans_raster) <- 50
+res(oceans_raster) <- 0.1
 
 # saving the world raster grid
 save(oceans_raster, file = './data/raster/oceans_raster.Rdata')
@@ -23,7 +23,7 @@ load('./Data/raster/oceans_raster.Rdata')
 
 # making continents polygon  
 continents <- shapefile('./shapefiles/continent/continent/continent.shp')
-continents <- spTransform(continents, CRS("+proj=longlat +units=km +lat_0=32.4 +lon_0=-79.6"))
+continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 
 
 
@@ -46,14 +46,16 @@ Trawl_coord$TRAWLNUMBER <- 1
 
 #setting lat and long columns and projection
 coordinates(Trawl_coord) <- ~ LONGITUDESTART + LATITUDESTART
-proj4string(Trawl_coord) <- "+proj=longlat +units=km +lat_0=32.4 +lon_0=-79.6"
+proj4string(Trawl_coord) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
 #Trawl_coord <- spTransform(Trawl_coord, "+proj=longlat +units=km +lat_0=32.4 +lon_0=-79.6" )
 
 #rasterizing trawl sum data
 Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
 # When I plot here it gives me one large green square with 8000 trawls within so I tried adjusting resolution below#
+pdf('./raster.pdf')
 plot(Trawl_raster)
+dev.off()
 
 Trawl_raster.disaggregate <- disaggregate(Trawl_raster, fact=10)
 res(Trawl_raster.disaggregate)
