@@ -56,9 +56,9 @@ proj4string(Trawl_coord) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
 Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
 # When I plot here it gives me one large green square with 8000 trawls within so I tried adjusting resolution below#
-#pdf('./raster.pdf')
+pdf('./raster.pdf')
 plot(Trawl_raster)
-#dev.off()
+dev.off()
 
 
 
