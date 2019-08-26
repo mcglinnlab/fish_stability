@@ -14,7 +14,7 @@ oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
 # create a global raster layer
 oceans <- spTransform(oceans, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 oceans_raster <- raster(oceans)
-res(oceans_raster) <- 1
+res(oceans_raster) <- .1
 #crop extent of the oceans raster
 extent <- extent(-87,-75,20,40)
 oceans_raster <- crop(oceans_raster, extent)
