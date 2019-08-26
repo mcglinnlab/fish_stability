@@ -10,3 +10,12 @@
 
 #create new data frame with columns: raster region ID, var in biomass, average species richness, possibly geographic description (ex "Raleigh Bay, SC, GA")
 #plot var in biomass as a function of species richness 
+
+
+
+#Determining how many trawls per raster region
+
+TrawlRasterData <- data.frame(Trawl_raster@data@values)
+#removing NA values
+TrawlRasterData <- data.frame(TrawlRasterData[!is.na(TrawlRasterData)])
+summary(TrawlRasterData)
