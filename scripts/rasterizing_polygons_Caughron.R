@@ -20,7 +20,7 @@ oceans_raster <- raster(oceans)
 #Setting raster resolution
 # res in units of decimal degrees ----- 0.1 decimal degrees ~ 11.132 km
 
-res(oceans_raster) <- .1
+res(oceans_raster) <- .2
 
 #crop extent of the oceans raster
 
@@ -29,8 +29,8 @@ oceans_raster <- crop(oceans_raster, extent)
 
 # saving the world raster grid
 
-save(oceans_raster, file = './data/raster/oceans_raster.Rdata')
-load('./Data/raster/oceans_raster.Rdata')
+#save(oceans_raster, file = './data/raster/oceans_raster.Rdata')
+#load('./Data/raster/oceans_raster.Rdata')
 
 
 # making continents polygon  
@@ -69,9 +69,9 @@ Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, f
 res(Trawl_raster)
 
 #output PDF with plot
-pdf('./figures/raster.pdf')
-plot(Trawl_raster)
-dev.off()
+#pdf('./figures/raster.pdf')
+#plot(Trawl_raster)
+#dev.off()
 
 
 #saving Trawl Raster File

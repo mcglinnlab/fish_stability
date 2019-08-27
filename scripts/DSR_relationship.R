@@ -16,6 +16,19 @@
 #Determining how many trawls per raster region
 
 TrawlRasterData <- data.frame(Trawl_raster@data@values)
+
 #removing NA values
 TrawlRasterData <- data.frame(TrawlRasterData[!is.na(TrawlRasterData)])
-summary(TrawlRasterData)
+
+#Summarizing Different Options
+SummaryRes0.3 <- summary(TrawlRasterData)
+length(TrawlRasterData$TrawlRasterData..is.na.TrawlRasterData..)
+
+#Determining coordinates for each of the rasters
+
+SummaryRes0.1
+SummaryRes0.15
+SummaryRes0.2
+SummaryRes0.25
+SummaryRes0.3
+
