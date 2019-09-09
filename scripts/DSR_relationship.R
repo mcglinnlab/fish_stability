@@ -32,3 +32,8 @@ SummaryRes0.2
 SummaryRes0.25
 SummaryRes0.3
 
+
+#Extracting TrawlIDs from raster
+WhichRaster <- raster::extract(EVENTNAME, data.frame(x=10, y=10))
+
+
