@@ -41,7 +41,7 @@ for (i in 1:ncol(SEAMAP)) {
 }
 
 
-
+#finding unique species names
 uni_sp = unique(SEAMAP$SPECIESCOMMONNAME)
 # spcies in the sp list
 gd_common_names = uni_sp[uni_sp %in% fish_species$species]
@@ -67,6 +67,8 @@ SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME %in% gd_sci_names$speci
 #Merge species names that were inconsistently used
 anchoa_rows = grep('ANCHOA', SEAMAP_sub$SPECIESSCIENTIFICNAME)
 SEAMAP_sub$SPECIESSCIENTIFICNAME[anchoa_rows] = 'ANCHOA'
+
+
 
 #find and remove rows with nonlogical coordinates
 apply(SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")],2, summary)

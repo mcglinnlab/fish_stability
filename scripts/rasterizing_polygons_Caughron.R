@@ -8,6 +8,9 @@ library(foreach)
 library(maps)
 library(maptools)
 
+
+##SETTING UP RASTER FILE##
+
 # read in the ocean
 
 oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
@@ -40,33 +43,64 @@ continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.
 
 
 
+
+
+
+
+
 ## Rasterizing SEAMAP-SA Data ##
+
 
 # reading in SEAMAP sub data
 SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
 
-#subsetting lat long and event ID columns
-Trawl_coord <- SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "EVENTNAME")]
 
-#taking out repeats of the event number
-Trawl_coord <- Trawl_coord[!duplicated(Trawl_coord),]
+
+#subsetting data
+SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART", "COLLECTIONNUMBER", "EVENTNAME", "SPECIESSCIENTIFICNAME", "SPECIESCOMMONNAME", "NUMBERTOTAL", "SPECIESTOTALWEIGHT")]
+
+#adding columns for species richness per event and total biomass per event
+SEAMAP_invest$speciesrichness <- with(SEAMAP_invest, ave(EVENTNAME, EVENTNAME, FUN = length))
+SEAMAP_invest$biomass <-with(SEAMAP_invest, ave(SPECIESTOTALWEIGHT, EVENTNAME, FUN = sum))
+
+#removing repeated collection number rows-- essentially removing each row is species. Invidiual species no longer important
+SEAMAP_nonrepeat <- SEAMAP_invest[!duplicated(SEAMAP_invest$EVENTNAME),]
+
 
 #making coordinates numeric
-Trawl_coord$LATITUDESTART <- as.numeric(as.character(Trawl_coord$LATITUDESTART))
-Trawl_coord$LONGITUDESTART <- as.numeric(as.character(Trawl_coord$LONGITUDESTART))
-Trawl_coord$COLLECTIONNUMBER <- as.numeric(as.character(Trawl_coord$EVENTNAME))
+SEAMAP_nonrepeat$LATITUDESTART <- as.numeric(as.character(SEAMAP_nonrepeat$LATITUDESTART))
+SEAMAP_nonrepeat$LONGITUDESTART <- as.numeric(as.character(SEAMAP_nonrepeat$LONGITUDESTART))
+SEAMAP_nonrepeat$COLLECTIONNUMBER <- as.numeric(as.character(SEAMAP_nonrepeat$EVENTNAME))
+SEAMAP_nonrepeat$speciesrichness <- as.numeric(as.character(SEAMAP_nonrepeat$speciesrichness))
 
 #adding identity column called trawl number
-Trawl_coord$TRAWLNUMBER <- 1
+SEAMAP_nonrepeat$TRAWLNUMBER <- 1
 
 #setting lat and long columns and projection
-coordinates(Trawl_coord) <- ~ LONGITUDESTART + LATITUDESTART
-proj4string(Trawl_coord) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
+coordinates(SEAMAP_nonrepeat) <- ~ LONGITUDESTART + LATITUDESTART
+proj4string(SEAMAP_nonrepeat) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
 
 
-#rasterizing trawl sum data
-Trawl_raster <- rasterize(Trawl_coord, oceans_raster, Trawl_coord$TRAWLNUMBER, fun = "sum")
+#Creating Trawl Density Raster
+Trawl_raster <- rasterize(SEAMAP_nonrepeat, oceans_raster, SEAMAP_nonrepeat$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
+
+#Creating Species Richness Raster
+SpeciesRich_raster <- rasterize(SEAMAP_nonrepeat, oceans_raster, SEAMAP_nonrepeat$speciesrichness, fun=function(x,...)mean(x))
+res(SpeciesRich_raster)
+
+#Creating Biomass Variance Raster
+BiomassVar_raster <- rasterize(SEAMAP_nonrepeat, oceans_raster, SEAMAP_nonrepeat$biomass, fun =function(x,...)var(x))
+res(BiomassVar_raster)
+
+
+
+
+
+
+
+
+
 
 #output PDF with plot
 #pdf('./figures/raster.pdf')

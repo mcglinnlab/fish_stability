@@ -34,6 +34,7 @@ SummaryRes0.3
 
 
 #Extracting TrawlIDs from raster
-WhichRaster <- raster::extract(EVENTNAME, data.frame(x=10, y=10))
-
+vec <- c(1:500)
+WhichRaster <- data.frame(raster::extract(Trawl_raster, vec))
+summary(WhichRaster)
 

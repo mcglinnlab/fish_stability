@@ -26,9 +26,26 @@ m %>% addTiles() %>%
 
 #dev.off()
   
+  
+## Raster Map of Average Species Richness ##
+
+#pdf('./figures/leafletmapraster.pdf')
+pal <- colorNumeric(palette = "YlGnBu", domain = 0:100)
+sp <- leaflet() %>% setView(lng = -79.2532, lat = 32.3484, zoom = 5.8)
+sp %>% addTiles() %>%
+    addRasterImage(SpeciesRich_raster, opacity = 0.8)
+  addLegend("bottomright", values = Trawl_raster$layer, title = "Trawl Density", opacity = 1, pal=pal)
+  
+  #dev.off()
 
 
-
-
+#pdf('./figures/leafletmapraster.pdf')
+pal <- colorNumeric(palette = "YlGnBu", domain = 0:100)
+bv <- leaflet() %>% setView(lng = -79.2532, lat = 32.3484, zoom = 5.8)
+bv %>% addTiles() %>%
+  addRasterImage(BiomassVar_raster, opacity = 0.8)
+  addLegend("bottomright", values = Trawl_raster$layer, title = "Trawl Density", opacity = 1, pal=pal)
+  
+  #dev.off()
 
 
