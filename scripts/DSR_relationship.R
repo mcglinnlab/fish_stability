@@ -14,27 +14,42 @@
 
 
 #Determining how many trawls per raster region
-
 TrawlRasterData <- data.frame(Trawl_raster@data@values)
+  #removing NA values
+#TrawlRasterData <- data.frame(TrawlRasterData[!is.na(TrawlRasterData)])
 
-#removing NA values
-TrawlRasterData <- data.frame(TrawlRasterData[!is.na(TrawlRasterData)])
+#Determining average species richness per raster region
+SpeciesRichRasterData <- data.frame(SpeciesRich_raster@data@values)
+  #removing NA values
+#SpeciesRichRasterData <- data.frame(SpeciesRichRasterData[!is.na(SpeciesRichRasterData)])
+
+#Determining var in total biomass per raster region
+BiomassVarRasterData <- data.frame(BiomassVar_raster@data@values)
+  #removing NA values
+#BiomassVarRasterData <- data.frame(BiomassVarRasterData[!is.na(BiomassVarRasterData)])
+
+#Binding trawl density, average species richness, var in biomass into one data frame
+AvSPasfBioVar <- data.frame(cbind(TrawlRasterData$Trawl_raster.data.values, SpeciesRichRasterData$SpeciesRich_raster.data.values, BiomassVarRasterData$BiomassVar_raster.data.values))
+
+#changing name of the columns from x1, x2, x3 to something useful
+names(AvSPasfBioVar) <- c("TrawlDensity", "AverageSpecRich", "VarTotBiomass")
+
+#plotting var in biomass as a function of average species richness. Removing NAs
+
+plot(AvSPasfBioVar$VarTotBiomass~AvSPasfBioVar$AverageSpecRich, ylab= "Varience in Total Biomass", xlab= "Average Species Richness")
+
+
+
+
+
+
+
+
 
 #Summarizing Different Options
+    #tells me spread of how many trawls in each region and how many regions have trawls in them 
 SummaryRes0.3 <- summary(TrawlRasterData)
 length(TrawlRasterData$TrawlRasterData..is.na.TrawlRasterData..)
 
-#Determining coordinates for each of the rasters
 
-SummaryRes0.1
-SummaryRes0.15
-SummaryRes0.2
-SummaryRes0.25
-SummaryRes0.3
-
-
-#Extracting TrawlIDs from raster
-vec <- c(1:500)
-WhichRaster <- data.frame(raster::extract(Trawl_raster, vec))
-summary(WhichRaster)
 
