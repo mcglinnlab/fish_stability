@@ -36,7 +36,7 @@ names(AvSPasfBioVar) <- c("TrawlDensity", "AverageSpecRich", "VarTotBiomass")
 
 #plotting var in biomass as a function of average species richness. Removing NAs
 
-plot(AvSPasfBioVar$VarTotBiomass~AvSPasfBioVar$AverageSpecRich, ylab= "Varience in Total Biomass", xlab= "Average Species Richness")
+plot(AvSPasfBioVar$VarTotBiomass~AvSPasfBioVar$AverageSpecRich, ylab= "Varience in Total Biomass", xlab= "Average Species Richness", main= "Resolution is 0.2")
 
 
 
