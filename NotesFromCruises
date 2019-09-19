@@ -44,5 +44,5 @@ Important Point ** Some species are sampled better then others. And within some 
 
 9/19/19 - Right now first graph pools all trawls from all years and takes average species richness and var of biomass over all events regardless of year.
     Couple of problems to tackle next : keeping temporal scale is important. How can I do this in code? Needs to group events by year before performing average and var functions. Must be done before input into raster? 
-    Two: effort needs to be standardized. Var obviously going to increase when effort and total species increases. BUT skeleton of code is not laid out for first section. 
+    Two: effort needs to be standardized. Var obviously going to increase when effort and total species increases. BUT skeleton of code is not laid out for first section. Possibly even seen on maps where areas near SC have higher species richness and var. Could be that we just have higher species rich or that it's easier to sample closer to home port and therefore it is sampled more: less weather cancellations. 
     Change in scale easy to change. Just need to change resolution of oceans raster and rerun rasterizing functions for each paramater

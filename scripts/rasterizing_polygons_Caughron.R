@@ -60,8 +60,24 @@ SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
 SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART", "COLLECTIONNUMBER", "EVENTNAME", "SPECIESSCIENTIFICNAME", "SPECIESCOMMONNAME", "NUMBERTOTAL", "SPECIESTOTALWEIGHT")]
 
 #adding columns for species richness per event and total biomass per event
-SEAMAP_invest$speciesrichness <- with(SEAMAP_invest, ave(EVENTNAME, EVENTNAME, FUN = length))
-SEAMAP_invest$biomass <-with(SEAMAP_invest, ave(SPECIESTOTALWEIGHT, EVENTNAME, FUN = sum))
+SEAMAP_invest$speciesrichness <- with(SEAMAP_invest, ave(EVENTNAME, EVENTNAME, FUN = function(x) length(unique(x))))
+SEAMAP_invest$biomass <- with(SEAMAP_invest, ave(SPECIESTOTALWEIGHT, EVENTNAME, FUN = sum))
+
+tst = with(SEAMAP_invest, aggregate(SEAMAP_invest[ , c('weight', 'biomass')],
+          by = list(SPECIESSCIENTIFICNAME, EVENTNAME),
+          function(x) mean(x))
+
+library(dplyr)
+SEAMAP_invest %>%
+  summarize()
+
+dat <- SEAMAP_invest %>%
+  group_by(EVENTNAME) %>%
+  summarize(S = length(unique(SPECIESSCIENTIFICNAME)),
+            biomass = sum(SPECIESTOTALWEIGHT))
+
+
+
 
 #removing repeated collection number rows-- essentially removing each row is species. Invidiual species no longer important
 SEAMAP_nonrepeat <- SEAMAP_invest[!duplicated(SEAMAP_invest$EVENTNAME),]

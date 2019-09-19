@@ -42,14 +42,3 @@ plot(AvSPasfBioVar$VarTotBiomass~AvSPasfBioVar$AverageSpecRich, ylab= "Varience 
 
 
 
-
-
-
-
-#Summarizing Different Options
-    #tells me spread of how many trawls in each region and how many regions have trawls in them 
-SummaryRes0.3 <- summary(TrawlRasterData)
-length(TrawlRasterData$TrawlRasterData..is.na.TrawlRasterData..)
-
-
-
