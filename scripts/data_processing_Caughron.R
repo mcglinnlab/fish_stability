@@ -79,4 +79,38 @@ SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART > -90 & LATITUDESTART < 90)
 #write.csv(SEAMAP_sub, file = "./data/SEAMAP_sub.csv")
 
 
+## creating new data frame where row is unique event and total number of each species are in wide form ##
+
+library(dplyr)
+library(tidyr)
+library(tidyselect)
+library(purrr)
+
+#selecting only needed columns 
+
+SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART", "COLLECTIONNUMBER", "EVENTNAME", "SPECIESSCIENTIFICNAME", "SPECIESCOMMONNAME", "NUMBERTOTAL", "SPECIESTOTALWEIGHT")]
+
+# adding columns that sums number of species and total biomass grouped by eventname
+
+dat <- SEAMAP_invest %>%
+  group_by(EVENTNAME) %>%
+  summarize(S = length(unique(SPECIESSCIENTIFICNAME)),
+            biomass = sum(SPECIESTOTALWEIGHT),
+            date = unique(DATE),
+            lat = unique(LATITUDESTART),
+            long = unique((LONGITUDESTART)))
+
+#changing species total numbers from long form to wide form 
+
+s_wide <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
+
+#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
+
+s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME, NUMBERTOTAL, aggfunc = sum)
+
+s_spread <- left_join(dat, s_group, by='EVENTNAME')
+
+#Export s_spread to csv
+#write.csv(s_spread, file = "./data/s_spread.csv")
+
 

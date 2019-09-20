@@ -56,31 +56,10 @@ SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
 
 
 
-#subsetting data
-SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART", "COLLECTIONNUMBER", "EVENTNAME", "SPECIESSCIENTIFICNAME", "SPECIESCOMMONNAME", "NUMBERTOTAL", "SPECIESTOTALWEIGHT")]
-
-#adding columns for species richness per event and total biomass per event
-SEAMAP_invest$speciesrichness <- with(SEAMAP_invest, ave(EVENTNAME, EVENTNAME, FUN = function(x) length(unique(x))))
-SEAMAP_invest$biomass <- with(SEAMAP_invest, ave(SPECIESTOTALWEIGHT, EVENTNAME, FUN = sum))
-
-tst = with(SEAMAP_invest, aggregate(SEAMAP_invest[ , c('weight', 'biomass')],
-          by = list(SPECIESSCIENTIFICNAME, EVENTNAME),
-          function(x) mean(x))
-
-library(dplyr)
-SEAMAP_invest %>%
-  summarize()
-
-dat <- SEAMAP_invest %>%
-  group_by(EVENTNAME) %>%
-  summarize(S = length(unique(SPECIESSCIENTIFICNAME)),
-            biomass = sum(SPECIESTOTALWEIGHT))
-
-
-
+########### need to rework rasterize now that data frame is changed ############
 
 #removing repeated collection number rows-- essentially removing each row is species. Invidiual species no longer important
-SEAMAP_nonrepeat <- SEAMAP_invest[!duplicated(SEAMAP_invest$EVENTNAME),]
+#SEAMAP_nonrepeat <- SEAMAP_invest[!duplicated(SEAMAP_invest$EVENTNAME),]
 
 
 #making coordinates numeric
@@ -110,6 +89,28 @@ BiomassVar_raster <- rasterize(SEAMAP_nonrepeat, oceans_raster, SEAMAP_nonrepeat
 res(BiomassVar_raster)
 
 
+#Creating Identity Raster
+
+vals <- 1:ncell(oceans_raster)
+oceans_raster <- setValues(oceans_raster, vals)
+rd <- data.frame(oceans_raster@data@values)
+plot(oceans_raster)
+res(oceans_raster)
+
+
+## can make example work but can't make it work for my data. Only NAs are being returned. 
+
+coord_trawls <- data.frame(cbind(s_spread$lat, s_spread$long))
+names(coord_trawls) <- c('lat', 'long')
+coord_trawls$lat <- as.numeric(as.character(coord_trawls$lat))
+coord_trawls$long <- as.numeric(as.character(coord_trawls$long))
+coordinates(coord_trawls) <- ~ lat + long
+raster_values <-raster::extract(oceans_raster$layer, coord_trawls, df = T)
+
+
+r <- raster(ncol=36, nrow=18, vals=1:(18*36))
+re <- raster::extract(r, coord_trawls, df = T)
+plot(r)
 
 
 
