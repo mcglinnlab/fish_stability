@@ -54,10 +54,10 @@ s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
 
 
 #making coordinates numeric
-s_spread$lat <- as.numeric(as.character(s_spread$lat))
-s_spread$long <- as.numeric(as.character(s_spread$long))
-s_spread$EVENTNAME <- as.numeric(as.character(s_spread$EVENTNAME))
-s_spread$S <- as.numeric(as.character(s_spread$S))
+s_spread$lat <- as.numeric(s_spread$lat)
+s_spread$long <- as.numeric(s_spread$long)
+s_spread$EVENTNAME <- as.character(s_spread$EVENTNAME)
+s_spread$S <- as.numeric(s_spread$S)
 
 #adding identity column called trawl number
 s_spread$TRAWLNUMBER <- 1
@@ -91,21 +91,13 @@ plot(oceans_raster)
 res(oceans_raster)
 
 
-## can make example work but can't make it work for my data. Only NAs are being returned. 
+#pulling cell IDs for each of the trawls for 0.2 res raster
 
-coord_trawls <- data.frame(cbind(s_spread$lat, s_spread$long))
+coord_trawls <- data.frame(cbind(s_spread$long, s_spread$lat))
 coord_trawls <- SpatialPoints(coord_trawls, proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
-raster_values <-raster::extract(oceans_raster, coord_trawls, df = T)
-
-crs(coord_trawls)
+raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
 
 
-#made up raster to test if it works with another raster and it does. 
-#Not sure why it will work here and not with oceans raster
-
-r <- raster(ncol=36, nrow=18, vals=1:(18*36))
-re <- raster::extract(r, coord_trawls, df = T)
-plot(r)
 
 
 
