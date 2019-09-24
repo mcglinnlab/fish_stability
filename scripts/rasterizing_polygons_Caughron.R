@@ -46,21 +46,11 @@ continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.
 
 
 
-
-
-
 ## Rasterizing SEAMAP-SA Data ##
+    # data frame created in data_processing_Caughron
 
-
-# reading in SEAMAP sub data
-SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
-
-
-
-########### need to rework rasterize now that data frame is changed ############
-
-#removing repeated collection number rows-- essentially removing each row is species. Invidiual species no longer important
-#SEAMAP_nonrepeat <- SEAMAP_invest[!duplicated(SEAMAP_invest$EVENTNAME),]
+#read in s_spread
+s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
 
 
 #making coordinates numeric
