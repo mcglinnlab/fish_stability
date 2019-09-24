@@ -90,6 +90,14 @@ library(purrr)
 
 SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART", "COLLECTIONNUMBER", "EVENTNAME", "SPECIESSCIENTIFICNAME", "SPECIESCOMMONNAME", "NUMBERTOTAL", "SPECIESTOTALWEIGHT")]
 
+
+
+## creating working data frame with summed biomass, unique event names species richness column and species in wide form
+
+#columns to be added
+    #raster ids for different resolutions
+
+
 # adding columns that sums number of species and total biomass grouped by eventname
 
 dat <- SEAMAP_invest %>%
@@ -108,7 +116,7 @@ s_wide <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
 
 s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME, NUMBERTOTAL, aggfunc = sum)
 
-s_spread <- left_join(dat, s_group, by='EVENTNAME')
+s_spread <- data.frame(left_join(dat, s_group, by='EVENTNAME'))
 
 #Export s_spread to csv
 #write.csv(s_spread, file = "./data/s_spread.csv")

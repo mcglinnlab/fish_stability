@@ -2,6 +2,7 @@
 
 library(rgdal)
 library(sp)
+library(sf)
 library(raster)
 library(doParallel) 
 library(foreach)
@@ -27,7 +28,7 @@ res(oceans_raster) <- .2
 
 #crop extent of the oceans raster
 
-extent <- extent(-87,-75,20,40)
+extent <- extent(-85,-75,25,40)
 oceans_raster <- crop(oceans_raster, extent)
 
 # saving the world raster grid
@@ -63,31 +64,33 @@ SEAMAP_sub <- read.csv('./data/SEAMAP_sub.csv')
 
 
 #making coordinates numeric
-SEAMAP_nonrepeat$LATITUDESTART <- as.numeric(as.character(SEAMAP_nonrepeat$LATITUDESTART))
-SEAMAP_nonrepeat$LONGITUDESTART <- as.numeric(as.character(SEAMAP_nonrepeat$LONGITUDESTART))
-SEAMAP_nonrepeat$COLLECTIONNUMBER <- as.numeric(as.character(SEAMAP_nonrepeat$EVENTNAME))
-SEAMAP_nonrepeat$speciesrichness <- as.numeric(as.character(SEAMAP_nonrepeat$speciesrichness))
+s_spread$lat <- as.numeric(as.character(s_spread$lat))
+s_spread$long <- as.numeric(as.character(s_spread$long))
+s_spread$EVENTNAME <- as.numeric(as.character(s_spread$EVENTNAME))
+s_spread$S <- as.numeric(as.character(s_spread$S))
 
 #adding identity column called trawl number
-SEAMAP_nonrepeat$TRAWLNUMBER <- 1
+s_spread$TRAWLNUMBER <- 1
 
 #setting lat and long columns and projection
-coordinates(SEAMAP_nonrepeat) <- ~ LONGITUDESTART + LATITUDESTART
-proj4string(SEAMAP_nonrepeat) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
+coordinates(s_spread) <- ~ long + lat
+proj4string(s_spread) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
 
 
 #Creating Trawl Density Raster
-Trawl_raster <- rasterize(SEAMAP_nonrepeat, oceans_raster, SEAMAP_nonrepeat$TRAWLNUMBER, fun = "sum")
+Trawl_raster <- rasterize(s_spread, oceans_raster, s_spread$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
+plot(Trawl_raster)
 
 #Creating Species Richness Raster
-SpeciesRich_raster <- rasterize(SEAMAP_nonrepeat, oceans_raster, SEAMAP_nonrepeat$speciesrichness, fun=function(x,...)mean(x))
+SpeciesRich_raster <- rasterize(s_spread, oceans_raster, s_spread$S, fun=function(x,...)mean(x))
 res(SpeciesRich_raster)
+plot(SpeciesRich_raster)
 
 #Creating Biomass Variance Raster
-BiomassVar_raster <- rasterize(SEAMAP_nonrepeat, oceans_raster, SEAMAP_nonrepeat$biomass, fun =function(x,...)var(x))
+BiomassVar_raster <- rasterize(s_spread, oceans_raster, s_spread$biomass, fun =function(x,...)var(x))
 res(BiomassVar_raster)
-
+plot(BiomassVar_raster)
 
 #Creating Identity Raster
 
@@ -101,57 +104,19 @@ res(oceans_raster)
 ## can make example work but can't make it work for my data. Only NAs are being returned. 
 
 coord_trawls <- data.frame(cbind(s_spread$lat, s_spread$long))
-names(coord_trawls) <- c('lat', 'long')
-coord_trawls$lat <- as.numeric(as.character(coord_trawls$lat))
-coord_trawls$long <- as.numeric(as.character(coord_trawls$long))
-coordinates(coord_trawls) <- ~ lat + long
-raster_values <-raster::extract(oceans_raster$layer, coord_trawls, df = T)
+coord_trawls <- SpatialPoints(coord_trawls, proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
+raster_values <-raster::extract(oceans_raster, coord_trawls, df = T)
 
+crs(coord_trawls)
+
+
+#made up raster to test if it works with another raster and it does. 
+#Not sure why it will work here and not with oceans raster
 
 r <- raster(ncol=36, nrow=18, vals=1:(18*36))
 re <- raster::extract(r, coord_trawls, df = T)
 plot(r)
 
-
-
-
-
-
-
-
-#output PDF with plot
-#pdf('./figures/raster.pdf')
-#plot(Trawl_raster)
-#dev.off()
-
-
-#saving Trawl Raster File
-#save(Trawl_raster, file = './data/raster/trawl_raster.Rdata')
-#load('./data/raster/trawl_raster.Rdata')
-
-
-
-# Enivironmental variables
-
-# create a temperature raster
-#temp <- read.csv('./data/environmentaldata/temp.csv')
-#temp$Meandepth <- rowMeans(temp[,3:87], na.rm = TRUE)
-#coordinates(temp) <- ~LONGITUDE + LATITUDE
-#proj4string(temp) <- "+proj=longlat +datum=WGS84"
-#temp <- spTransform(temp, CRS("+proj=cea +units=km"))
-#temp_raster <- rasterize(temp, oceans_raster, 'Meandepth')
-#save(temp_raster, file = './data/raster/temp_raster.Rdata')
-#load('./data/raster/temp_raster.Rdata')
-
-# create a salinity raster
-#salinity <- read.csv('./data/environmentaldata/salinity.csv')
-#salinity$Meandepth <- rowMeans(salinity[,3:86], na.rm = TRUE)
-#coordinates(salinity) <- ~ Longitude + Latitude
-#proj4string(salinity) <- "+proj=longlat +datum=WGS84"
-#salinity <- spTransform(salinity, CRS("+proj=cea +units=km"))
-#salinity_raster <- rasterize(salinity, oceans_raster, 'Meandepth')
-#save(salinity_raster, file = './data/raster/salinity_raster.Rdata')
-#load('./data/raster/salinity_raster.Rdata')
 
 
 

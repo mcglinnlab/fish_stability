@@ -1,6 +1,8 @@
 
 #DSR Relationship
 
+#######  need to rethink and rework this part in context of new data structure  ######
+
 #load data needed: data organized into raster regions, varience in biomass through time for raster region and
 #cumulative diversity for raster region
 
