@@ -98,6 +98,11 @@ coord_trawls <- SpatialPoints(coord_trawls, proj4string = CRS("+proj=longlat +la
 raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
 
 
+# repeat process for multiple resolutions
+#join cellID vectors for each resolution in data frame called cellIDs
+#join cellIDs data frame with s_spread
+#s_spread should be ready for analysis
+
 
 
 
