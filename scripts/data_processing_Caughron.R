@@ -64,19 +64,28 @@ names(gd_sci_names) = 'species'
 SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME %in% gd_sci_names$species)
 
 
-#Merge species names that were inconsistently used
-anchoa_rows = grep('ANCHOA', SEAMAP_sub$SPECIESSCIENTIFICNAME)
-SEAMAP_sub$SPECIESSCIENTIFICNAME[anchoa_rows] = 'ANCHOA'
+#Merge species names that were inconsistently used scientific names
+anchoa_rows_sci = grep('ANCHOA', SEAMAP_sub$SPECIESSCIENTIFICNAME)
+SEAMAP_sub$SPECIESSCIENTIFICNAME[anchoa_rows_sci] = 'ANCHOA'
+
+#Merge species names that were inconsistently used common names
+anchoa_rows_com = grep('ANCHOVY', SEAMAP_sub$SPECIESCOMMONNAME)
+SEAMAP_sub$SPECIESCOMMONNAME[anchoa_rows_com] = 'ANCHOA SPP'
+anchoa_rows_com = grep('ANCHOVIES', SEAMAP_sub$SPECIESCOMMONNAME)
+SEAMAP_sub$SPECIESCOMMONNAME[anchoa_rows_com] = 'ANCHOA SPP'
 
 
 
 #find and remove rows with nonlogical coordinates
 apply(SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")],2, summary)
-SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART > -90 & LATITUDESTART < 90)
+SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART < -90 & LATITUDESTART < 90)
 
 
 #Export SEAMAP_sub to csv
-#write.csv(SEAMAP_sub, file = "./data/SEAMAP_sub.csv")
+write.csv(SEAMAP_sub, file = "./data/SEAMAP_sub.csv")
+
+#read in SEAMAP_sub
+SEAMAP_sub <-read.csv("~./fish_stability/data/SEAMAP_sub.csv", header = T)
 
 
 ## creating new data frame where row is unique event and total number of each species are in wide form ##
@@ -103,7 +112,7 @@ SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART"
 dat <- SEAMAP_invest %>%
   group_by(EVENTNAME) %>%
   summarize(S = length(unique(SPECIESSCIENTIFICNAME)),
-            biomass = sum(SPECIESTOTALWEIGHT),
+            biomass = sum(as.numeric(SPECIESTOTALWEIGHT)),
             date = unique(DATE),
             lat = unique(LATITUDESTART),
             long = unique((LONGITUDESTART)))
@@ -114,7 +123,11 @@ s_wide <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
 
 #function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
 
-s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME, NUMBERTOTAL, aggfunc = sum)
+s_wide$EVENTNAME <-as.character(s_wide$EVENTNAME)
+s_wide$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
+s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
+
+s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, aggfunc = sum)
 
 s_spread <- data.frame(left_join(dat, s_group, by='EVENTNAME'))
 
