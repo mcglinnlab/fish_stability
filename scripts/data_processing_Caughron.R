@@ -82,7 +82,7 @@ SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART < -90 & LATITUDESTART < 90)
 
 
 #Export SEAMAP_sub to csv
-write.csv(SEAMAP_sub, file = "./data/SEAMAP_sub.csv")
+#write.csv(SEAMAP_sub, file = "./data/SEAMAP_sub.csv")
 
 #read in SEAMAP_sub
 SEAMAP_sub <-read.csv("~./fish_stability/data/SEAMAP_sub.csv", header = T)
@@ -117,17 +117,20 @@ dat <- SEAMAP_invest %>%
             lat = unique(LATITUDESTART),
             long = unique((LONGITUDESTART)))
 
+dat$EVENTNAME <-as.character(dat$EVENTNAME)
 #changing species total numbers from long form to wide form 
 
 s_wide <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
 
 #function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
+#run function found in script spread_function
 
 s_wide$EVENTNAME <-as.character(s_wide$EVENTNAME)
 s_wide$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
 s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
 
 s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, aggfunc = sum)
+
 
 s_spread <- data.frame(left_join(dat, s_group, by='EVENTNAME'))
 

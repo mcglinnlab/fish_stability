@@ -64,7 +64,6 @@ s_spread$TRAWLNUMBER <- 1
 
 #setting lat and long columns and projection
 coordinates(s_spread) <- ~ long + lat
-proj4string(s_spread) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6"
 
 
 #Creating Trawl Density Raster
@@ -88,7 +87,6 @@ vals <- 1:ncell(oceans_raster)
 oceans_raster <- setValues(oceans_raster, vals)
 rd <- data.frame(oceans_raster@data@values)
 plot(oceans_raster)
-res(oceans_raster)
 
 
 #pulling cell IDs for each of the trawls for 0.2 res raster
