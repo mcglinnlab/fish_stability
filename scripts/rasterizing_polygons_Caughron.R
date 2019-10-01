@@ -66,10 +66,14 @@ s_spread$TRAWLNUMBER <- 1
 coordinates(s_spread) <- ~ long + lat
 
 
-#Creating Trawl Density Raster
+#Creating Trawl Density Raster 
 Trawl_raster <- rasterize(s_spread, oceans_raster, s_spread$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
 plot(Trawl_raster)
+Trawl_raster@data@values <- Trawl_raster@data@values[!is.na(Trawl_raster@data@values)]
+hist(Trawl_raster@data@values, breaks =25)
+summary(Trawl_raster@data@values)
+length(Trawl_raster@data@values)
 
 #Creating Species Richness Raster
 SpeciesRich_raster <- rasterize(s_spread, oceans_raster, s_spread$S, fun=function(x,...)mean(x))

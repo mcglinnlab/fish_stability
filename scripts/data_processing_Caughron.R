@@ -131,10 +131,27 @@ s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
 
 s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, aggfunc = sum)
 
+#Export s_group to csv
+write.csv(s_group, file = "./data/s_group.csv")
+
+
+# Wide form including individual number
 
 s_spread <- data.frame(left_join(dat, s_group, by='EVENTNAME'))
 
 #Export s_spread to csv
 #write.csv(s_spread, file = "./data/s_spread.csv")
+
+
+#Creating presence/absence wide form for rarefaction 
+s_rarefac <- data.frame(s_group[,3:204])
+s_rarefac[is.na(s_rarefac)] <-0
+s_rarefac[s_rarefac >0] <- 1
+s_rarefac <- cbind(s_group$EVENTNAME, s_rarefac)
+colnames(s_rarefac)[colnames(s_rarefac)== 's_group$EVENTNAME'] <- "EVENTNAME"
+s_rarefac <- data.frame(left_join(dat, s_rarefac, by='EVENTNAME'))
+
+#Export s_rarefac to csv
+#write.csv(s_rarefac, file = "./data/s_rarefac.csv")
 
 
