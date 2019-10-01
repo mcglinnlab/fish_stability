@@ -41,11 +41,11 @@ sapply(mods$models, AIC)
 
 #load s_rarefac
 s_rarefac <- read.csv('~./fish_stability/data/s_rarefac.csv', header = T)
-s_rarefac <- s_rarefac[,8:209]
+s_rarefac_sp <- s_rarefac[,8:209]
 
 
-SP1 <- specaccum(s_rarefac)
-SP2 <- specaccum(s_rarefac, "random")
+SP1 <- specaccum(s_rarefac_sp)
+SP2 <- specaccum(s_rarefac_sp, "random")
 plot(SP1, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue")
 #boxplot(SP2, col="yellow", add=TRUE, pch="+")
 
@@ -56,12 +56,12 @@ plot(SP1)
 ## Add Lomolino model using argument 'add'
 plot(mod1, add = TRUE, col=2, lwd=2)
 ## Fit Arrhenius models to all random accumulations
-#mods <- fitspecaccum(SP2, "arrh")
-#plot(mods, col="hotpink")
+mods <- fitspecaccum(SP2, "arrh")
+plot(mods, col="hotpink")
 #boxplot(SP2, col = "yellow", border = "blue", lty=1, cex=0.3, add= TRUE)
 ## Use nls() methods to the list of models
 AICs <- as.data.frame(sapply(mods$models, AIC))
-
+summary(AICs)
 
 
 
