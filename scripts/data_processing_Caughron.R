@@ -115,7 +115,8 @@ dat <- SEAMAP_invest %>%
             biomass = sum(as.numeric(SPECIESTOTALWEIGHT)),
             date = unique(DATE),
             lat = unique(LATITUDESTART),
-            long = unique((LONGITUDESTART)))
+            long = unique(LONGITUDESTART),
+            year = unique(Year))
 
 dat$EVENTNAME <-as.character(dat$EVENTNAME)
 #changing species total numbers from long form to wide form 
@@ -132,7 +133,7 @@ s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
 s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, aggfunc = sum)
 
 #Export s_group to csv
-write.csv(s_group, file = "./data/s_group.csv")
+#write.csv(s_group, file = "./data/s_group.csv")
 
 
 # Wide form including individual number
