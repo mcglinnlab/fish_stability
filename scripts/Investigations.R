@@ -2,6 +2,7 @@
 
 library(tmap)
 
+s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 
 #average species richness map 0.2 for poster
 
@@ -19,7 +20,7 @@ xyplot(s_rarefac$biomass ~ s_rarefac$S, groups = s_rarefac$year)
 
 #sig  
 lm1989 <- lm(s_rarefac$biomass[s_rarefac$year == '1989'] ~ s_rarefac$S[s_rarefac$year == '1989'])
-plot(s_rarefac$biomass[s_rarefac$year == '1989'] ~ s_rarefac$S[s_rarefac$year == '1989'])
+plot(s_rarefac$biomass[s_rarefac$year == '1989'] ~ s_rarefac$S[s_rarefac$year == '1989'], xlab = "Species Richness", ylab = "Total Biomass (kg)")
 abline(lm1989$coefficients)
 summary(lm1989)
 
@@ -103,7 +104,7 @@ summary(lm2002)
 
 #sig
 lm2003 <- lm(s_rarefac$biomass[s_rarefac$year == '2003'] ~ s_rarefac$S[s_rarefac$year == '2003'])
-plot(s_rarefac$biomass[s_rarefac$year == '2003'] ~ s_rarefac$S[s_rarefac$year == '2003'])
+plot(s_rarefac$biomass[s_rarefac$year == '2003'] ~ s_rarefac$S[s_rarefac$year == '2003'], xlab = 'Species Richness', ylab = 'Total Biomass (kg)')
 abline(lm2003$coefficients)
 summary(lm2003)
 
@@ -111,8 +112,9 @@ summary(lm2003)
 #notsig
 lm2004t <- lm(s_rarefac$biomass[s_rarefac$year == '2004'] ~ s_rarefac$S[s_rarefac$year == '2004'])
 summary(lm2004t)
-lm2004 <- lm(s_rarefac$biomass[s_rarefac$year == '2004'] ~ poly(s_rarefac$S[s_rarefac$year == '2004'], 2))
+lm2004 <- lm(s_rarefac$biomass[s_rarefac$year == '2004'] ~ poly(s_rarefac$S[s_rarefac$year == '2004'],2))
 plot(s_rarefac$biomass[s_rarefac$year == '2004'] ~ s_rarefac$S[s_rarefac$year == '2004'])
+abline(lm2004t$coefficients)
 lines(s_rarefac$S[s_rarefac$year== '2004'], lm2004$fitted.values)
 summary(lm2004)
 
@@ -154,7 +156,7 @@ summary(lm2010)
 
 #notsig
 lm2011 <- lm(s_rarefac$biomass[s_rarefac$year == '2011'] ~ s_rarefac$S[s_rarefac$year == '2011'])
-plot(s_rarefac$biomass[s_rarefac$year == '2011'] ~ s_rarefac$S[s_rarefac$year == '2011'])
+plot(s_rarefac$biomass[s_rarefac$year == '2011'] ~ s_rarefac$S[s_rarefac$year == '2011'], xlab = 'Species Richness', ylab = 'Total Biomass (kg)')
 abline(lm2011$coefficients)
 summary(lm2011)
 
@@ -182,31 +184,35 @@ plot(s_rarefac$biomass[s_rarefac$year == '2015'] ~ s_rarefac$S[s_rarefac$year ==
 abline(lm2015$coefficients)
 summary(lm2015)
 
-plot(0:50, seq(from = 0, to = 1000, by = 20), type = "n", xlab = "Average Species Richness", ylab = "Total Biomass (kg)")
-#abline(lm2015$coefficients, col = "green")
-abline(lm2014$coefficients, col = 'green')
-abline(lm2013$coefficients, col = "green")
-#abline(lm2012$coefficients, col = "green")
-#abline(lm2011$coefficients)
-abline(lm2010$coefficients, col = "green")
-#abline(lm2009$coefficients)
-#abline(lm2008$coefficients, col = "green")
-#abline(lm2007$coefficients, col = "red")
-#abline(lm2006$coefficients, col = "red")
-abline(lm2005$coefficients, col = "red")
-#abline(lm2004t$coefficients, col = "red")
-abline(lm2003$coefficients, col = "red")
-abline(lm2002$coefficients, col = "green")
-abline(lm2001$coefficients, col = "green")
-abline(lm2000$coefficients, col = "green")
-abline(lm1999$coefficients, col = 'green')
-abline(lm1998$coefficients, col = 'green')
+plot(0:50, seq(from = 0, to = 1000, by = 20), type = "n", xlab = "Species Richness", ylab = "Total Biomass (kg)")
+abline(lm2015$coefficients)
+abline(lm2014$coefficients, col = 'green', lwd = 3)
+abline(lm2013$coefficients, col = "green", lwd = 3)
+abline(lm2012$coefficients)
+abline(lm2011$coefficients)
+abline(lm2010$coefficients, col = "green", lwd = 3)
+abline(lm2009$coefficients)
+abline(lm2008$coefficients)
+abline(lm2007$coefficients)
+abline(lm2006$coefficients)
+abline(lm2005$coefficients, col = "red", lwd = 3)
+abline(lm2004t$coefficients)
+abline(lm2003$coefficients, col = "red", lwd = 3)
+abline(lm2002$coefficients, col = "green", lwd = 3)
+abline(lm2001$coefficients, col = "green", lwd = 3)
+abline(lm2000$coefficients, col = "green", lwd = 3)
+abline(lm1999$coefficients, col = 'green', lwd = 3)
+abline(lm1998$coefficients, col = 'green', lwd = 3)
 abline(lm1997$coefficients, col = 'green')
-abline(lm1996$coefficients, col ="green")
-abline(lm1995$coefficients, col = 'green')
-abline(lm1994$coefficients, col = 'green')
-#abline(lm1993$coefficients, col = 'green')
-abline(lm1992$coefficients, col = 'green')
-abline(lm1991$coefficients, col = "green")
-abline(lm1990$coefficients, col = 'green')
-abline(lm1989$coefficients, col = "green")
+abline(lm1996$coefficients, col ="green", lwd = 3)
+abline(lm1995$coefficients, col = 'green', lwd = 3)
+abline(lm1994$coefficients, col = 'green', lwd = 3)
+abline(lm1993$coefficients)
+abline(lm1992$coefficients, col = 'green', lwd = 3)
+abline(lm1991$coefficients, col = "green", lwd = 3)
+abline(lm1990$coefficients, col = 'green', lwd =3)
+abline(lm1989$coefficients, col = "green", lwd = 3)
+
+
+
+

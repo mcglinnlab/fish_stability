@@ -156,3 +156,4 @@ s_rarefac <- data.frame(left_join(dat, s_rarefac, by='EVENTNAME'))
 #write.csv(s_rarefac, file = "./data/s_rarefac.csv")
 
 
+
