@@ -112,7 +112,7 @@ SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART"
 dat <- SEAMAP_invest %>%
   group_by(EVENTNAME) %>%
   summarize(S = length(unique(SPECIESSCIENTIFICNAME)),
-            biomass = sum(as.numeric(SPECIESTOTALWEIGHT)),
+            biomass = sum(as.numeric(SPECIESTOTALWEIGHT), na.rm = T),
             date = unique(DATE),
             lat = unique(LATITUDESTART),
             long = unique(LONGITUDESTART),

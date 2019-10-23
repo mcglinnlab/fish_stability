@@ -1,15 +1,36 @@
 #Trying some things 
 
 library(tmap)
+library(lattice)
+library(cartography)
+library(maps)
+library(ggplot2)
+library(sp)
+library(maptools)
+library(tmaptools)
+
+usa <-map_data("usa")
 
 s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
+
+data(tmap.pal.info)
+palette_explorer()
 
 #average species richness map 0.2 for poster
 
 tm_shape(SpeciesRich_raster) +
   tm_raster(title = "Average Species Richness") +
 tm_shape(continents) +
-  tm_borders(lwd = 0.5)
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom"))
+
+#trawl density richness map 0.2 for poster
+#tm_mode()
+tm_shape(Trawl_raster) +
+  tm_raster(title = "Trawl Density", palette = 'YlGnBu') +
+  tm_shape(continents, bbox = extent) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position=c("left", "bottom"))
 
 
 #species richness versus biomass graph for poster
@@ -215,4 +236,53 @@ abline(lm1989$coefficients, col = "green", lwd = 3)
 
 
 
+plot(0:50, seq(from = 0, to = 1000, by = 20), type = "n", xlab = "Species Richness", ylab = "Total Biomass (kg)")
+abline(lm2015$coefficients)
+abline(lm2014$coefficients, col = 'green')
+abline(lm2013$coefficients, col = "green")
+abline(lm2012$coefficients)
+abline(lm2011$coefficients)
+abline(lm2010$coefficients, col = "green")
+abline(lm2009$coefficients)
+abline(lm2008$coefficients)
+abline(lm2007$coefficients)
+abline(lm2006$coefficients)
+abline(lm2005$coefficients, col = "red")
+abline(lm2004t$coefficients)
+abline(lm2003$coefficients, col = "red")
+abline(lm2002$coefficients, col = "green")
+abline(lm2001$coefficients, col = "green")
+abline(lm2000$coefficients, col = "green")
+abline(lm1999$coefficients, col = 'green')
+abline(lm1998$coefficients, col = 'green')
+abline(lm1997$coefficients, col = 'green')
+abline(lm1996$coefficients, col ="green")
+abline(lm1995$coefficients, col = 'green')
+abline(lm1994$coefficients, col = 'green')
+abline(lm1993$coefficients)
+abline(lm1992$coefficients, col = 'green')
+abline(lm1991$coefficients, col = "green")
+abline(lm1990$coefficients, col = 'green')
+abline(lm1989$coefficients, col = "green")
 
+
+
+averagebiomass <- as.data.frame(aggregate(s_rarefac$biomass, list(s_rarefac$year), mean))
+biomasssd <- as.data.frame(aggregate(s_rarefac$biomass, list(s_rarefac$year), sd))
+biomasssd$half <- biomasssd$x/2
+plot(averagebiomass$x~averagebiomass$Group.1)
+barplot(averagebiomass$x/2, averagebiomass$Group.1, xlab = "Year:1989 - 2015", ylab= "Average Biomass Per Trawl (kg)")
+plot(s_rarefac$biomass~s_rarefac$year)
+
+#plot for poster
+plot(averagebiomass$Group.1, averagebiomass$x, xlab = "Year", ylab= "Average Biomass Per Trawl Event (kg)", type = "o", col = "red")
+par(new = TRUE)
+plot(averagespeciesrichness$Group.1, averagespeciesrichness$x, type = 'o', col='blue', axes=F, frame.plot=F, xlab='', ylab='')
+axis(side=4, ylab = "Average Species Richness")
+mtext("Average Species Richness Per Trawl Event", side=4, line = 3)
+legend("top",legend=c("Biomass", "Species Richness"), col=c("red", "blue"), lty=1, cex=0.8)
+
+totalbiomass <- as.data.frame(aggregate(s_rarefac$biomass, list(s_rarefac$year), sum))
+barplot(totalbiomass$x, totalbiomass$Group.1)
+
+averagespeciesrichness <- as.data.frame(aggregate(s_rarefac$S, list(s_rarefac$year), mean))
