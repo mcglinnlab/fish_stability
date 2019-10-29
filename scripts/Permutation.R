@@ -19,21 +19,22 @@ varbio <- NULL
 averagevarbio <- NULL
 NEW.df <- NULL
 
+#pulling out events for specific years
 for (i in 1989:2015) {
   yearpull <- ID.df[ID.df$year == "i",]
-  
+  #pulling out events from each raster region
   for (i in min(raster_values0.2):max(raster_values0.2)) {
     
     eventsavail <- yearpull$event[yearpull$pointresID == "i"]
-    
+    #permutation
     for (i in 1:1000) {
-      
+        #rasters with densities less then arbitrary threshold (for now)
       if(length(eventsavail) < 5) {
         
       averageS <- mean(yearpull$S[yearpull$event == "c(eventavail)"])
       averagebio <- mean(yearpull$biomass[yearpull$event == "c(eventavail)"])
       varbio <- var(yearpull$biomass[yearpull$event == "c(eventavail)"])
-      
+      #rasters that require subsampling
       } else{
         
       event <- sample(eventsavail, 5, replace = F)
@@ -42,6 +43,7 @@ for (i in 1989:2015) {
       varbio <- var(yearpull$biomass[yearpull$eventname == "c(event)"])
       }
     }
+    #creating new data frame with new averages for S, biomass, var biomass, and raster ID
     ID <- i
     averageS <- mean (averageS)
     averagebio <- mean(averagebio)
