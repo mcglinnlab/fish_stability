@@ -2,23 +2,50 @@
 
 #series of three for loops accounting for year, grid ID, and then permutation of selecting events
 
-for (i in 1989:2015)
-{
-  yearpull <- ID.df[ID.df$year == "i",columns of S biomass ID]
-  for (i in 1: #number of trawl IDs)
-  {
-    eventsavailforchoosing <- ID.df$eventnumber[ID.df$ID == "i"]
-    for (i in 1:1000)
-    {
-      event <- sample( eventsavail, eventthreshold, replace = F)
-      averageS <- mean(ID.df$S[ID.df$eventname == "c(event)"])
-      averagebio <- mean(ID.df$biomass[ID.df$eventname == "c(event)"])
-      varbiomass <- var(ID.df$biomass[ID.df$eventname == "c(event)"])
+## resolving sampling for 0.2 resolution ##
+#s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
+raster_values0.2 <- read.csv("~./fish_stability/data/raster_values0.2.csv", header = T)
+raster_values0.2 <- raster_values0.2[,2:3]
+
+ID.df <- as.data.frame(cbind(s_rarefac$EVENTNAME,s_rarefac$year, raster_values0.2$layer, s_rarefac$S, s_rarefac$biomass))
+colnames(ID.df) <- c("event","year", "point2resID", "S", "biomass")
+
+yearpull <- NULL
+eventsavail <- NULL
+event <- NULL
+averageS <- NULL
+averagebio <- NULL
+varbio <- NULL
+averagevarbio <- NULL
+NEW.df <- NULL
+
+for (i in 1989:2015) {
+  yearpull <- ID.df[ID.df$year == "i",]
+  
+  for (i in min(raster_values0.2):max(raster_values0.2)) {
+    
+    eventsavail <- yearpull$event[yearpull$pointresID == "i"]
+    
+    for (i in 1:1000) {
+      
+      if(length(eventsavail) < 5) {
+        
+      averageS <- mean(yearpull$S[yearpull$event == "c(eventavail)"])
+      averagebio <- mean(yearpull$biomass[yearpull$event == "c(eventavail)"])
+      varbio <- var(yearpull$biomass[yearpull$event == "c(eventavail)"])
+      
+      } else{
+        
+      event <- sample(eventsavail, 5, replace = F)
+      averageS <- mean(yearpull$S[yearpull$eventname == "c(event)"])
+      averagebio <- mean(yearpull$biomass[yearpull$eventname == "c(event)"])
+      varbio <- var(yearpull$biomass[yearpull$eventname == "c(event)"])
+      }
     }
+    ID <- i
     averageS <- mean (averageS)
     averagebio <- mean(averagebio)
     averagevarbio <- mean(varbiomass)
-    NEW.df <- as.data.frame(cbind(ID, averageS, averagebio, averagevarbio))
-    
-  }
+    NEW.df <- as.data.frame(cbind(pointresID, averageS, averagebio, averagevarbio))
+ }
 }

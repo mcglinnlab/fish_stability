@@ -99,7 +99,7 @@ coord_trawls <- data.frame(cbind(s_spread$long, s_spread$lat))
 coord_trawls <- SpatialPoints(coord_trawls, proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
 
-
+#write.csv(raster_values0.2, "~./fish_stability/data/raster_values0.2.csv")
 # repeat process for multiple resolutions
 #join cellID vectors for each resolution in data frame called cellIDs
 #join cellIDs data frame with s_spread
