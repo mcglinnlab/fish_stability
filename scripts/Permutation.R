@@ -3,7 +3,7 @@
 #series of three for loops accounting for year, grid ID, and then permutation of selecting events
 
 ## resolving sampling for 0.2 resolution ##
-#s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
+s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 raster_values0.2 <- read.csv("~./fish_stability/data/raster_values0.2.csv", header = T)
 raster_values0.2 <- raster_values0.2[,2:3]
 
@@ -21,33 +21,37 @@ NEW.df <- NULL
 
 #pulling out events for specific years
 for (i in 1989:2015) {
-  yearpull <- ID.df[ID.df$year == "i",]
+  yearpull <- subset(ID.df,ID.df$year == i)
+  
   #pulling out events from each raster region
-  for (i in min(raster_values0.2):max(raster_values0.2)) {
-    
-    eventsavail <- yearpull$event[yearpull$pointresID == "i"]
-    #permutation
-    for (i in 1:1000) {
-        #rasters with densities less then arbitrary threshold (for now)
-      if(length(eventsavail) < 5) {
+  for (j in min(raster_values0.2):max(raster_values0.2)) {
+    eventsavail <- subset(yearpull, yearpull$point2resID == j)
+  
+    if(length(eventsavail$event) < 5) {
+        #rasters with densities less then arbitrary threshold (for now just taken average and var)
+        #instead = future: when equal to threshold vv but when less then write in to ignore. 
         
-      averageS <- mean(yearpull$S[yearpull$event == "c(eventavail)"])
-      averagebio <- mean(yearpull$biomass[yearpull$event == "c(eventavail)"])
-      varbio <- var(yearpull$biomass[yearpull$event == "c(eventavail)"])
+      averageS <- mean(eventsavail$S)
+      averagebio <- mean(eventsavail$biomass)
+      varbio <- var(eventsavail$biomass)
+      
       #rasters that require subsampling
       } else{
+        #permutation
+        for (k in 1:1000) {
         
-      event <- sample(eventsavail, 5, replace = F)
-      averageS <- mean(yearpull$S[yearpull$eventname == "c(event)"])
-      averagebio <- mean(yearpull$biomass[yearpull$eventname == "c(event)"])
-      varbio <- var(yearpull$biomass[yearpull$eventname == "c(event)"])
+      event <- eventsavail[sample(nrow(eventsavail), 5, replace = F),]
+      averageS <- mean(event$S)
+      averagebio <- mean(event$biomass)
+      varbio <- var(event$biomass)
       }
     }
     #creating new data frame with new averages for S, biomass, var biomass, and raster ID
-    ID <- i
-    averageS <- mean (averageS)
-    averagebio <- mean(averagebio)
-    averagevarbio <- mean(varbiomass)
-    NEW.df <- as.data.frame(cbind(pointresID, averageS, averagebio, averagevarbio))
+    ID <- j
+    year <- i
+    newS <- averageS[i]
+    newbio <- averagebio[i]
+    newvarbio <- varbio[i]
+    NEW.df <- as.data.frame(cbind(year, ID, newS, newbio, newvarbio))
  }
 }
