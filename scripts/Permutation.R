@@ -20,38 +20,38 @@ averagevarbio <- NULL
 NEW.df <- NULL
 
 #pulling out events for specific years
+# make empty results matrix or data.frame, can be a matrix if only inputing numbers 
+results <- matrix(NULL, ncol = ..., nrow = )
+colnames(results) = 
 for (i in 1989:2015) {
-  yearpull <- subset(ID.df,ID.df$year == i)
+  yearpull <- subset(ID.df, ID.df$year == i)
   
   #pulling out events from each raster region
   for (j in min(raster_values0.2):max(raster_values0.2)) {
     eventsavail <- subset(yearpull, yearpull$point2resID == j)
-  
+
     if(length(eventsavail$event) < 5) {
-        #rasters with densities less then arbitrary threshold (for now just taken average and var)
-        #instead = future: when equal to threshold vv but when less then write in to ignore. 
+      #rasters with densities less then arbitrary threshold (for now just taken average and var)
+      #instead = future: when equal to threshold vv but when less then write in to ignore. 
         
       averageS <- mean(eventsavail$S)
       averagebio <- mean(eventsavail$biomass)
       varbio <- var(eventsavail$biomass)
-      
+      tempresults = data.frame(averageS, averagebio, varbio)
       #rasters that require subsampling
-      } else{
+    } else{
         #permutation
         for (k in 1:1000) {
         
-      event <- eventsavail[sample(nrow(eventsavail), 5, replace = F),]
-      averageS <- mean(event$S)
-      averagebio <- mean(event$biomass)
-      varbio <- var(event$biomass)
-      }
+          event <- eventsavail[sample(nrow(eventsavail), 5, replace = F), ]
+          averageS[k] <- mean(event$S)
+          averagebio[k] <- mean(event$biomass)
+          varbio[k] <- var(event$biomass)
+        }
+        tempresults <- data.frame( S = mean(averageS), B = mean(averaebio), sigmaB = mean(varbio))
+      
     }
-    #creating new data frame with new averages for S, biomass, var biomass, and raster ID
-    ID <- j
-    year <- i
-    newS <- averageS[i]
-    newbio <- averagebio[i]
-    newvarbio <- varbio[i]
-    NEW.df <- as.data.frame(cbind(year, ID, newS, newbio, newvarbio))
+    # row bind into results matrix while adding year and raster ids as columns
+    results <- rbind(results, data.frame(id = i, yr = j, tempresults))
  }
 }
