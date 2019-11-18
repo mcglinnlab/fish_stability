@@ -54,8 +54,10 @@ for (m in vec) {
 #each point is a raster region averaged through time
 
 varspecieslm <- lm(avvarspeciesresults$averagevarbiovector ~ avvarspeciesresults$averagespeciesrichvector)
-plot(avvarspeciesresults$averagevarbiovector ~ avvarspeciesresults$averagespeciesrichvector)
+plot(avvarspeciesresults$averagevarbiovector ~ avvarspeciesresults$averagespeciesrichvector, xlab = "Average Species Richness Through Time", ylab = "Variance in Biomass Through Time")
 abline(varspecieslm$coefficients)
+
+plot((1/avvarspeciesresults$averagevarbiovector) ~ avvarspeciesresults$averagespeciesrichvector, xlab = "Average Species Richness Through Time", ylab = "Invariance Through Time")
 
 summary(varspecieslm)
 
