@@ -10,7 +10,8 @@ s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 raster_values0.2 <- read.csv("~./fish_stability/data/raster_values0.2.csv", header = T)
 raster_values0.2 <- raster_values0.2[,2:3]
 
-ID.df <- as.data.frame(cbind(s_rarefac$EVENTNAME,s_rarefac$year, raster_values0.2$layer, s_rarefac$S, s_rarefac$biomass))
+ID.df <- as.data.frame(cbind(s_rarefac$EVENTNAME,s_rarefac$year, 
+                             raster_values0.2$layer, s_rarefac$S, s_rarefac$biomass))
 colnames(ID.df) <- c("event","year", "point2resID", "S", "biomass")
 
 yearpull <- NULL
@@ -19,6 +20,8 @@ event <- NULL
 averageS <- NULL
 averagebio <- NULL
 varbio <- NULL
+cv <- NULL
+invar <- NULL
 averagevarbio <- NULL
 tempresults <- NULL
 tempresults1 <- NULL
@@ -49,12 +52,14 @@ for (i in 1989:2015) {
       averageS <- mean(event$S)
       averagebio <- mean(event$biomass)
       varbio <- var(event$biomass)
+      cv <- varbio/(averagebio ^ 2)
+      invar <- 1/cv
       
       #store
       ID <- j
       year <- i
-      tempresults1 <- data.frame(ID, year, averageS, averagebio, varbio)
-      colnames(tempresults1) <- c("ID", 'year', 'averageS', 'averagebio', 'varbio')
+      tempresults1 <- data.frame(ID, year, averageS, averagebio, varbio, cv, invar)
+      colnames(tempresults1) <- c("ID", 'year', 'averageS', 'averagebio', 'varbio', 'cv', 'invar')
       } 
     #rasters that require subsampling
     else {
@@ -69,12 +74,13 @@ for (i in 1989:2015) {
           averageS[k] <- mean(event$S)
           averagebio[k] <- mean(event$biomass)
           varbio[k] <- var(event$biomass)
-          
+          cv[k] <- varbio[k]/(averagebio[k] ^ 2)
+          invar[k] <- 1/(cv[k])
       }
         ID <- j
         year <- i
-        tempresults <- data.frame(ID, year, mean(averageS), mean(averagebio), mean(varbio))
-        colnames(tempresults) <- c('ID', 'year', 'averageS', 'averagebio', 'varbio')
+        tempresults <- data.frame(ID, year, mean(averageS), mean(averagebio), mean(varbio), mean(cv), mean(invar))
+        colnames(tempresults) <- c('ID', 'year', 'averageS', 'averagebio', 'varbio', 'cv', 'invar')
       
       }
     # row bind into results matrix while adding year and raster ids as columns
@@ -89,7 +95,7 @@ results <- results %>%
   distinct(ID, year, .keep_all = TRUE)
 
 #removing raster regions that did not have any trawls for that year
-#results1 <- results1[complete.cases(results1),] 
+results1 <- results1[complete.cases(results1),] 
 
 #removing duplicate rows that were added
 results1 <- results1 %>%
@@ -101,5 +107,5 @@ resultsfullpoint2 <- rbind(results, results1)
 write.csv(resultsfullpoint2, "~./fish_stability/data/resultsfullpoint2.csv")
 
 
-#check to make sure all raster regions were sampled for a given year
-setequal(yearIDs, resultsfull$ID)
+#check to make sure all raster regions were sampled for a given year #revisit this line
+#setequal(yearIDs, resultsfull$ID)

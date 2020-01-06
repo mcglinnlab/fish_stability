@@ -1,0 +1,18 @@
+Notes: 
+
+Where we are at:
+Should have newly established values for each raster region using raster region as the adjusted sampling unit. Each raster will have a row for each year it was sampled with columns including ID, year, new S, new Biomass, new Var, a squared coefficient of var (CV, see Delsol et al.), value of invariance (invar = 1/cv). 
+
+How to scale: 
+To build curve where x is area and y is invar or rather where x is number of samples since each raster region is a squared plot of area. 
+  
+  Need to start with a single raster region and calculate invar, then take two rasters and calculate invar, continue until all raster regions have been incorperated. Repeat entire process many times and take average of curves. 
+  
+  Null hyp. is that as you continue incorperating raster regions invar will continuly decrease. Alt hyp. is that as you increase the number of rasters included that invar will increase. 
+  
+
+
+NEXT 12/31/19:
+  try running new code that includes new measures of var (cv and invar).
+  If it works make plots and test with lm like listed in section notes from 11/21. 
+  Then begin working on scaling. Need to build out code as listed above. 
