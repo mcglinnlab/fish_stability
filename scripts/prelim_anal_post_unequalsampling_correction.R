@@ -101,3 +101,17 @@ plot(sm, bm)
 # since biomass is driving standard deviation so much the negative relationship of species richness is lost in plot.
 summary(lm(bsd ~ sm + bm))
 plot(bsd ~ sm)
+
+
+
+## these three are biomass sd, species richness average, and invar average for IDs over all years 
+
+bsd = with(completeresultsfullpoint2, tapply(averagebio, list(ID), sd, na.rm=T))
+sm =  with(completeresultsfullpoint2, tapply(averageS, list(ID), mean, na.rm=T))
+bm = with(completeresultsfullpoint2, tapply(averagebio, list(ID), mean, na.rm=T))
+invar = with(completeresultsfullpoint2, tapply(invar, list(ID), mean, na.rm = T))
+
+#plot of invar as a function of species rich ## few major outliers that are driving relationship. 
+plot(invar ~ sm, ylim = c(0, 100))
+plot(invar ~ sm, ylim = c(0, 10))
+summary(lm(invar ~ sm))

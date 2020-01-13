@@ -16,3 +16,11 @@ NEXT 12/31/19:
   try running new code that includes new measures of var (cv and invar).
   If it works make plots and test with lm like listed in section notes from 11/21. 
   Then begin working on scaling. Need to build out code as listed above. 
+  
+  UPDATE: 
+  code worked. making new plots but there are major outliers that need to be dealt with. Started writing methods. Need to work on scaling aspect still. 
+
+NEXT 1/13/19
+  need to deal with outliers. 
+  Need to go back to permutation and set threshold to 5 and remove IDs that have less then 5 trawl events in them. 
+  Start working on scaling part. 
