@@ -31,4 +31,10 @@ NEXT 1/13/19
   Rerandomize list of IDs and repeat many many times to create curves
   Average curves
   
+  UPDATE:
+  fixing permuation to drop IDs with less then five events fixed outlier problem. 
+  Relooked at graphs and all looks a lot cleaner. woo 
   
+NEXT 1/14/20
+  begin writing out scaling of DSR
+  continue working on draft of methods section
