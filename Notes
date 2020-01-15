@@ -24,3 +24,11 @@ NEXT 1/13/19
   need to deal with outliers. 
   Need to go back to permutation and set threshold to 5 and remove IDs that have less then 5 trawl events in them. 
   Start working on scaling part. 
+  
+  Idea for how to write spatial part
+    Make a loop that randomize the list of ID squares
+  Loop makes calcs of var of invar and average species richness with 1 square included, 2 square until length(ID)
+  Rerandomize list of IDs and repeat many many times to create curves
+  Average curves
+  
+  

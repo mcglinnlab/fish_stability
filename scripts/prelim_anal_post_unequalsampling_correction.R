@@ -1,117 +1,92 @@
 #Biomass as a function of species richness post unequal sampling correction
 
 
-#in permutation is it still ignoring grids with only one trawl? 
-#those rasters with only one site do not have a variation. Complete cases removes
-#these raster regions from the results data frame
-
 resultsfullpoint2 <- read.csv( "~./fish_stability/data/resultsfullpoint2.csv",
                                header = T)
-completeresultsfullpoint2 <- resultsfullpoint2[complete.cases(resultsfullpoint2),]
+
+
 
 #plot of average biomass per raster region per year as a function of average
 #species richness per year
 
 for (i in 1989:2015) {
-  plot(completeresultsfullpoint2$averagebio[resultsfullpoint2$year == i] ~
-         completeresultsfullpoint2$averageS[resultsfullpoint2$year == i],
+  plot(resultsfullpoint2$averagebio[resultsfullpoint2$year == i] ~
+         resultsfullpoint2$averageS[resultsfullpoint2$year == i],
        xlab = "Average Species Richness", ylab = "Average Biomass", main = i)
 }
 
-# plot of var in biomass per raster as a function of year per raster
+# plot of invar in biomass per raster as a function of year per raster
 # var bio shows variance in trawls within a raster region when resampled 
 for (j in unique(resultsfullpoint2$ID)) {
-  plot(completeresultsfullpoint2$varbio[completeresultsfullpoint2$ID == j] ~ 
-       completeresultsfullpoint2$year[completeresultsfullpoint2$ID == j], 
-       ylim = c(0,2000000), ylab = "Variance in Biomass", xlab = "Year", main = j)
+  plot(resultsfullpoint2$invar[resultsfullpoint2$ID == j] ~ 
+       resultsfullpoint2$year[resultsfullpoint2$ID == j], 
+       ylab = "Invar in Biomass", xlab = "Year", main = j)
 }
 
-#plot of var in biomass per raster as a function of average species richness per raster 
+#plot of invar in biomass per raster as a function of average species richness per raster 
 
 for (k in unique(resultsfullpoint2$ID)) {
   
-   plot(completeresultsfullpoint2$varbio[completeresultsfullpoint2$ID == k] ~ 
-          completeresultsfullpoint2$averageS[completeresultsfullpoint2$ID == k],
-        ylim = c(0,1000), xlim = c(0,40), ylab = "Var in Biomass", 
+   plot(resultsfullpoint2$invar[resultsfullpoint2$ID == k] ~ 
+        resultsfullpoint2$averageS[resultsfullpoint2$ID == k],
+        ylab = "Invar in Biomass", 
         xlab = "Average Species Richness", main = k)
 }
 
-# this each point on this plot is one raster region
+# each point on this plot is one raster region
 
-plot(completeresultsfullpoint2$averagebio ~ completeresultsfullpoint2$year)
+plot(resultsfullpoint2$averagebio ~ resultsfullpoint2$year)
+plot(resultsfullpoint2$invar ~ resultsfullpoint2$year)
 
 # biomass as a function of species richness for each raster region
 for (k in unique(resultsfullpoint2$ID)) {
   
-  plot(completeresultsfullpoint2$averagebio[completeresultsfullpoint2$ID == k] ~ 
-         completeresultsfullpoint2$averageS[completeresultsfullpoint2$ID == k],
+  plot(resultsfullpoint2$averagebio[resultsfullpoint2$ID == k] ~ 
+         resultsfullpoint2$averageS[resultsfullpoint2$ID == k],
        ylim = c(0,1000), xlim = c(0,40), ylab = "Biomass", 
        xlab = "Average Species Richness", main = k)
 }
 
-#collapsing graph above to create one point for each raster region of var and
-#average species richness through time
-
-averagevarbiovector <- NULL
-averagespeciesrichvector <- NULL
-avvarspeciesresults <- NULL
-ID <- NULL
-vec <- unique(resultsfullpoint2$ID)
-
-for (m in vec) {
-  averagevarbiovector <- c(averagevarbiovector, 
-                           var(completeresultsfullpoint2$averagebio[completeresultsfullpoint2$ID == m]))
-  averagespeciesrichvector <- c(averagespeciesrichvector,
-                                mean(completeresultsfullpoint2$averageS[completeresultsfullpoint2$ID == m]))
-  ID <- c(ID, m)
-  avvarspeciesresults <- data.frame(ID, averagevarbiovector, averagespeciesrichvector)
-}
-
-#each point is a raster region averaged through time
-
-varspecieslm <- lm(avvarspeciesresults$averagevarbiovector ~ 
-                     avvarspeciesresults$averagespeciesrichvector)
-plot(avvarspeciesresults$averagevarbiovector ~ 
-     avvarspeciesresults$averagespeciesrichvector, 
-     xlab = "Average Species Richness Through Time", 
-     ylab = "Variance in Biomass Through Time")
-abline(varspecieslm$coefficients)
-
-plot((1/avvarspeciesresults$averagevarbiovector) ~ 
-       avvarspeciesresults$averagespeciesrichvector,
-     xlab = "Average Species Richness Through Time", 
-     ylab = "Invariance Through Time")
-
-summary(varspecieslm)
 
 
-
-
-#notes from Nov 21 meeting 
-
-with(completeresultsfullpoint2, tapply(averagebio, list(ID), sd, na.rm=T))
-with(completeresultsfullpoint2, tapply(averagebio, list(ID), sd, na.rm=T))
-with(completeresultsfullpoint2, tapply(averagebio, list(ID), sd, na.rm=T))
-bsd = with(completeresultsfullpoint2, tapply(averagebio, list(ID), sd, na.rm=T))
-sm =  with(completeresultsfullpoint2, tapply(averageS, list(ID), mean, na.rm=T))
-plot(bsd ~ sm)
-bm = with(completeresultsfullpoint2, tapply(averagebio, list(ID), mean, na.rm=T))
-plot(bm, bsd)
-plot(sm, bm)
-# since biomass is driving standard deviation so much the negative relationship of species richness is lost in plot.
-summary(lm(bsd ~ sm + bm))
-plot(bsd ~ sm)
-
+#Update to notes from Nov 21 meeting 
 
 
 ## these three are biomass sd, species richness average, and invar average for IDs over all years 
 
-bsd = with(completeresultsfullpoint2, tapply(averagebio, list(ID), sd, na.rm=T))
-sm =  with(completeresultsfullpoint2, tapply(averageS, list(ID), mean, na.rm=T))
-bm = with(completeresultsfullpoint2, tapply(averagebio, list(ID), mean, na.rm=T))
-invar = with(completeresultsfullpoint2, tapply(invar, list(ID), mean, na.rm = T))
+bsd = with(resultsfullpoint2, tapply(averagebio, list(ID), sd, na.rm=T))
+sm =  with(resultsfullpoint2, tapply(averageS, list(ID), mean, na.rm=T))
+bm = with(resultsfullpoint2, tapply(averagebio, list(ID), mean, na.rm=T))
+invar = with(resultsfullpoint2, tapply(invar, list(ID), mean, na.rm = T))
+cv = with(resultsfullpoint2, tapply(cv, list(ID), mean, na.rm = T))
 
-#plot of invar as a function of species rich ## few major outliers that are driving relationship. 
-plot(invar ~ sm, ylim = c(0, 100))
+#plots between biomass, sd biomass and species rich
+plot(bsd ~ sm)
+plot(bm, bsd)
+plot(sm, bm)
+plot(cv ~ bsd)
+
+
+
+#plot of invar as a function of species rich ## outliers were primarily removed by fixing sampling threshold in perm code. 
 plot(invar ~ sm, ylim = c(0, 10))
+abline(coef(lm(invar ~ sm)))
+
 summary(lm(invar ~ sm))
+summary(lm(bsd ~ sm + bm))
+summary(lm(invar ~ sm + bm))
+
+
+
+
+#Just looking at raw graphs 
+with(resultsfullpoint2, plot(invar ~ averageS))
+with(resultsfullpoint2, plot(averagebio ~ averageS))
+
+LMinvarS <- lm(invar ~ averageS, data = resultsfullpoint2)
+summary(lm(invar ~ averageS + averagebio, data = resultsfullpoint2))
+
+
+with(resultsfullpoint2, plot(invar ~ averageS))
+abline(LMinvarS$coefficients)
+
