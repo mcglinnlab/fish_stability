@@ -67,10 +67,14 @@ spread_function
 
 
 Notes from cruise
+
   file summarizes some thoughts from the summer sampling season cruises
+  
 Notes
+
   file acts as journal of thoughts and progress through project.
   
 Fish species.csv
+
   csv listing species of fish used to remove inverts and other from data set
 
