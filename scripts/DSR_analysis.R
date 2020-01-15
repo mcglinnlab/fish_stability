@@ -68,7 +68,8 @@ plot(cv ~ bsd)
 
 
 
-#plot of invar as a function of species rich ## outliers were primarily removed by fixing sampling threshold in perm code. 
+#plot of invar as a function of species rich ## outliers were primarily removed 
+  #by fixing sampling threshold in perm code. 
 plot(invar ~ sm, ylim = c(0, 10))
 abline(coef(lm(invar ~ sm)))
 

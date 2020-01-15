@@ -69,7 +69,8 @@ for (i in 1989:2015) {
       ID <- j
       year <- i
       tempresults1 <- data.frame(ID, year, averageS, averagebio, varbio, cv, invar)
-      colnames(tempresults1) <- c("ID", 'year', 'averageS', 'averagebio', 'varbio', 'cv', 'invar')
+      colnames(tempresults1) <- c("ID", 'year', 'averageS', 'averagebio',
+                                  'varbio', 'cv', 'invar')
     }
     
     #rasters that require subsampling
@@ -91,8 +92,10 @@ for (i in 1989:2015) {
       
       ID <- j
       year <- i
-      tempresults <- data.frame(ID, year, mean(averageS), mean(averagebio), mean(varbio), mean(cv), mean(invar))
-      colnames(tempresults) <- c('ID', 'year', 'averageS', 'averagebio', 'varbio', 'cv', 'invar')
+      tempresults <- data.frame(ID, year, mean(averageS), mean(averagebio), 
+                                mean(varbio), mean(cv), mean(invar))
+      colnames(tempresults) <- c('ID', 'year', 'averageS', 'averagebio',
+                                 'varbio', 'cv', 'invar')
       
     }
     # row bind into results matrix while adding year and raster ids as columns
