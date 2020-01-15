@@ -46,9 +46,12 @@ for (p in 1:5) {
     invar[a] <- 1/(cv[a])
     
     
-    
+    #creating columns that tell me how many raster IDs are included (numID) and 
+    # which reshuffling the row is associated with (run)
     numID <- a
     run <- p
+    
+    #creating data frame to save to
     tempcurve <- data.frame(cbind(numID, run, bio, S, CV, invar))
     tempcurve <- colnames("numID", "run", "bio", "S", "CV", "invar")
   }
