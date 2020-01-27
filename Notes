@@ -10,7 +10,10 @@ To build curve where x is area and y is invar or rather where x is number of sam
   
   Null hyp. is that as you continue incorperating raster regions invar will continuly decrease. Alt hyp. is that as you increase the number of rasters included that invar will increase. 
   
-
+  
+  
+  
+  
 
 NEXT 12/31/19:
   try running new code that includes new measures of var (cv and invar).
@@ -38,3 +41,18 @@ NEXT 1/13/19
 NEXT 1/14/20
   begin writing out scaling of DSR
   continue working on draft of methods section
+  
+  
+  
+NEXT 1/27/20 
+  check out outliers 1394, 2570, 2519  
+                      3 yrs, 
+                      
+  some rasters were sampled since 1989, others since 1999 when outer depth region was dropped. 
+  
+  look at ID.df and see how many raster regions were sampled continuously. Try separating those that were added after outer depth zone was dropped. Maybe make graph starting at 2000 too. 
+    41 rasters have trawls every year. 48 rasters have samples all but one or two years.
+    
+    UPDATE: 
+      Outer depth strata samples have been removed. I have run analysis three times. One with years not aggregated, one with the years aggregated but all IDs remain and one where a selection of IDs that cover all time bins are included. That's where I left it for today. 
+      UP NEXT: need to look over all graphs and figure out which best gets us the answer to our question and begin using the aggregated and selected set yrag_sub for scaling part. 

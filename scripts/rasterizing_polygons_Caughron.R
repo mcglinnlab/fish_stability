@@ -70,18 +70,21 @@ coordinates(s_spread) <- ~ long + lat
 Trawl_raster <- rasterize(s_spread, oceans_raster, s_spread$TRAWLNUMBER, fun = "sum")
 res(Trawl_raster)
 plot(Trawl_raster)
+
 Trawl_raster@data@values <- Trawl_raster@data@values[!is.na(Trawl_raster@data@values)]
 hist(Trawl_raster@data@values, breaks =25)
 summary(Trawl_raster@data@values)
 length(Trawl_raster@data@values)
 
 #Creating Species Richness Raster
-SpeciesRich_raster <- rasterize(s_spread, oceans_raster, s_spread$S, fun=function(x,...)mean(x))
+SpeciesRich_raster <- rasterize(s_spread, oceans_raster, s_spread$S, 
+                                fun = function(x,...)mean(x))
 res(SpeciesRich_raster)
 plot(SpeciesRich_raster)
 
 #Creating Biomass Variance Raster
-BiomassVar_raster <- rasterize(s_spread, oceans_raster, s_spread$biomass, fun =function(x,...)var(x))
+BiomassVar_raster <- rasterize(s_spread, oceans_raster, s_spread$biomass,
+                               fun = function(x,...)var(x))
 res(BiomassVar_raster)
 plot(BiomassVar_raster)
 
@@ -96,7 +99,8 @@ plot(oceans_raster)
 #pulling cell IDs for each of the trawls for 0.2 res raster
 
 coord_trawls <- data.frame(cbind(s_spread$long, s_spread$lat))
-coord_trawls <- SpatialPoints(coord_trawls, proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
+coord_trawls <- SpatialPoints(coord_trawls, 
+                              proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
 
 #write.csv(raster_values0.2, "~./fish_stability/data/raster_values0.2.csv")

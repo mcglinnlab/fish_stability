@@ -16,10 +16,15 @@ raster_values0.2 <- read.csv("~./fish_stability/data/raster_values0.2.csv", head
 raster_values0.2 <- raster_values0.2[,2:3]
 
 #creating a new data frame with event name, year, ID, S, and biomass
+  #made col for yr cat in excel and loaded into R. To access ID.df load from files instead of creating
 
-ID.df <- as.data.frame(cbind(s_rarefac$EVENTNAME,s_rarefac$year, 
-                             raster_values0.2$layer, s_rarefac$S, s_rarefac$biomass))
-colnames(ID.df) <- c("event","year", "point2resID", "S", "biomass")
+#ID.df <- as.data.frame(cbind(s_rarefac$EVENTNAME,s_rarefac$year, 
+                             #raster_values0.2$layer, s_rarefac$S, s_rarefac$biomass))
+#colnames(ID.df) <- c("event","year", "point2resID", "S", "biomass")
+
+
+#To return this code back to individual years changed first for loop (i in ___) to (i in 1989:2015) 
+  #and replace ID.df$yrcat with ID.df$year. 
 
 #creating null vectors that will eventually store data
 
@@ -41,11 +46,11 @@ results1 <- NULL
 # make empty results matrix or data.frame, can be a matrix if only inputing numbers
 
 #year for loop
-for (i in 1989:2015) {
+for (i in c("a","b","c","d","e","f","g","h","i")) {
   
   #subsetting the IDs that were sampled in year i 
-  yearpull <- subset(ID.df, ID.df$year == i)
-  yearIDs <- unique(ID.df$point2resID[ID.df$year == i])
+  yearpull <- subset(ID.df, ID.df$yrcat == i)
+  yearIDs <- unique(ID.df$point2resID[ID.df$yrcat == i])
   
   #subsetting the trawl events that occurred in each ID 
   for (j in yearIDs) {
@@ -119,7 +124,10 @@ results1 <- results1 %>%
 #binding data frames for rasters that required subsampling and those that did not
 resultsfullpoint2 <- rbind(results, results1)
 
-write.csv(resultsfullpoint2, "~./fish_stability/data/resultsfullpoint2.csv")
+#write results with year aggregating
+write.csv(resultsfullpoint2, "~./fish_stability/data/yrag_resultsfullpoint2.csv")
+
+#write.csv(resultsfullpoint2, "~./fish_stability/data/resultsfullpoint2.csv")
 
 
 #check to make sure all raster regions were sampled for a given year #revisit this line

@@ -48,20 +48,23 @@ gd_common_names = uni_sp[uni_sp %in% fish_species$species]
 # species not in the sp list
 uni_sp[!(uni_sp %in% fish_species$species)]
 
-gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME %in% gd_common_names])
+gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME
+                                                   %in% gd_common_names])
 
 #write.csv(gd_sci_names, file='./gd_sci_names.csv', row.names=F)
 
 #output names that we have filtered out of the dataset
 #uni_sci_sp = unique(SEAMAP$SPECIESSCIENTIFICNAME)
-#write.csv(uni_sci_sp[!(uni_sci_sp %in% gd_sci_names)], './sp_names_filtered_out.csv', row.names=F)
+#write.csv(uni_sci_sp[!(uni_sci_sp %in% gd_sci_names)],
+  #'./sp_names_filtered_out.csv', row.names=F)
 
 
 #manually enter in small subset of species that lack common names
 gd_sci_names = read.csv('./gd_sci_names.csv')
 names(gd_sci_names) = 'species'
 
-SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME %in% gd_sci_names$species)
+SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME
+                    %in% gd_sci_names$species)
 
 
 #Merge species names that were inconsistently used scientific names
@@ -88,7 +91,12 @@ SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART < -90 & LATITUDESTART < 90)
 SEAMAP_sub <-read.csv("~./fish_stability/data/SEAMAP_sub.csv", header = T)
 
 
-## creating new data frame where row is unique event and total number of each species are in wide form ##
+#subsetting for inner depth zone only, removing samples from 30-60 ft
+SEAMAP_inner <- subset(SEAMAP_sub, DEPTHZONE == "INNER")
+
+
+## creating new data frame where row is unique event and total number of each 
+  #species are in wide form ##
 
 library(dplyr)
 library(tidyr)
@@ -97,14 +105,16 @@ library(purrr)
 
 #selecting only needed columns 
 
-SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART", "LATITUDESTART", "COLLECTIONNUMBER", "EVENTNAME", "SPECIESSCIENTIFICNAME", "SPECIESCOMMONNAME", "NUMBERTOTAL", "SPECIESTOTALWEIGHT")]
+SEAMAP_invest <- SEAMAP_inner[,c("DATE", "Year", "LONGITUDESTART",
+                                 "LATITUDESTART", "COLLECTIONNUMBER", 
+                                 "EVENTNAME", "SPECIESSCIENTIFICNAME", 
+                                 "SPECIESCOMMONNAME", "NUMBERTOTAL", 
+                                 "SPECIESTOTALWEIGHT")]
 
 
 
-## creating working data frame with summed biomass, unique event names species richness column and species in wide form
-
-#columns to be added
-    #raster ids for different resolutions
+## creating working data frame with summed biomass, unique event names species 
+  #richness column and species in wide form
 
 
 # adding columns that sums number of species and total biomass grouped by eventname
@@ -130,7 +140,8 @@ s_wide$EVENTNAME <-as.character(s_wide$EVENTNAME)
 s_wide$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
 s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
 
-s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, aggfunc = sum)
+s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, 
+                                       aggfunc = sum)
 
 #Export s_group to csv
 #write.csv(s_group, file = "./data/s_group.csv")
@@ -145,7 +156,7 @@ s_spread <- data.frame(left_join(dat, s_group, by='EVENTNAME'))
 
 
 #Creating presence/absence wide form for rarefaction 
-s_rarefac <- data.frame(s_group[,3:204])
+s_rarefac <- data.frame(s_group[,3:195])
 s_rarefac[is.na(s_rarefac)] <-0
 s_rarefac[s_rarefac >0] <- 1
 s_rarefac <- cbind(s_group$EVENTNAME, s_rarefac)
