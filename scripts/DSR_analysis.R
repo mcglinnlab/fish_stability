@@ -90,14 +90,13 @@ plot(cv ~ bsd)
 plot(invar ~ sm)
 
 
-#plot of invar as a function of species rich ## outliers were primarily removed 
-#by fixing sampling threshold in perm code. A few came back after removing outer
-#depth range. 
+#plot of invar as a function of species rich ## 
+
 
 plot(invar ~ sm)
-abline(coef(lm(invar ~ sm)))
-summary(lm(invar ~ sm))
-lminvarsm <- lm(invar ~ sm)
+abline(coef(glm(invar ~ sm)))
+summary(glm(invar ~ sm))
+lminvarsm <- glm(invar ~ sm)
 plot(lminvarsm)
 
 
@@ -107,7 +106,7 @@ plot(lminvarsm)
 
 
 
-## these three are biomass sd, species richness average, and invar average for IDs over all years 
+## these three are biomass sd, species richness average, and invar average for IDs over 3 yr bins
 
 bsd = with(yrag_resultsfull, tapply(averagebio, list(ID), sd, na.rm=T))
 sm =  with(yrag_resultsfull, tapply(averageS, list(ID), mean, na.rm=T))
@@ -115,6 +114,7 @@ bm = with(yrag_resultsfull, tapply(averagebio, list(ID), mean, na.rm=T))
 var = with(yrag_resultsfull, tapply(averagebio, list(ID), var, na.rm = T))
 cv = var / (bm ^ 2)
 invar = 1/ cv
+
 #plots between biomass, sd biomass and species rich
 plot(bsd ~ sm)
 plot(bm, bsd)
@@ -128,7 +128,7 @@ plot(invar ~ sm, ylim = c(0, 30))
   #by fixing sampling threshold in perm code. A few came back after removing outer
     #depth range. 
 
-plot(log(invar) ~ sm)
+plot(invar ~ sm)
 abline(coef(lm(invar ~ sm)))
 summary(lm(invar ~ sm))
 lminvarsm <- lm(invar ~ sm)
@@ -152,10 +152,10 @@ summary(lm(invar[invar < 50] ~ sm[invar < 50]))
 
 #subsetting raster IDs with at least 5 trawls across 3 yr time frame 
   #list of IDs with representation across years
-IDlist <- c(1246,1294,1340,1388,1393,1486,1487,1532,1534,1536,1581,1582,
-            1586,1630,1680,1730,1777,1778,1826,1875,1923,1924,1972,1973,2021,
-            2022,2120,2169,2170,2219,2269,2318,2319,2419,2519,2569,2670,2671,
-            2721,2771,2772,1295,1342,1533,1535,1779,1874,1876,2469,2620)
+IDlist <- c(1246,1294,1340,1388,1486,1532,1534,1536,1582,
+            1586,1630,1680,1730,1777,1778,1779,1826,1875,1923,1924,1972,1973,2021,
+            2022,2120,2169,2170,2219,2269,2318,2319,2419,2519,2569,2620,2670,
+            2721,2771,2772)
 #pulling out rows with the above listed IDs
 yrag_sub <- yrag_resultsfull[yrag_resultsfull$ID %in% IDlist,]
 
@@ -174,6 +174,8 @@ plot(bm, bsd)
 plot(sm, bm)
 plot(cv ~ bsd)
 plot(invar ~ sm)
+plot(log(invar) ~ log(sm))
+
 
 #plot and lm 
 plot(invar ~ sm)
@@ -182,10 +184,12 @@ summary(lm(invar ~ sm))
 lminvarsm <- lm(invar ~ sm)
 plot(lminvarsm)
 
-
-plot(invar[invar < 25] ~ sm[invar < 25])
-abline(coef(lm(invar[invar < 25] ~ sm[invar < 25])))
-summary(lm(invar[invar < 25] ~ sm[invar < 25]))
+plot(invar ~ sm)
+lines(x, y)
+abline(coef(lm(invar ~ sm + bsd)))
+summary(lm(invar ~ sm + bsd))
+lminvarsmbsd <- lm(invar ~ sm + bsd)
+plot(lminvarsmbsd)
 
 
 

@@ -56,3 +56,6 @@ NEXT 1/27/20
     UPDATE: 
       Outer depth strata samples have been removed. I have run analysis three times. One with years not aggregated, one with the years aggregated but all IDs remain and one where a selection of IDs that cover all time bins are included. That's where I left it for today. 
       UP NEXT: need to look over all graphs and figure out which best gets us the answer to our question and begin using the aggregated and selected set yrag_sub for scaling part. 
+      
+      
+      trying logging both to make linear
