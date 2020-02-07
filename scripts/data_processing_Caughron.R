@@ -109,7 +109,10 @@ SEAMAP_invest <- SEAMAP_inner[,c("DATE", "Year", "LONGITUDESTART",
                                  "LATITUDESTART", "COLLECTIONNUMBER", 
                                  "EVENTNAME", "SPECIESSCIENTIFICNAME", 
                                  "SPECIESCOMMONNAME", "NUMBERTOTAL", 
-                                 "SPECIESTOTALWEIGHT")]
+                                 "SPECIESTOTALWEIGHT", "LOCATION", "REGION", 
+                                 "TEMPSURFACE", "TEMPBOTTOM", "SALINITYSURFACE",
+                                 "SALINITYBOTTOM")]
+
 
 
 
@@ -126,7 +129,18 @@ dat <- SEAMAP_invest %>%
             date = unique(DATE),
             lat = unique(LATITUDESTART),
             long = unique(LONGITUDESTART),
-            year = unique(Year))
+            year = unique(Year),
+            numtotal = sum(as.numeric(NUMBERTOTAL)),
+            location = unique(LOCATION),
+            region = unique(REGION),
+            tempS = unique(as.numeric(TEMPSURFACE)),
+            tempB = unique(as.numeric(TEMPBOTTOM)),
+            salS = unique(as.numeric(SALINITYSURFACE)),
+            salB = unique(as.numeric(SALINITYBOTTOM))
+            )
+
+
+
 
 dat$EVENTNAME <-as.character(dat$EVENTNAME)
 #changing species total numbers from long form to wide form 
@@ -156,7 +170,7 @@ s_spread <- data.frame(left_join(dat, s_group, by='EVENTNAME'))
 
 
 #Creating presence/absence wide form for rarefaction 
-s_rarefac <- data.frame(s_group[,3:195])
+s_rarefac <- data.frame(s_group[,2:195])
 s_rarefac[is.na(s_rarefac)] <-0
 s_rarefac[s_rarefac >0] <- 1
 s_rarefac <- cbind(s_group$EVENTNAME, s_rarefac)

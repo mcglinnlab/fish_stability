@@ -56,16 +56,12 @@ for (k in unique(resultsfullpoint2$ID)) {
 
 
 #Just looking at raw graphs 
-with(resultsfullpoint2, plot(invar ~ averageS))
 with(resultsfullpoint2, plot(averagebio ~ averageS))
+with(resultsfullpoint2, plot(averagebio ~ year))
 
-LMinvarS <- lm(invar ~ averageS, data = resultsfullpoint2)
-summary(lm(invar ~ averageS + averagebio, data = resultsfullpoint2))
+devtools::install_github('mobiodiv/mobr', ref = 'dev')
 
-
-with(resultsfullpoint2, plot(invar ~ averageS))
-abline(LMinvarS$coefficients)
-
+data(inv_comm)
 
 
 
@@ -88,14 +84,14 @@ plot(bm, bsd)
 plot(sm, bm)
 plot(cv ~ bsd)
 plot(invar ~ sm)
-
+plot(invar[invar < 20] ~ sm[invar < 20])
 
 #plot of invar as a function of species rich ## 
 
 
 plot(invar ~ sm)
-abline(coef(glm(invar ~ sm)))
-summary(glm(invar ~ sm))
+abline(coef(lm(invar ~ sm)))
+summary(lm(invar ~ sm))
 lminvarsm <- glm(invar ~ sm)
 plot(lminvarsm)
 
