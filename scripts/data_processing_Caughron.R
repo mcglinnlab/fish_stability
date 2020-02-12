@@ -119,7 +119,7 @@ SEAMAP_invest <- SEAMAP_inner[,c("DATE", "Year", "LONGITUDESTART",
 ## creating working data frame with summed biomass, unique event names species 
   #richness column and species in wide form
 
-
+#creating community matrix with number of individuals and creating environmental matrix
 # adding columns that sums number of species and total biomass grouped by eventname
 
 dat <- SEAMAP_invest %>%
@@ -143,12 +143,13 @@ dat <- SEAMAP_invest %>%
 
 
 dat$EVENTNAME <-as.character(dat$EVENTNAME)
+
 #changing species total numbers from long form to wide form 
 
 s_wide <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
 
-#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
-#run function found in script spread_function
+  #function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
+  #run function found in script spread_function
 
 s_wide$EVENTNAME <-as.character(s_wide$EVENTNAME)
 s_wide$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
@@ -179,6 +180,31 @@ s_rarefac <- data.frame(left_join(dat, s_rarefac, by='EVENTNAME'))
 
 #Export s_rarefac to csv
 #write.csv(s_rarefac, file = "./data/s_rarefac.csv")
+
+
+
+#creating community matrix with total biomass in cells and merging with environmental matrix
+
+s_bio <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
+
+#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
+#run function found in script spread_function
+
+s_bio$EVENTNAME <-as.character(s_wide$EVENTNAME)
+s_bio$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
+s_bio$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
+
+s_bio_comm <- spread_with_multiple_values(s_bio, SPECIESCOMMONNAME,SPECIESTOTALWEIGHT, 
+                                       aggfunc = sum)
+s_bio_comm[is.na(s_bio_comm)] <-0
+
+#Export s_group to csv
+write.csv(s_bio_comm, file = "./data/s_bio_comm.csv")
+
+
+
+
+
 
 
 
