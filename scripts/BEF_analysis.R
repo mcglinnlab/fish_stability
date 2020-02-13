@@ -34,7 +34,7 @@ summary(model3)
 plot(model3)
 
 
-model4 <- lm(log(biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$region +
+model4 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$region +
                s_rarefac$tempB + s_rarefac$tempS)
 summary(model4)
 plot(model4)
@@ -56,6 +56,35 @@ plot(bss ~ sss, xlab = "Species Richness (S)",
      ylab = "Average Biomass per Trawl Event (kg)", pch = 1)
 abline(coefficients(model5), lwd = 2)
 plot(model5)
+
+  #model the other way 
+plot(sss ~ bss)
+
+
+  #calculating sPIE
+#averageing biomass based on how many species are in the event
+s_spread <- s_spread[,15:208]
+s_spread[is.na(s_spread)] <-0
+sPIE <- calc_PIE(s_spread, ENS = T)
+plotpiedata <- as.data.frame(cbind(s_rarefac$S, s_rarefac$biomass, sPIE))
+sssP <- with(plotpiedata, tapply(sPIE, list(V1), mean, na.rm = T))
+
+modelPI <- lm(sssP ~ sss)
+summary(modelPI)
+plot(sssP ~ sss)
+abline(modelPI$coefficients)
+plot(bss ~ sssP)
+  #as PIE is increasing, biomass is decreasing. I think this is due to few species 
+    #taking up a large portion of the biomass (Croaker, spot, whiting)
+
+plotpiedata$sPIEr <- signif(plotpiedata$sPIE, digits = 2)
+
+#averaging biomass based on how even trawls were
+bssPI <- with(plotpiedata, tapply(V2, list(sPIEr), mean, na.rm = T))
+bssPI
+sssPIE <- c(seq(1,10,0.1), 11:15, 17,18,20,23)
+plot(bssPI ~ sssPIE)
+
 
 
   #checking for spatial dependence
@@ -170,7 +199,7 @@ sb_pca
 plot(sb_pca)
 
   #direct
-sb_cca <- cca(s_comm~ S + biomass + lat + year + region + tempB + salB,
+sb_cca <- cca(s_comm~ S + lat + year + region + tempB + salB + month,
               data = s_environ, na.action = na.exclude)
 sb_cca
 plot(sb_cca)
