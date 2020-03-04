@@ -1,5 +1,5 @@
 #Biomass as a function of species richness post unequal sampling correction
-
+####READ IN DATA ####
 #results when data is not aggregated into years
 resultsfullpoint2 <- read.csv( "~./fish_stability/data/resultsfullpoint2.csv",
                                header = T)
@@ -10,50 +10,8 @@ yrag_resultsfull <- read.csv("~./fish_stability/data/yrag_resultsfullpoint2.csv"
 yrag_sub <- read.csv("~./fish_stability/data/yrag_sub.csv", header = T)
 
 
-#plot of average biomass per raster region per year as a function of average
-#species richness per year
 
-for (i in 1989:2015) {
-  plot(resultsfullpoint2$averagebio[resultsfullpoint2$year == i] ~
-         resultsfullpoint2$averageS[resultsfullpoint2$year == i],
-       xlab = "Average Species Richness", ylab = "Average Biomass", main = i)
-}
-
-# plot of spatial invar in biomass per raster as a function of year per raster
-# var bio shows variance in trawls within a raster region when resampled 
-for (j in unique(resultsfullpoint2$ID)) {
-  plot(resultsfullpoint2$invar[resultsfullpoint2$ID == j] ~ 
-       resultsfullpoint2$year[resultsfullpoint2$ID == j], 
-       ylab = "Invar in Biomass", xlab = "Year", main = j)
-}
-
-#plot of spatial invar in biomass per raster as a function of average species richness per raster 
-
-for (k in unique(resultsfullpoint2$ID)) {
-  
-   plot(resultsfullpoint2$invar[resultsfullpoint2$ID == k] ~ 
-        resultsfullpoint2$averageS[resultsfullpoint2$ID == k],
-        ylab = "Invar in Biomass", 
-        xlab = "Average Species Richness", main = k)
-}
-
-# each point on this plot is one raster region
-
-plot(resultsfullpoint2$averagebio ~ resultsfullpoint2$year)
-
-#spatial invar
-plot(resultsfullpoint2$invar ~ resultsfullpoint2$year)
-
-# biomass as a function of species richness for each raster region
-for (k in unique(resultsfullpoint2$ID)) {
-  
-  plot(resultsfullpoint2$averagebio[resultsfullpoint2$ID == k] ~ 
-         resultsfullpoint2$averageS[resultsfullpoint2$ID == k],
-       ylim = c(0,1000), xlim = c(0,40), ylab = "Biomass", 
-       xlab = "Average Species Richness", main = k)
-}
-
-
+####LOOKING AT RAW GRAPHS####
 
 #Just looking at raw graphs 
 with(resultsfullpoint2, plot(averagebio ~ averageS))
@@ -64,7 +22,7 @@ devtools::install_github('mobiodiv/mobr', ref = 'dev')
 data(inv_comm)
 
 
-
+####DEEP STRATA REMOVED- ONE YEAR BIN####
 #ANALYSIS when using resultsfullpoint2 data frame. This is when the deep strata
   #has been removed but the years have not been aggregated
 
@@ -97,6 +55,7 @@ plot(lminvarsm)
 
 
 
+####DEEP STRATA REMOVED - THREE YEAR BIN####
 #ANALYSIS when using yrag_resultsfull data frame. This is when the deep strata
 #has been removed and the years have been aggregated into three year chunks. 
 
@@ -138,6 +97,8 @@ summary(lm(invar[invar < 50] ~ sm[invar < 50]))
 
 
 
+
+####DEEP REMOVED, THREE YEAR BIN, good IDs REPRESENTED IN ALL BINS####
 
 #ANALYSIS when using yrag_sub data frame. This is when the deep strata
 #has been removed and the years have been aggregated into three year chunks. A 
@@ -187,5 +148,49 @@ summary(lm(invar ~ sm + bsd))
 lminvarsmbsd <- lm(invar ~ sm + bsd)
 plot(lminvarsmbsd)
 
+
+
+####DOES VAR SPECIES RICHNESS MATTER? THREE YEAR BIN####
+    
+    #investigating if var in species richness in a raster through time has an impact
+
+S_SD <- with(yrag_sub, tapply(averageS, list(ID), sd))
+B_SD <- with(yrag_sub, tapply(averagebio, list(ID), sd))
+plot(B_SD ~ S_SD, ylab = "SD in biomass", xlab = "SD in species richness")
+summary(lm(B_SD ~ S_SD))
+amod <- (lm(B_SD ~ S_SD))
+plot(amod)
+plot(B_SD ~ S_SD, ylab = "Biomass SD", xlab = "Species Richness SD")
+abline(amod$coefficients)
+
+
+#var of biomass vs average species richness
+B_SD
+B_AV <- with(yrag_sub, tapply(averagebio, list(ID), mean))
+
+S_AV <- with(yrag_sub, tapply(averageS, list(ID), mean))
+S_SD
+
+### this plot is on poster ### 
+
+model12 <- lm(B_SD ~ S_AV)
+summary(model12)
+plot(model12)
+
+plot(B_SD ~ S_AV, xlab = "Average Species Richness per Raster Region (S)", 
+     ylab = "Biomass SD per Raster Region (kg)", cex = 1.5)
+abline(model12$coefficients, lwd = 2.5)
+
+
+
+## this plot is on poster ###
+
+model13 <- lm(S_SD ~ S_AV)
+summary(model13)
+plot(model13)
+
+plot(S_SD ~ S_AV, xlab = "Average Species Richness per Raster Region (S)"
+     , ylab = "Species Richness SD per Raster Region (S)", cex = 1.5)
+abline(model13$coefficients, lwd = 2.5)
 
 

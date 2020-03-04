@@ -1,56 +1,53 @@
 # BEF Script for Conference and First Chapter
-# will draw on s_rarefac and resultsfullpoint2 data sets
-
-#I want biomass per species richness, temp, lat, long, location, region, salinity, 
 
 
+####BEFORE RASTERIZATION####
 #working with s_rarefac -> before permutation. each row is trawl event. 
 
 s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 
- #load s_rarefac
-model1 <- lm(s_rarefac$biomass ~ s_rarefac$S)
+#MODELING BIOMASS AS FUNCTION OF OTHER VARIABLES
 
+ #model 1
+model1 <- lm(s_rarefac$biomass ~ s_rarefac$S)
 plot(s_rarefac$biomass ~ s_rarefac$S)
 abline(coefficients(model1))
 summary(model1)
 plot(model1)
 
 
-
+  #model 2
 model2 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S)
-
 plot(log(s_rarefac$biomass) ~ s_rarefac$S)
 abline(coefficients(model2))
 summary(model2)
 plot(model2)
 
 
+  #model 3
 model3 <- lm(log(s_rarefac$biomass) ~ log(s_rarefac$S))
-
 plot(log(s_rarefac$biomass) ~ log(s_rarefac$S))
 abline(coefficients(model3))
 summary(model3)
 plot(model3)
 
 
+  #model 4
 model4 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$region +
                s_rarefac$tempB + s_rarefac$tempS)
 summary(model4)
 plot(model4)
 
-
-
-# collapse to average biomass by species richness
+  
+  #model 5
+    #collapse to average biomass by species richness
 bss= with(s_rarefac, tapply(biomass, list(S), mean, na.rm=T))
 bss
 sss = c(1:48, 50, 54)
 
 
-
 model5 <- lm(bss ~ sss)
 summary(model5)
-
 
 plot(bss ~ sss, xlab = "Species Richness (S)", 
      ylab = "Average Biomass per Trawl Event (kg)", pch = 1)
@@ -58,11 +55,81 @@ abline(coefficients(model5), lwd = 2)
 plot(model5)
 
   #model the other way 
+summary(lm(sss ~ bss))
 plot(sss ~ bss)
 
 
-  #calculating sPIE
-#averageing biomass based on how many species are in the event
+  #model 6
+    #removing point 47 outlier
+model6 <- lm(bss[bss < 300] ~ sss[bss < 300])
+summary(model5)
+
+plot(bss[bss < 300] ~ sss[bss < 300], xlab = "Species Richness (S)", 
+     ylab = "Average Biomass per Trawl Event (kg)")
+abline(coefficients(model6))
+plot(model6)
+
+  #model 7
+    #how important is S 
+model7 <- lm(s_rarefac$biomass ~ s_rarefac$S + s_rarefac$lat + s_rarefac$year + 
+               s_rarefac$region + s_rarefac$tempB + s_rarefac$salB + s_rarefac$month)
+summary(model7)
+plot(model7)
+
+plot(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$year + 
+       s_rarefac$region + s_rarefac$tempB + s_rarefac$salB)
+ 
+
+ #model 7 AOV
+    ## make this into table for poster 
+model7aov <- aov(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat 
+                 + s_rarefac$year + s_rarefac$region + s_rarefac$tempS 
+                 + s_rarefac$salS + s_rarefac$month)
+summary(model7aov)
+plot(model7aov)
+AIC(model7aov)
+
+omega_sq(model7aov)
+
+#adding date to look at season
+dates <- s_rarefac$date
+dates <- as.Date(dates, "%m/%d/%Y")
+month <- strftime(dates, "%m")
+s_rarefac <- cbind(month, s_rarefac)
+
+
+  #model 8
+model8 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$year)
+summary(model8)
+plot(model8)
+
+model8aov <- aov(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$year)
+summary(model8aov)
+AIC(model8aov)
+
+
+  #model 9
+model9 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S)
+summary(model9)
+
+model9aov <- aov(log(s_rarefac$biomass) ~ s_rarefac$S)
+summary(model9aov)
+AIC(model9aov)
+summary(anova(model8aov, model9aov))
+
+  #model 10 
+model10 <- lm(log(s_rarefac$biomass) ~ s_rarefac$lat + s_rarefac$year + 
+                s_rarefac$region + s_rarefac$tempS + s_rarefac$salS + s_rarefac$month)
+summary(model10)
+
+model10AOV <- aov(log(s_rarefac$biomass) ~ s_rarefac$lat + s_rarefac$year + 
+                    s_rarefac$region + s_rarefac$tempS + s_rarefac$salS + s_rarefac$month)
+summary(model10AOV)
+
+
+
+####CALCULATING sPIE####
+  #averageing biomass based on how many species are in the event
 s_spread <- s_spread[,15:208]
 s_spread[is.na(s_spread)] <-0
 sPIE <- calc_PIE(s_spread, ENS = T)
@@ -79,7 +146,7 @@ plot(bss ~ sssP)
 
 plotpiedata$sPIEr <- signif(plotpiedata$sPIE, digits = 2)
 
-#averaging biomass based on how even trawls were
+  #averaging biomass based on how even trawls were
 bssPI <- with(plotpiedata, tapply(V2, list(sPIEr), mean, na.rm = T))
 bssPI
 sssPIE <- c(seq(1,10,0.1), 11:15, 17,18,20,23)
@@ -87,7 +154,8 @@ plot(bssPI ~ sssPIE)
 
 
 
-  #checking for spatial dependence
+
+####CHECKING FOR SPATIAL DEPENDENCE####
     #calculate dist of community matrix with species richness inside
 s_comm <- read.csv("~./fish_stability/data/s_comm.csv", header = T)
 s_environ <- read.csv("~./fish_stability/data/s_environ.csv", header = T)
@@ -96,13 +164,11 @@ sr = apply(s_comm, 1, function(x) sum(x > 0))
 hist(sr)
 
 sr_dist = dist(sr)
-
 latlong <- s_environ[,6:7]
-
 xy_dist = dist(latlong)
-
 max_dist = max(xy_dist) / 2
-# plot result
+
+  #plot result
 plot(xy_dist, sr_dist)
 abline(lm(sr_dist ~ xy_dist), lwd=3, col='red')
 lines(lowess(xy_dist, sr_dist), lwd=3, col='pink')
@@ -113,102 +179,10 @@ mantel(xy_dist, sr_dist)
 
 
 
-# removing point 47 outlier
-
-model6 <- lm(bss[bss < 300] ~ sss[bss < 300])
-summary(model5)
-
-
-plot(bss[bss < 300] ~ sss[bss < 300], xlab = "Species Richness (S)", 
-     ylab = "Average Biomass per Trawl Event (kg)")
-abline(coefficients(model6))
-plot(model6)
-
-
-#how important is S 
-model7 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$year + 
-               s_rarefac$region + s_rarefac$tempB + s_rarefac$salB)
-summary(model7)
-plot(model7)
-
-plot(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$year + 
-       s_rarefac$region + s_rarefac$tempB + s_rarefac$salB)
-
-## make this into table for poster 
-model7aov <- aov(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat 
-                 + s_rarefac$year + s_rarefac$region + s_rarefac$tempB 
-                 + s_rarefac$salB + s_rarefac$month)
-summary(model7aov)
-plot(model7aov)
-AIC(model7aov)
-
-#adding date to look at season
-dates <- s_rarefac$date
-dates <- as.Date(dates, "%m/%d/%Y")
-month <- strftime(dates, "%m")
-s_rarefac <- cbind(month, s_rarefac)
 
 
 
-
-
-
-
-model8 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$year)
-summary(model8)
-plot(model8)
-
-model8aov <- aov(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$year)
-summary(model8aov)
-AIC(model8aov)
-
-model9 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S)
-summary(model9)
-
-model9aov <- aov(log(s_rarefac$biomass) ~ s_rarefac$S)
-summary(model9aov)
-AIC(model9aov)
-summary(anova(model8aov, model9aov))
-
-#runCCA and PCA
-  #PCA and CCA with presence/absence as community matrix
-library(vegan)
-s_comm <- s_rarefac[,16:208]
-
-write.csv(s_comm, "~./fish_stability/data/s_comm.csv")
-
-s_environ <- s_rarefac[,1:15]
-
-write.csv(s_environ, "~./fish_stability/data/s_environ.csv")
-
-#indirect
-s_pca <- rda(s_comm)
-s_pca
-plot(s_pca)
-
-#direct
-s_cca <- cca(s_comm ~ S + biomass + lat + year + region + tempB + salB,
-             data = s_environ, na.action = na.exclude)
-s_cca
-plot(s_cca)
-
-  #run PCA and CCA with biomass in community matrix
-  #indirect
-sb_pca <- rda(s_bio_comm)
-sb_pca
-plot(sb_pca)
-
-  #direct
-sb_cca <- cca(s_comm~ S + lat + year + region + tempB + salB + month,
-              data = s_environ, na.action = na.exclude)
-sb_cca
-plot(sb_cca)
-
-
-
-
-
-#after rasterizing work 
+####AFTER RASTERIZING - ONE YEAR BIN#### 
   #rounded S to two significant digits
 
 resultsfullpoint2$roundS <- signif(resultsfullpoint2$averageS, digits = 2)
@@ -225,11 +199,46 @@ plot(bss_raster ~ sss_raster, ylab = "Average Biomass per Raster Region (kg)", x
 abline(model10$coefficients, lwd = 2)
 
 
+####AFTER RASTERIZING- THREE YEAR BIN####
 
-    # what does species richness over time look like 
+    # var biomass vs average species richness per raster region
 S_ID <- with(yrag_sub, tapply(averageS, list(ID), mean, na.rm = T))
 S_ID
 S_ID <- signif(S_ID, digits = 2)
 S_ID
 B_VAR_ID <- with(yrag_sub, tapply(averagebio,list(ID),sd, na.rm = T))
 plot(B_VAR_ID ~ S_ID)
+
+
+    # Biomass SD vs Average Species Richness with three year bin ### on poster ###
+yrag_sub$roundS <- signif(yrag_sub$averageS, digits = 2)
+yrag_bss_raster <- with(yrag_sub, tapply(averagebio, list(roundS),mean, na.rm= T))
+yrag_bss_raster
+yrag_sss_raster <- c(10:33, 35)
+plot(yrag_bss_raster ~ yrag_sss_raster)
+
+model10yr <- lm(yrag_bss_raster ~ yrag_sss_raster)
+summary(model10yr)
+plot(model10yr)
+
+plot(yrag_bss_raster ~ yrag_sss_raster, ylab = "Average Biomass per Raster Region (kg)",
+     xlab = "Species Richness (S)", cex = 1.5)
+abline(model10yr$coefficients, lwd = 2.5)
+
+  # Biomass SD as a function of Species Richness SD 
+    
+S_SD <- with(yrag_sub, tapply(averageS, list(ID), sd, na.rm = T))
+S_SD
+S_SD <- signif(S_SD, digits = 2)
+S_SD
+B_VAR_ID
+
+      #areas where species richness is more variable, biomass is more variable
+model11 <- lm(B_VAR_ID ~ S_SD)
+summary(model11)
+plot(model11)
+
+plot(B_VAR_ID ~ S_SD, xlab = "SD of Species Richness", ylab = "SD Biomass")
+abline(model11$coefficients)
+
+
