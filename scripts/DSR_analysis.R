@@ -63,10 +63,10 @@ plot(lminvarsm)
 
 ## these three are biomass sd, species richness average, and invar average for IDs over 3 yr bins
 
-bsd = with(yrag_resultsfull, tapply(averagebio, list(ID), sd, na.rm=T))
-sm =  with(yrag_resultsfull, tapply(averageS, list(ID), mean, na.rm=T))
-bm = with(yrag_resultsfull, tapply(averagebio, list(ID), mean, na.rm=T))
-var = with(yrag_resultsfull, tapply(averagebio, list(ID), var, na.rm = T))
+bsd = with(yrag_three, tapply(averagebio, list(ID), sd, na.rm=T))
+sm =  with(yrag_three, tapply(averageS, list(ID), mean, na.rm=T))
+bm = with(yrag_three, tapply(averagebio, list(ID), mean, na.rm=T))
+var = with(yrag_three, tapply(averagebio, list(ID), var, na.rm = T))
 cv = var / (bm ^ 2)
 invar = 1/ cv
 
@@ -109,12 +109,12 @@ summary(lm(invar[invar < 50] ~ sm[invar < 50]))
 
 #subsetting raster IDs with at least 5 trawls across 3 yr time frame 
   #list of IDs with representation across years
-IDlist <- c(1246,1294,1340,1388,1486,1532,1534,1536,1582,
-            1586,1630,1680,1730,1777,1778,1779,1826,1875,1923,1924,1972,1973,2021,
-            2022,2120,2169,2170,2219,2269,2318,2319,2419,2519,2569,2620,2670,
-            2721,2771,2772)
+IDlist <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
+            2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
+            2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
+            3210, 3271, 3331)
 #pulling out rows with the above listed IDs
-yrag_sub <- yrag_resultsfull[yrag_resultsfull$ID %in% IDlist,]
+yrag_sub <- yrag_three[yrag_three$ID %in% IDlist,]
 
 #doing summaries for biomass, species, invar values
 
@@ -171,7 +171,7 @@ B_AV <- with(yrag_sub, tapply(averagebio, list(ID), mean))
 S_AV <- with(yrag_sub, tapply(averageS, list(ID), mean))
 S_SD
 
-### this plot is on poster ### 
+###### Var Bio vs Av Species 3 yr bin ####
 
 model12 <- lm(B_SD ~ S_AV)
 summary(model12)
@@ -183,7 +183,7 @@ abline(model12$coefficients, lwd = 2.5)
 
 
 
-## this plot is on poster ###
+##### SD species vs Av Species - three yr bin ####
 
 model13 <- lm(S_SD ~ S_AV)
 summary(model13)
@@ -192,5 +192,21 @@ plot(model13)
 plot(S_SD ~ S_AV, xlab = "Average Species Richness per Raster Region (S)"
      , ylab = "Species Richness SD per Raster Region (S)", cex = 1.5)
 abline(model13$coefficients, lwd = 2.5)
+
+
+
+##### biomass AV vs AV species - three year bin, biomass not averaged for each number of species ####
+model14 <- lm(B_AV ~ S_AV)
+summary(model14)
+plot(model14)
+
+plot(B_AV ~ S_AV, xlab = "Average Species Richness", ylab = "Average Biomass (kg)",
+     cex = 1.5)
+abline(model14$coefficients, lwd = 2.5)
+
+
+
+
+
 
 

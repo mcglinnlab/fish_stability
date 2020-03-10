@@ -39,7 +39,7 @@ resultsfullpoint2 <- resultsfullpoint2[,-1]
 
 #yrag_resultsfull
   # after permutation. each row is raster region over three years
-yrag_resultsfull <- read.csv("~./fish_stability/data/yrag_resultsfull.csv", 
+yrag_resultsfull <- read.csv("~./fish_stability/data/yrag_resultsfullpoint2.csv", 
                              header = T)
 yrag_resultsfull <- yrag_resultsfull[,-1]
 
@@ -48,3 +48,5 @@ yrag_resultsfull <- yrag_resultsfull[,-1]
   # at least five trawls over every three year bin
 yrag_sub <- read.csv("~./fish_stability/data/yrag_sub.csv", header = T)
 yrag_sub <- yrag_sub[,-1]
+
+ 

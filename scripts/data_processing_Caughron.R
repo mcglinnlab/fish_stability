@@ -1,5 +1,5 @@
 
-#Data Processing
+#### Initial Data Processing ####
 
 #import fish species csv
 
@@ -87,14 +87,18 @@ SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART < -90 & LATITUDESTART < 90)
 #Export SEAMAP_sub to csv
 #write.csv(SEAMAP_sub, file = "./data/SEAMAP_sub.csv")
 
+
+#### REMOVING DEEP SITE, ADDING RASTER ID, CREATING COMMUNITY MATRICES ####
 #read in SEAMAP_sub
 SEAMAP_sub <-read.csv("~./fish_stability/data/SEAMAP_sub.csv", header = T)
 
 
+
+
 #subsetting for inner depth zone only, removing samples from 30-60 ft
-SEAMAP_inner <- subset(SEAMAP_sub, DEPTHZONE == "INNER")
+#SEAMAP_inner <- subset(SEAMAP_sub, DEPTHZONE == "INNER")
 
-
+#EACH ROW EVENTNAME AND WIDE FORM ##
 ## creating new data frame where row is unique event and total number of each 
   #species are in wide form ##
 
@@ -105,13 +109,13 @@ library(purrr)
 
 #selecting only needed columns 
 
-SEAMAP_invest <- SEAMAP_inner[,c("DATE", "Year", "LONGITUDESTART",
+SEAMAP_invest <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART",
                                  "LATITUDESTART", "COLLECTIONNUMBER", 
                                  "EVENTNAME", "SPECIESSCIENTIFICNAME", 
                                  "SPECIESCOMMONNAME", "NUMBERTOTAL", 
                                  "SPECIESTOTALWEIGHT", "LOCATION", "REGION", 
                                  "TEMPSURFACE", "TEMPBOTTOM", "SALINITYSURFACE",
-                                 "SALINITYBOTTOM")]
+                                 "SALINITYBOTTOM", "DEPTHZONE")]
 
 
 
@@ -136,17 +140,25 @@ dat <- SEAMAP_invest %>%
             tempS = unique(as.numeric(TEMPSURFACE)),
             tempB = unique(as.numeric(TEMPBOTTOM)),
             salS = unique(as.numeric(SALINITYSURFACE)),
-            salB = unique(as.numeric(SALINITYBOTTOM))
+            salB = unique(as.numeric(SALINITYBOTTOM)),
+            depthzone = unique(DEPTHZONE)
             )
 
 
 
 
 dat$EVENTNAME <-as.character(dat$EVENTNAME)
+dat["2673", "long"] <- -78.1
+dat["6160", "long"] <- -80.1
 
+dat <- cbind(dat, rastervals$layer)
+dat <- subset(dat, depthzone == "INNER")
+s_environ <- dat
+colnames(s_environ)[colnames(s_environ) == "rastervals$layer"] <- "ID"
+colnames(s_environ)[colnames(s_environ) == "EVENTNAME"] <- "event"
 #changing species total numbers from long form to wide form 
 
-s_wide <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
+s_wide <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL", "DEPTHZONE")]
 
   #function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
   #run function found in script spread_function
@@ -157,6 +169,8 @@ s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
 
 s_group <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, 
                                        aggfunc = sum)
+
+s_group <- subset(s_group, DEPTHZONE == "INNER")
 
 #Export s_group to csv
 #write.csv(s_group, file = "./data/s_group.csv")
@@ -181,11 +195,11 @@ s_rarefac <- data.frame(left_join(dat, s_rarefac, by='EVENTNAME'))
 #Export s_rarefac to csv
 #write.csv(s_rarefac, file = "./data/s_rarefac.csv")
 
-
+####BIOMASS COMMUNITY MATRIX ####
 
 #creating community matrix with total biomass in cells and merging with environmental matrix
-
-s_bio <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
+##did not rerun this as of 3/9/2020##
+s_bio <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT", "DEPTHZONE")]
 
 #function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
 #run function found in script spread_function

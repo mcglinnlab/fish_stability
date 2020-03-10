@@ -1,5 +1,7 @@
 # BEF Script for Conference and First Chapter
 
+library(vegan)
+
 
 ####BEFORE RASTERIZATION####
 #working with s_rarefac -> before permutation. each row is trawl event. 
@@ -8,7 +10,7 @@ s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 
 #MODELING BIOMASS AS FUNCTION OF OTHER VARIABLES
 
- #model 1
+ #model 1 biomass ~ species
 model1 <- lm(s_rarefac$biomass ~ s_rarefac$S)
 plot(s_rarefac$biomass ~ s_rarefac$S)
 abline(coefficients(model1))
@@ -16,15 +18,20 @@ summary(model1)
 plot(model1)
 
 
-  #model 2
+  #model 2 ln biomass ~ species
 model2 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S)
-plot(log(s_rarefac$biomass) ~ s_rarefac$S)
-abline(coefficients(model2))
+plot(log(s_rarefac$biomass) ~ s_rarefac$S, xlab = "Species Richness", 
+     ylab = "Ln Biomass")
+abline(coefficients(model2), lwd = 4, col = "red")
 summary(model2)
 plot(model2)
 
+plot(log(s_rarefac$biomass) ~ s_rarefac$S, xlab = "Species Richness", 
+     ylab = "Ln Biomass")
+lines(lowess(log(s_rarefac$biomass) ~ s_rarefac$S), col = "red", lwd = 4)
 
-  #model 3
+
+  #model 3 ln biomass ~ ln species
 model3 <- lm(log(s_rarefac$biomass) ~ log(s_rarefac$S))
 plot(log(s_rarefac$biomass) ~ log(s_rarefac$S))
 abline(coefficients(model3))
@@ -32,7 +39,7 @@ summary(model3)
 plot(model3)
 
 
-  #model 4
+  #model 4 ln biomass ~ s , lat, region, tempB, tempS
 model4 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$region +
                s_rarefac$tempB + s_rarefac$tempS)
 summary(model4)
@@ -71,13 +78,21 @@ plot(model6)
 
   #model 7
     #how important is S 
+
+      #adding date to look at season
+dates <- s_rarefac$date
+dates <- as.Date(dates, "%m/%d/%Y")
+month <- strftime(dates, "%m")
+s_rarefac <- cbind(month, s_rarefac)
+
+
 model7 <- lm(s_rarefac$biomass ~ s_rarefac$S + s_rarefac$lat + s_rarefac$year + 
                s_rarefac$region + s_rarefac$tempB + s_rarefac$salB + s_rarefac$month)
 summary(model7)
 plot(model7)
 
 plot(log(s_rarefac$biomass) ~ s_rarefac$S + s_rarefac$lat + s_rarefac$year + 
-       s_rarefac$region + s_rarefac$tempB + s_rarefac$salB)
+       s_rarefac$region + s_rarefac$tempB + s_rarefac$salB + s_rarefac$month)
  
 
  #model 7 AOV
@@ -90,12 +105,6 @@ plot(model7aov)
 AIC(model7aov)
 
 omega_sq(model7aov)
-
-#adding date to look at season
-dates <- s_rarefac$date
-dates <- as.Date(dates, "%m/%d/%Y")
-month <- strftime(dates, "%m")
-s_rarefac <- cbind(month, s_rarefac)
 
 
   #model 8
@@ -214,7 +223,7 @@ plot(B_VAR_ID ~ S_ID)
 yrag_sub$roundS <- signif(yrag_sub$averageS, digits = 2)
 yrag_bss_raster <- with(yrag_sub, tapply(averagebio, list(roundS),mean, na.rm= T))
 yrag_bss_raster
-yrag_sss_raster <- c(10:33, 35)
+yrag_sss_raster <- c(10, 12:32, 35)
 plot(yrag_bss_raster ~ yrag_sss_raster)
 
 model10yr <- lm(yrag_bss_raster ~ yrag_sss_raster)
@@ -238,7 +247,7 @@ model11 <- lm(B_VAR_ID ~ S_SD)
 summary(model11)
 plot(model11)
 
-plot(B_VAR_ID ~ S_SD, xlab = "SD of Species Richness", ylab = "SD Biomass")
-abline(model11$coefficients)
+plot(B_VAR_ID ~ S_SD, xlab = "SD of Species Richness", ylab = "SD Biomass", cex = 1.5)
+abline(model11$coefficients, lwd = 2.5)
 
 

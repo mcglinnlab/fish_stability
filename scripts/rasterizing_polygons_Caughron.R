@@ -10,7 +10,7 @@ library(maps)
 library(maptools)
 
 
-##SETTING UP RASTER FILE##
+####SETTING UP RASTER FILE####
 
 # read in the ocean
 
@@ -28,8 +28,8 @@ res(oceans_raster) <- .2
 
 #crop extent of the oceans raster
 
-extent <- extent(-85,-75,25,40)
-oceans_raster <- crop(oceans_raster, extent)
+extent_oc <- extent(-85,-75,25,40)
+oceans_raster <- crop(oceans_raster, extent_oc)
 
 # saving the world raster grid
 
@@ -46,7 +46,7 @@ continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.
 
 
 
-## Rasterizing SEAMAP-SA Data ##
+#### Rasterizing SEAMAP-SA Data ####
     # data frame created in data_processing_Caughron
 
 #read in s_spread
@@ -99,9 +99,13 @@ plot(oceans_raster)
 #pulling cell IDs for each of the trawls for 0.2 res raster
 
 coord_trawls <- data.frame(cbind(s_spread$long, s_spread$lat))
-coord_trawls <- SpatialPoints(coord_trawls, 
+coord_trawls <- SpatialPoints(coord_trawls,
                               proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
+coordinates(coord_trawls) <- ~ X1 + X2
+proj4string(coord_trawls) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6 + ellps=WGS84"
+
 raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
+
 
 #write.csv(raster_values0.2, "~./fish_stability/data/raster_values0.2.csv")
 # repeat process for multiple resolutions
@@ -112,10 +116,39 @@ raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
 
 
 
+#### trying to create raster map with only 3 yr bin subset regions #####
+
+setofID <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
+             2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
+             2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
+             3210, 3271, 3331)
+
+oc_raster <- oceans_raster
+
+
+plot(oc_raster)
+plot(oceans_raster)
+
+
+#just 36 rasters that exist over all time bins 
+timebin_raster <- oceans_raster
+
+narep <- rep(NA, 6000)
+narep <- replace(narep, setofID, setofID)
+summary(narep)
+timebin_raster <- setValues(timebin_raster,narep)
+plot(timebin_raster)
 
 
 
-
+allrasters <- rastervals$layer
+narep <- rep(NA, 6000)
+narep <- replace(narep, allrasters, allrasters)
+summary(allrasters)
+all_raster <- oceans_raster
+plot(all_raster)
+all_raster <- setValues(all_raster, narep)
+plot(all_raster)
 
 
 
