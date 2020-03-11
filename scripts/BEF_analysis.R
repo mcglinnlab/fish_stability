@@ -247,7 +247,18 @@ model11 <- lm(B_VAR_ID ~ S_SD)
 summary(model11)
 plot(model11)
 
-plot(B_VAR_ID ~ S_SD, xlab = "SD of Species Richness", ylab = "SD Biomass", cex = 1.5)
+plot(B_VAR_ID ~ S_SD, xlab = "SD of Species Richness", ylab = "SD Biomass", 
+     cex = 1.5, col = S_AV)
 abline(model11$coefficients, lwd = 2.5)
 
+  #making plot above species rich var by biomass var with ggplot2
 
+data <- as.data.frame(cbind(S_SD, S_AV, B_VAR_ID))
+dat <- as.data.frame(cbind(S_SD, B_VAR_ID))
+
+ggplot(data = data, aes(x = S_SD, y = B_VAR_ID, fill = S_AV)) +
+  geom_point(size = 8, shape = 21) +
+  geom_smooth(data = dat, method = "lm" ) +
+  xlab("Species Richness SD") +
+  ylab("Biomass SD") +
+  theme_bw()
