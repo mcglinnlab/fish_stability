@@ -262,3 +262,5 @@ ggplot(data = data, aes(x = S_SD, y = B_VAR_ID, fill = S_AV)) +
   xlab("Species Richness SD") +
   ylab("Biomass SD") +
   theme_bw()
+
+
