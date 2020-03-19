@@ -86,8 +86,9 @@ month <- strftime(dates, "%m")
 s_rarefac <- cbind(month, s_rarefac)
 
 
-model7 <- lm(s_rarefac$biomass ~ s_rarefac$S + s_rarefac$lat + s_rarefac$year + 
-               s_rarefac$region + s_rarefac$tempB + s_rarefac$salB + s_rarefac$month)
+model7 <- lm(log(s_rarefac$biomass) ~ s_rarefac$S + as.numeric(s_rarefac$lat)
+             + as.numeric(s_rarefac$year) +  s_rarefac$region + 
+               s_rarefac$tempB + s_rarefac$salB + s_rarefac$month)
 summary(model7)
 plot(model7)
 

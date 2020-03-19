@@ -1,6 +1,46 @@
 
-#Spatial Scaling of DSR
+#### CALCULATING CUMULATIVE SPECIES RICHNESS ####
 
+#Example of rarefy
+data(BCI)
+S <- specnumber(BCI) # observed number of species
+(raremax <- min(rowSums(BCI)))
+Srare <- rarefy(BCI, raremax)
+plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
+abline(0, 1)
+rarecurve(BCI, step = 20, sample = raremax, col = "blue", cex = 0.6)
+
+#uses data frame s_comm and s_environ
+
+
+#subsetting events for each raster square for each raster time block
+for (y in c("a","b","c","d","e","f","g","h","i")) {
+      #have to figure out this subsetting, do i need to add ID column and yrcat
+      #to s_comm 
+  #subsetting the IDs that were sampled in year y 
+  yearpull <- subset(s_comm, s_environ$yrcat == y)
+  yearIDs <- unique(s_environ$ID[s_environ$yrcat == y])
+  
+  #subsetting the trawl events that occurred in each ID 
+  for (r in yearIDs) {
+    
+    #subsetting events avail for rarefaction
+    eventsavail <- subset(yearpull, yearpull$ID == r)
+    
+    #rarefaction of that raster region and yr cat 
+    S <- specnumber()
+    #store
+    ID <- r
+    yrcat <- y
+    tempresults1 <- data.frame(ID, yrcat, )
+    colnames(tempresults1) <- c("ID", 'yrcat',)
+    
+    
+    
+    
+
+
+#### Spatial Scaling of DSR ####
 # Idea for how to write spatial part
   #Make a loop that randomize the list of ID squares
   #Loop makes calcs of var of invar and average species richness with 1 square included, 2 square until length(ID)
