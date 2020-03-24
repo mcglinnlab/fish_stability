@@ -10,16 +10,32 @@ plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species
 abline(0, 1)
 rarecurve(BCI, step = 20, sample = raremax, col = "blue", cex = 0.6)
 
-#uses data frame s_comm and s_environ
+
+
+
+##Practice 
+
+yearpull <- subset(s_rarefac, s_rarefac$yrcat == "a")
+eventsavail <- subset(yearpull, yearpull$ID == "2314")
+comm_mat <- eventsavail[,c(1, 19:211)]
+rarecurve(comm_mat)
+
+
+### NOTE: need to do some thinking about how I want the rarefac information to come out 
+  # in a data frame. I have bare bones of for loops that will subset data to what I want. 
+  # Data frame needs an index column 1:nrow.  
+
+#uses data frame s_rarefac
 
 
 #subsetting events for each raster square for each raster time block
-for (y in c("a","b","c","d","e","f","g","h","i")) {
+for (y in c("a" #,"b","c","d","e","f","g","h","i"
+            )) {
       #have to figure out this subsetting, do i need to add ID column and yrcat
-      #to s_comm 
+      #to s_comm  
   #subsetting the IDs that were sampled in year y 
-  yearpull <- subset(s_comm, s_environ$yrcat == y)
-  yearIDs <- unique(s_environ$ID[s_environ$yrcat == y])
+  yearpull <- subset(s_rarefac, s_rarefac$yrcat == y)
+  yearIDs <- unique(s_rarefac$ID[s_rarefac$yrcat == y])
   
   #subsetting the trawl events that occurred in each ID 
   for (r in yearIDs) {
@@ -27,14 +43,22 @@ for (y in c("a","b","c","d","e","f","g","h","i")) {
     #subsetting events avail for rarefaction
     eventsavail <- subset(yearpull, yearpull$ID == r)
     
+    #removing columns that are not community matrix 
+    comm_mat <- eventsavail[,19:211]
+    
     #rarefaction of that raster region and yr cat 
-    S <- specnumber()
+    S <- specnumber(comm_mat)
+    
+    raremax <- min(rowSums(comm_mat))
+    Srare <- rarefy(comm_mat, raremax)
+    
     #store
     ID <- r
     yrcat <- y
-    tempresults1 <- data.frame(ID, yrcat, )
-    colnames(tempresults1) <- c("ID", 'yrcat',)
-    
+    tempresults1 <- data.frame(ID, yrcat, S, Srare )
+    colnames(tempresults1) <- c("ID", 'yrcat', 'maxspecies', 'rarefy')
+  }
+}
     
     
     
