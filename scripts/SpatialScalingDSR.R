@@ -1,5 +1,5 @@
 
-#### CALCULATING CUMULATIVE SPECIES RICHNESS ####
+#### EXAMPLE OF CODE USING BCI DATA ####
 
 #Example of rarefy
 data(BCI)
@@ -11,16 +11,114 @@ abline(0, 1)
 rarecurve(BCI, step = 20, sample = raremax, col = "blue", cex = 0.6)
 
 
+####CREATING RASTER SCALE COMMUNITY MATRIX ####
+  #creating new col that merges col ID and yrcat. This makes unique ID for each raster through time.
+s_rarefac$ID_yrcat <- paste(s_rarefac$ID, "_", s_rarefac$yrcat)
+
+  #list of unique raster IDs through time
+uniqueID <- unique(s_rarefac$ID_yrcat)
 
 
-##Practice 
+  ## for loop to calculate community matrix at the raster scale with presence/absence ##
+rastercom_mat <- NULL
 
+
+for(i in  uniqueID) {
+    #pulling events from each unique ID through time
+  IDpull <- subset(s_rarefac, s_rarefac$ID_yrcat == i)
+  
+    #removing environmental columns leaving only comm matrix #need to figure out if I need the first column (X)
+  comm_mat <-IDpull[,20:212]
+  
+    #summing the columns in the community matrix. This tells us how many events observed a species in a raster
+  rastercolsum <- colSums(comm_mat)
+  
+    #changing col sum to presence/absence
+  row <- ifelse(rastercolsum > 0 , 1, 0)
+  
+    #adding each run with a unique ID to a matrix using rbind
+  rastercom_mat <- rbind(rastercom_mat, row)
+}
+
+  #turning output into a data frame and adding column with IDs back
+rastercom_mat <- as.data.frame(rastercom_mat)
+rastercom_mat <- as.data.frame(cbind(uniqueID, rastercom_mat))
+
+  #saving
+#write.csv(rastercom_mat, "~/fish_stability/data/rastercom_mat.csv")
+
+
+
+## for loop to calculate community matrix at the raster scale with abundance ##
+
+rastercom_mat_abun <- NULL
+
+for(i in  uniqueID) {
+  #pulling events from each unique ID through time
+  IDpull <- subset(s_rarefac, s_rarefac$ID_yrcat == i)
+  
+  #removing environmental columns leaving only comm matrix #need to figure out if I need the first column (X)
+  comm_mat <-IDpull[,20:212]
+  
+  #summing the columns in the community matrix. This tells us how many events observed a species in a raster
+  rastercolsum <- colSums(comm_mat)
+  
+  #adding each run with a unique ID to a matrix using rbind
+  rastercom_mat_abun <- rbind(rastercom_mat_abun, rastercolsum)
+}
+
+  #turning output into a data frame and adding column with IDs back
+rastercom_mat_abun <- as.data.frame(rastercom_mat_abun)
+rastercom_mat_abun <- as.data.frame(cbind(uniqueID, rastercom_mat_abun))
+
+
+
+
+#### trying to do rarefac
+
+  ## using presence/absence matrix ##
+
+S <- specnumber(rastercom_mat[,-1]) # observed number of species
+(raremax <- min(rowSums(rastercom_mat[,-1])))
+Srare <- rarefy(rastercom_mat[,-1], raremax)
+plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
+abline(0, 1)
+rarecurve(rastercom_mat[,-1], step = 20, sample = raremax, col = "blue", cex = 0.6, label = F)
+
+
+  ## using number of individuals matrix ##
+S <- specnumber(rastercom_mat_abun[,-1]) # observed number of species
+raremax <- min(rowSums(rastercom_mat_abun[,-1]))
+Srare <- rarefy(rastercom_mat_abun[,-1], raremax)
+plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
+abline(0, 1)
+rarecurve(rastercom_mat_abun[,-1], step = 20, sample = raremax, col = "blue", cex = 0.6, label = F)
+
+
+
+####Practice#### 
+  #pulling events for a year bin
 yearpull <- subset(s_rarefac, s_rarefac$yrcat == "a")
+  #pulling events in a specific raster ID
 eventsavail <- subset(yearpull, yearpull$ID == "2314")
-comm_mat <- eventsavail[,c(1, 19:211)]
-rarecurve(comm_mat)
+  #subset columns from s_rarefac data frame
+comm_mat <- eventsavail[,c(1, 20:211)]
+  #caclulating rarecurve on each event
+#rarecurve(comm_mat)
+
+  #need to calculate curve for whole raster region not just for each event
+  #first need to sum down the col
+sumofcol <- base::colSums(comm_mat)
+  #determine a new presence absence for each raster region in each year cat
+rastercomm_vec <- ifelse(sumofcol > 0, 1, 0)
 
 
+
+
+
+
+
+####FOR LOOPS; MAY OR MAY NOT NEED ####
 ### NOTE: need to do some thinking about how I want the rarefac information to come out 
   # in a data frame. I have bare bones of for loops that will subset data to what I want. 
   # Data frame needs an index column 1:nrow.  
@@ -44,7 +142,7 @@ for (y in c("a" #,"b","c","d","e","f","g","h","i"
     eventsavail <- subset(yearpull, yearpull$ID == r)
     
     #removing columns that are not community matrix 
-    comm_mat <- eventsavail[,19:211]
+    comm_mat <- eventsavail[,c(1,19:211)]
     
     #rarefaction of that raster region and yr cat 
     S <- specnumber(comm_mat)

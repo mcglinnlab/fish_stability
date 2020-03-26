@@ -49,4 +49,15 @@ yrag_resultsfull <- yrag_resultsfull[,-1]
 yrag_sub <- read.csv("~./fish_stability/data/yrag_sub.csv", header = T)
 yrag_sub <- yrag_sub[,-1]
 
+
+#rastercom_mat
+  #community matrix at the raster level. each row is cumulative species in a
+  #raster region in a time bin
+rastercom_mat <- read.csv("~/fish_stability/data/rastermat_com.csv", header = T)
+rastercom_mat <- rastercom_mat[,-1]
+
+
+
+
+
  
