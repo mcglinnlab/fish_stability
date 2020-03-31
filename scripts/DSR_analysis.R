@@ -208,4 +208,63 @@ abline(model14$coefficients, lwd = 2.5)
 
 
 
+#### using new S from cumulative raster species to re run analysis from above ####
+    # # might need to go back and calculate cumulative biomass for a raster region for
+    # # these analyses to make more sense/ see more patterns
+
+  #uses ID_newS_sub and yrag_sub data frames
+S_SDr <- with(ID_newS_sub, tapply(newS, list(raster), sd))
+B_SDr <- with(yrag_sub, tapply(averagebio, list(ID), sd))
+B_AVr <- with(yrag_sub, tapply(averagebio, list(ID), mean))
+S_AVr <- with(ID_newS_sub, tapply(newS, list(raster), mean))
+
+  # Var Bio vs Av Species #
+
+model15 <- lm(B_SDr ~ S_AVr)
+summary(model15)
+plot(model15)
+
+plot(B_SDr ~ S_AVr, xlab = "Average Species Richness per Raster Region (S)", 
+     ylab = "Biomass SD per Raster Region (kg)", cex = 1.5)
+abline(model15$coefficients, lwd = 2.5)
+
+
+
+  # SD species vs Av Species #
+
+model16 <- lm(S_SDr ~ S_AVr)
+summary(model16)
+plot(model16)
+
+plot(S_SDr ~ S_AVr, xlab = "Average Species Richness per Raster Region (S)"
+     , ylab = "Species Richness SD per Raster Region (S)", cex = 1.5)
+abline(model16$coefficients, lwd = 2.5)
+
+
+  # Biomass AV vs AV species #
+model17 <- lm(B_AVr ~ S_AVr)
+summary(model17)
+plot(model17)
+
+plot(B_AVr ~ S_AVr, xlab = "Average Species Richness", ylab = "Average Biomass (kg)",
+     cex = 1.5)
+abline(model17$coefficients, lwd = 2.5)
+
+
+  # SD Biomass vs SD Species #
+
+model18 <- lm(B_SDr ~ S_SDr)
+summary(model18)
+plot(model18)
+
+plot(B_SDr ~ S_SDr, xlab = "SD Species Richness", ylab = "SD Biomass", cex = 1.5)
+abline(model18$coefficients, lwd = 2.5)
+
+
+
+
+
+
+
+
 

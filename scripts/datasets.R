@@ -31,6 +31,11 @@ s_environ <- s_environ[,-1]
 s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
 s_spread <- s_spread[,-1]
 
+#s_bio_comm 
+  #community matrix with biomass in cells and no environmental included
+s_bio_comm <- read.csv("~/fish_stability/data/s_bio_comm.csv", header = T)
+s_bio_comm <- s_bio_comm[,-1]
+
 #resultsfullpoint2
   #after permutation. each row is raster region in a single year
 resultsfullpoint2 <- read.csv("~./fish_stability/data/resultsfullpoint2.csv",
@@ -55,6 +60,32 @@ yrag_sub <- yrag_sub[,-1]
   #raster region in a time bin
 rastercom_mat <- read.csv("~/fish_stability/data/rastermat_com.csv", header = T)
 rastercom_mat <- rastercom_mat[,-1]
+
+#rastercom_mat_abun 
+  #community matrix at the raster level. each row is abundance in a raster region
+rastercom_mat_abun <- read.csv("~/fish_stability/data/rastercom_mat_abun.csv", 
+                               header = T)
+rastercom_mat_abun <- rastercom_mat_abun[,-1]
+
+#rastercom_mat_bio
+  #community matrix at the raster level. each row is biomass in a raster region
+rastercom_mat_bio <- read.csv("~/fish_stability/data/rastercom_mat_bio.csv",
+                              header = T)
+rastercom_mat_bio <- rastercom_mat_bio[,-1]
+
+
+#ID_newS
+  #two column data frame. includes unique raster ID (raster_yrcat) and new S
+  #calculated by finding asymptote of rarefaction curve for each unique ID or
+  #total number of unique species found in each raster sqaure for that yr cat
+ID_newS <- read.csv("~/fish_stability/data/ID_newS.csv", header = T)
+ID_newS <- ID_newS[,-1]
+
+
+#ID_newS_sub 
+  #ID_newS subsetting for good IDs used to create yrag_sub data frame
+ID_newS_sub <- read.csv("~/fish_stability/data/ID_newS_sub.csv", header = T)
+ID_newS_sub <- ID_newS_sub[,-1]
 
 
 
