@@ -185,8 +185,8 @@ s_spread <- data.frame(left_join(dat, s_group, by='EVENTNAME'))
 
 
 #Creating presence/absence wide form for rarefaction 
-s_rarefac <- data.frame(s_group[,2:195])
-s_rarefac[is.na(s_rarefac)] <-0
+s_rarefac <- data.frame(s_group[,3:202])
+s_rarefac[is.na(s_rarefac)] <- 0
 s_rarefac[s_rarefac >0] <- 1
 s_rarefac <- cbind(s_group$EVENTNAME, s_rarefac)
 colnames(s_rarefac)[colnames(s_rarefac)== 's_group$EVENTNAME'] <- "EVENTNAME"
@@ -204,16 +204,19 @@ s_bio <- SEAMAP_invest[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT", 
 #function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
 #run function found in script spread_function
 
-s_bio$EVENTNAME <-as.character(s_wide$EVENTNAME)
-s_bio$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
-s_bio$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
+s_bio$EVENTNAME <-as.character(s_bio$EVENTNAME)
+s_bio$SPECIESCOMMONNAME <-as.character(s_bio$SPECIESCOMMONNAME)
+s_bio$SPECIESTOTALWEIGHT <-as.numeric(s_bio$SPECIESTOTALWEIGHT)
 
 s_bio_comm <- spread_with_multiple_values(s_bio, SPECIESCOMMONNAME,SPECIESTOTALWEIGHT, 
                                        aggfunc = sum)
 s_bio_comm[is.na(s_bio_comm)] <-0
 
+
+s_bio_comm <- subset(s_bio_comm, DEPTHZONE == "INNER")
+
 #Export s_group to csv
-write.csv(s_bio_comm, file = "./data/s_bio_comm.csv")
+#write.csv(s_bio_comm, file = "./data/s_bio_comm.csv")
 
 
 

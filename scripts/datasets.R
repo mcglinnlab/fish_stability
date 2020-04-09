@@ -10,10 +10,28 @@ SEAMAP_sub <- SEAMAP_sub[,-1]
 SEAMAP_inner <- read.csv("~./fish_stability/data/SEAMAP_inner.csv", header = T)
 SEAMAP_inner <- SEAMAP_inner[,-1]
 
+
+
+
+
+#ID.df
+ #data frame with the raster ID and yrcat for each event in the inner depth zone
+ID.df <- read.csv("~/fish_stability/data/ID.df.csv", header = T)
+ID.df <- ID.df[,-1]
+
+
+
+
+
 #s_rarefac
   #has environmental matrix and community matrix with presence/ absence
 s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 s_rarefac <- s_rarefac[,-1]
+
+#s_rarefac_sub
+  #same as s_rarefac but subset for 36 good raster IDs
+s_rarefac_sub <- read.csv("~/fish_stability/data/s_rarefac_sub.csv", header = T)
+s_rarefac_sub <- s_rarefac_sub[,-1]
 
 #s_comm
   #community matrix where rows are events and columns are species with presence
@@ -36,6 +54,9 @@ s_spread <- s_spread[,-1]
 s_bio_comm <- read.csv("~/fish_stability/data/s_bio_comm.csv", header = T)
 s_bio_comm <- s_bio_comm[,-1]
 
+
+
+
 #resultsfullpoint2
   #after permutation. each row is raster region in a single year
 resultsfullpoint2 <- read.csv("~./fish_stability/data/resultsfullpoint2.csv",
@@ -55,6 +76,9 @@ yrag_sub <- read.csv("~./fish_stability/data/yrag_sub.csv", header = T)
 yrag_sub <- yrag_sub[,-1]
 
 
+
+
+
 #rastercom_mat
   #community matrix at the raster level. each row is cumulative species in a
   #raster region in a time bin
@@ -72,6 +96,9 @@ rastercom_mat_abun <- rastercom_mat_abun[,-1]
 rastercom_mat_bio <- read.csv("~/fish_stability/data/rastercom_mat_bio.csv",
                               header = T)
 rastercom_mat_bio <- rastercom_mat_bio[,-1]
+
+
+
 
 
 #ID_newS

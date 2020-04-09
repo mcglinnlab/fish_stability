@@ -13,23 +13,35 @@ rarecurve(BCI, step = 20, sample = raremax, col = "blue", cex = 0.6)
 
 
 ####CREATING RASTER SCALE COMMUNITY MATRIX ####
+  #load s_rarefac from datasets script
+
+
+  #pulling out 36 predetermined good IDs where we know theres at least 5 events in each time bin
+IDlist <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
+            2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
+            2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
+            3210, 3271, 3331)
+s_rarefac_sub <- s_rarefac[s_rarefac$ID %in% IDlist,]
+
   #creating new col that merges col ID and yrcat. This makes unique ID for each raster through time.
-s_rarefac$ID_yrcat <- paste(s_rarefac$ID, "_", s_rarefac$yrcat)
+s_rarefac_sub$ID_yrcat <- paste(s_rarefac_sub$ID, "_", s_rarefac_sub$yrcat)
 
   #list of unique raster IDs through time
-uniqueID <- unique(s_rarefac$ID_yrcat)
-
+uniqueID <- unique(s_rarefac_sub$ID_yrcat)
 
   ## for loop to calculate community matrix at the raster scale with presence/absence ##
 rastercom_mat <- NULL
 
 
-for(i in  uniqueID) {
+for(i in uniqueID) {
     #pulling events from each unique ID through time
-  IDpull <- subset(s_rarefac, s_rarefac$ID_yrcat == i)
+  IDpull <- subset(s_rarefac_sub, s_rarefac_sub$ID_yrcat == i)
+  
+    #pulling 5 events from each raster
+  event <- IDpull[sample(nrow(IDpull), 5, replace = F), ]
   
     #removing environmental columns leaving only comm matrix #need to figure out if I need the first column (X)
-  comm_mat <-IDpull[,20:212]
+  comm_mat <-event[,19:211]
   
     #summing the columns in the community matrix. This tells us how many events observed a species in a raster
   rastercolsum <- colSums(comm_mat)
@@ -56,6 +68,8 @@ s_spread <- cbind.data.frame(s_rarefac$yrcat, s_spread)
 names(s_spread)[names(s_spread) == "rastervals.layer"] <- "ID"
 names(s_spread)[names(s_spread) == "s_rarefac$yrcat"] <- "yrcat"
 s_spread$ID_yrcat <- paste(s_spread$ID, "_", s_spread$yrcat)
+d[is.na(d)] <- 0
+s_spread[is.na(s_spread)] <- 0
 
 
 
@@ -78,6 +92,7 @@ for(i in  uniqueID) {
   #turning output into a data frame and adding column with IDs back
 rastercom_mat_abun <- as.data.frame(rastercom_mat_abun)
 rastercom_mat_abun <- as.data.frame(cbind(uniqueID, rastercom_mat_abun))
+
 
   #saving
 #write.csv(rastercom_mat_abun, "~/fish_stability/data/rastercom_mat_abun.csv")
@@ -118,6 +133,7 @@ rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
   #saving
 write.csv(rastercom_mat_bio, "~/fish_stability/data/rastercom_mat_bio.csv")
 
+
 #### RARECURVES WITH PRESENCE AND ABUNDANCE DATA ####
 
   ## using presence/absence matrix ##
@@ -138,6 +154,132 @@ plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species
 abline(0, 1)
 rarecurve(rastercom_mat_abun[,-1], step = 20, sample = raremax, col = "blue", cex = 0.6, label = F)
 slope <- rareslope(rastercom_mat_abun[,-1], 100)
+
+
+
+
+
+
+
+
+
+#### FOR LOOP CREATING ALL THREE RASTER LEVEL COMMUNITY MATRICES WITH A 5 EVENT PULL ####
+  
+  #prepping data sets
+  # load s_rarefac, s_spread, s_bio_comm, and ID.df
+    #s_rarefac for pres/ab
+s_rarefac$ID <- ID.df$point2resID
+s_rarefac$yrcat <- ID.df$yrcat
+s_rarefac$ID_yrcat <- paste(s_rarefac$ID, "_", s_rarefac$yrcat)
+
+    #s_spread for abundance
+s_spread$ID <- ID.df$point2resID
+s_spread$yrcat <- ID.df$yrcat
+s_spread$ID_yrcat <- paste(s_spread$ID, "_", s_spread$yrcat)
+
+s_spread[is.na(s_spread)] <- 0
+
+    #s_bio_comm for biomass
+s_bio_comm <- arrange(s_bio_comm, EVENTNAME)
+
+s_bio_comm$ID <- ID.df$point2resID
+s_bio_comm$yrcat <- ID.df$yrcat
+s_bio_comm$ID_yrcat <- paste(s_bio_comm$ID, "_", s_bio_comm$yrcat)
+
+
+
+  #pulling out 36 predetermined good IDs where we know theres at least 5 events in each time bin
+IDlist <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
+            2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
+            2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
+            3210, 3271, 3331)
+
+    #good ID for pres/ab data set s_rarefac
+s_rarefac_sub <- s_rarefac[s_rarefac$ID %in% IDlist, ]
+
+    #good ID for abundance data set
+s_spread_sub <- s_spread[s_spread$ID %in% IDlist, ]
+
+    #good ID for biomass data set
+s_bio_comm_sub <- s_bio_comm[s_bio_comm$ID %in% IDlist, ]
+
+
+#list of unique raster IDs through time #this works for all three matrices
+uniqueID <- unique(s_rarefac_sub$ID_yrcat)
+
+## for loop to calculate community matrix at the raster scale with presence/absence ##
+rastercom_mat_pres <- NULL
+rastercom_mat_abun <- NULL
+rastercom_mat_bio <- NULL
+
+for(i in uniqueID) {
+  #pulling events from each unique ID through time
+    #pres/ab
+  IDpull_pres <- subset(s_rarefac_sub, s_rarefac_sub$ID_yrcat == i)
+    #abundance
+  IDpull_abun <- subset(s_spread_sub, s_spread_sub$ID_yrcat == i)
+    #biomass
+  IDpull_bio <- subset(s_bio_comm_sub, s_bio_comm_sub$ID_yrcat == i)
+  
+  #determining which events will be pulled
+  samp <- sample(nrow(IDpull_pres), 5, replace = F)
+  
+  #pulling 5 events from each raster
+    #pres/ab
+  event_pres <- IDpull_pres[samp, ]
+    #abundance
+  event_abun <- IDpull_abun[samp, ]
+    #biomass
+  event_bio <- IDpull_bio[samp, ]
+  
+  #removing environmental columns leaving only comm matrix
+  
+  
+    #pres/ab
+   comm_mat_pres <- event_pres[,16:215]
+   comm_mat_pres <- as.data.frame(sapply(comm_mat_pres, as.numeric))
+    #abundance
+   comm_mat_abun <- event_abun[,17:216]
+   comm_mat_abun <- as.data.frame(sapply(comm_mat_abun, as.numeric))
+    #biomass
+   comm_mat_bio <- event_bio[,3:202]
+   comm_mat_bio <- as.data.frame(sapply(comm_mat_bio, as.numeric))
+    
+  #summing the columns in the community matrix. This tells us how many events observed a species in a raster
+    #pres/ab
+   rastercolsum_pres <- colSums(comm_mat_pres)
+    #abundance
+   rastercolsum_abun <- colSums(comm_mat_abun)
+    #biomass
+   rastercolsum_bio <- colSums(comm_mat_bio)
+  
+  #changing col sum to presence/absence #only for pres
+  row <- ifelse(rastercolsum_pres > 0 , 1, 0)
+  
+  #adding each run with a unique ID to a matrix using rbind
+    #pres
+  rastercom_mat_pres <- rbind(rastercom_mat_pres, row)
+    #abundance
+  rastercom_mat_abun <- rbind(rastercom_mat_abun, rastercolsum_abun)
+    #biomass
+  rastercom_mat_bio <- rbind(rastercom_mat_bio, rastercolsum_bio)
+}
+
+#turning output into a data frame and adding column with IDs back
+  #pres
+rastercom_mat_pres <- as.data.frame(rastercom_mat_pres)
+rastercom_mat_pres <- as.data.frame(cbind(uniqueID, rastercom_mat_pres))
+
+  #abundance
+rastercom_mat_abun <- as.data.frame(rastercom_mat_abun)
+rastercom_mat_abun <- as.data.frame(cbind(uniqueID, rastercom_mat_abun))
+
+  #biomass
+rastercom_mat_bio <- as.data.frame(rastercom_mat_bio)
+rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
+
+
+
 
 
 
