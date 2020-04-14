@@ -1,4 +1,6 @@
 library(dplyr)
+library(tidyr)
+library(vegan)
 
 #### EXAMPLE OF CODE USING BCI DATA ####
 
@@ -312,12 +314,161 @@ ID_newS_sub <- ID_newS[ID_newS$raster %in% IDlist,]
 
 
 
+#### SCALING ####
 
+  #input files 
+    #comm matrix of species pres/ab, biomass, and abundance where each row is raster and time bin
+    #file names rastercom_mat_pres, rastercom_mat_bio, rastercom_mat_abun
+      #load from dataset file and then run following transformation. Do not resave changes. 
+
+#an ID order will be created each run. ID list sequence will determine the order in which 
+  #rasters are added to geographic extent
+
+IDorder <- #reorder of IDlist
+  
+# GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO, ABUN AT SCALE AND TIME BIN #
+
+#seperating unique ID col into ID and yr_cat
+  #pres
+  rastercom_mat_pres <- rastercom_mat_pres %>%
+    separate(uniqueID, c("ID", "yr_cat"))
+  #bio
+  rastercom_mat_bio <- rastercom_mat_bio %>%
+    separate(uniqueID, c("ID", "yr_cat"))
+  #abun
+  rastercom_mat_abun <- rastercom_mat_abun %>%
+    separate(uniqueID, c("ID", "yr_cat"))
+  
+  
+#null objects
+  scale <- NULL
+  pres_pull <- NULL
+  pres_sub <- NULL
+  bio_pull <- NULL
+  bio_sub <- NULL
+  abun_pull <- NULL
+  abun_sub <- NULL
+  ID <- NULL
+  yr_cat <- NULL
+  scale_pres <- NULL
+  temp_pres <- NULL
+  scale_com_mat_pres <- NULL
+  scale_bio <- NULL
+  temp_bio <- NULL
+  scale_com_mat_bio <- NULL
+  scale_abun <- NULL
+  temp_abun <- NULL
+  scale_com_mat_abun <- NULL
+  
+  
+  #loop that adds data from one raster at a time
+for (i in IDorder) { 
+
+#counter
+  scale <- scale + 1
+  
+#subsetting rows
+  #pulling ID from pres
+    pres_pull <- rastercom_mat_pres[ID == i, ]
+      #adding new pulled ID to growing data frame with data from rasters in the sequence
+    pres_sub <- rbind(pres_sub, pres_pull)
+  
+  #pulling ID from bio
+    bio_pull <- rastercom_mat_bio[ID == i, ]
+      #adding new ID pull rows to new df
+    bio_sub <- rbind(bio_sub, bio_pull)
     
+  #pulling ID from abun
+    abun_pull <- rastercolsum_abun[ID == i, ]
+      #adding new ID pull rows to new df
+    abun_sub <- rbind(abun_sub, abun_pull)
+
+#geographic merge. merge by same time bin. 
+  for (a in c("a", "b", "c", "d", "e", "f", "g", "h", "i")) {
+   
+     #columns for ID and yrcat
+    ID <- c(ID, i)
+    yr_cat <- c(yr_cat, a)
     
+    #merging S
+      #calc
+    scale_pres <- ifelse(pres_sub[yr_cat == a, 3:202] > 0, 1, 0)
+      #store
+    temp_pres <- data.frame(scale, ID, yr_cat, scale_pres)
+    scalecom_mat_pres <- rbind(scalecom_mat_pres, temp_pres)
+    
+    #merging biomass
+      #calc
+    scale_bio <- colSums(bio_sub[yr_cat == a, 3:202])
+      #store
+    temp_bio <- data.frame(scale, ID, yr_cat, scale_bio)
+    scalecom_mat_bio <- rbind(scalecom_mat_bio, temp_bio)
+    
+    #merging abundance
+      #calc
+    scale_abun <- colSums(abun_sub[yr_cat == a, 3:202])
+      #store
+    temp_abun <- data.frame(scale, ID, yr_cat, scale_abun)
+    scalecom_mat_abun <- rbind(scalecom_mat_abun, temp_abun)
+    
+  }
+
+}
+ 
 
 
-#### Spatial Scaling of DSR ####
+# TEMPORAL MERGE: OUTPUT = df WHERE EACH ROW IS SCALE WITH COL FOR S, BIO,
+  #ABUN, VAR S, VAR BIO #  
+  #calcs made from geographic merge output
+
+#null objects
+  scale_sub_pres <- NULL
+  scale_sub_bio <- NULL
+  scale_sub_abun <- NULL
+  S <- NULL
+  varS <- NULL
+  bio <- NULL
+  varbio <- NULL
+  ttnum <- NULL
+  scale <- NULL
+  tempscale_output <- NULL
+  scale_output <- NULL
+  
+  #1:36 bc 36 raster so highest scale
+for (i in 1:36) {
+  
+#subsetting rows for each scale
+  #pres
+  scale_sub_pres <- scalecom_mat_pres[scale == i, ]
+  #bio
+  scale_sub_bio <- scalecom_mat_bio[scale == i, ]
+  #abun
+  scale_sub_abun <- scalecom_mat_abun[scale == i, ]
+  
+#calculations
+  #pres
+  S <- mean(rowsum(scale_sub_pres))
+  varS <- sd(rowsum(scale_sub_pres))
+  #bio
+  bio <- mean(rowsum(scale_sub_bio))
+  varbio <- var(rowsum(scale_sub_bio)) / (mean(rowsum(scale_sub_bio)) ^ 2)
+  #abun
+  ttnum <- mean(rowsum(scale_sub_abun))
+  
+#storage
+  scale <- i 
+  tempscale_output <- data.frame(scale, S, varS, bio, varbio, ttnum) 
+  colnames(tempscale_output) <- c("scale", "S", "varS", "bio", "varbio", "ttnum")
+  scale_output <- rbind(scale_output, tempscale_output)
+}
+
+  
+
+
+
+
+
+#### OLD Spatial Scaling of DSR ####
 # Idea for how to write spatial part
   #Make a loop that randomize the list of ID squares
   #Loop makes calcs of var of invar and average species richness with 1 square included, 2 square until length(ID)
@@ -325,9 +476,6 @@ ID_newS_sub <- ID_newS[ID_newS$raster %in% IDlist,]
   #Average curves
 
 
-#renaming dataframe so results dataframe stays intact
-
-ssr_results <- resultsfullpoint2
 
 #fake data set to try things on
 #a <- c(1,2,3,4,5,6,7,8,9,10)
