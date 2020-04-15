@@ -44,10 +44,16 @@ s_comm <- s_comm[,-1]
 s_environ <- read.csv("~./fish_stability/data/s_environ.csv", header = T)
 s_environ <- s_environ[,-1]
 
+
 #s_spread
+#spatial points data frame/ leave it alone
+s_spreadd <- as.data.frame(read.csv("~./fish_stability/data/s_spread.csv", header = T))
+s_spreadd <- s_spreadd[,-1]
+
+#s_spreadd
   #community matrix with number of individuals in cells and environmental included
-s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
-s_spread <- s_spread[,-1]
+s_spreadd <- as.data.frame(read.csv("~./fish_stability/data/s_spread.csv", header = T))
+s_spreadd <- s_spreadd[,-1]
 
 #s_bio_comm 
   #community matrix with biomass in cells and no environmental included
@@ -82,7 +88,7 @@ yrag_sub <- yrag_sub[,-1]
 #rastercom_mat
   #community matrix at the raster level. each row is cumulative species in a
   #raster region in a time bin
-rastercom_mat <- read.csv("~/fish_stability/data/rastermat_com.csv", header = T)
+rastercom_mat <- read.csv("~/fish_stability/data/rastercom_mat.csv", header = T)
 rastercom_mat <- rastercom_mat[,-1]
 
 #rastercom_mat_abun 
@@ -99,6 +105,15 @@ rastercom_mat_bio <- rastercom_mat_bio[,-1]
 
 
 
+#coordcenter
+  #centroid coordinates for 36 good raster cells
+coordcenter <- read.csv("~/fish_stability/data/coordcenter.csv", header = T)
+coordcenter <- coordcenter[,-1]
+
+#raster_dist
+  #distance matrix with computed distances between each pairwise raster cells
+raster_dist <- read.csv("~/fish_stability/data/raster_dist.csv", header = T)
+raster_dist <- raster_dist[,-1]
 
 
 #ID_newS

@@ -118,10 +118,10 @@ raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
 
 #### trying to create raster map with only 3 yr bin subset regions #####
 
-setofID <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
-             2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
-             2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
-             3210, 3271, 3331)
+setofID <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
+             1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
+             2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
+             2670, 2721, 2771)
 
 oc_raster <- oceans_raster
 
@@ -133,7 +133,7 @@ plot(oceans_raster)
 #just 36 rasters that exist over all time bins 
 timebin_raster <- oceans_raster
 
-narep <- rep(NA, 6000)
+narep <- rep(NA, 3750)
 narep <- replace(narep, setofID, setofID)
 summary(narep)
 timebin_raster <- setValues(timebin_raster,narep)
@@ -150,5 +150,14 @@ plot(all_raster)
 all_raster <- setValues(all_raster, narep)
 plot(all_raster)
 
+
+allrasters <- raster_values0.2$layer
+narep <- rep(NA, 3750)
+narep <- replace(narep, allrasters, allrasters)
+summary(allrasters)
+all_raster <- oceans_raster
+plot(all_raster)
+all_raster <- setValues(all_raster, narep)
+plot(all_raster)
 
 

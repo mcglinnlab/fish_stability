@@ -1,6 +1,8 @@
 library(dplyr)
 library(tidyr)
 library(vegan)
+library(raster)
+library(sp)
 
 #### EXAMPLE OF CODE USING BCI DATA ####
 
@@ -168,18 +170,18 @@ slope <- rareslope(rastercom_mat_abun[,-1], 100)
 #### FOR LOOP CREATING ALL THREE RASTER LEVEL COMMUNITY MATRICES WITH A 5 EVENT PULL ####
   
   #prepping data sets
-  # load s_rarefac, s_spread, s_bio_comm, and ID.df
+  # load s_rarefac, s_spreadd, s_bio_comm, and ID.df
     #s_rarefac for pres/ab
 s_rarefac$ID <- ID.df$point2resID
 s_rarefac$yrcat <- ID.df$yrcat
 s_rarefac$ID_yrcat <- paste(s_rarefac$ID, "_", s_rarefac$yrcat)
 
     #s_spread for abundance
-s_spread$ID <- ID.df$point2resID
-s_spread$yrcat <- ID.df$yrcat
-s_spread$ID_yrcat <- paste(s_spread$ID, "_", s_spread$yrcat)
+s_spreadd$ID <- ID.df$point2resID
+s_spreadd$yrcat <- ID.df$yrcat
+s_spreadd$ID_yrcat <- paste(s_spreadd$ID, "_", s_spread$yrcat)
 
-s_spread[is.na(s_spread)] <- 0
+s_spreadd[is.na(s_spreadd)] <- 0
 
     #s_bio_comm for biomass
 s_bio_comm <- arrange(s_bio_comm, EVENTNAME)
@@ -191,16 +193,16 @@ s_bio_comm$ID_yrcat <- paste(s_bio_comm$ID, "_", s_bio_comm$yrcat)
 
 
   #pulling out 36 predetermined good IDs where we know theres at least 5 events in each time bin
-IDlist <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
-            2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
-            2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
-            3210, 3271, 3331)
+IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
+            1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
+            2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
+            2670, 2721, 2771)
 
     #good ID for pres/ab data set s_rarefac
 s_rarefac_sub <- s_rarefac[s_rarefac$ID %in% IDlist, ]
 
     #good ID for abundance data set
-s_spread_sub <- s_spread[s_spread$ID %in% IDlist, ]
+s_spread_sub <- s_spreadd[s_spreadd$ID %in% IDlist, ]
 
     #good ID for biomass data set
 s_bio_comm_sub <- s_bio_comm[s_bio_comm$ID %in% IDlist, ]
@@ -297,10 +299,10 @@ ID_newS <- cbind.data.frame(ID, newS)
 
 
   #pull ID with all yrcat: goodID list from DSR_analysis script
-IDlist <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
-            2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
-            2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
-            3210, 3271, 3331)
+IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
+            1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
+            2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
+            2670, 2721, 2771)
 
   #adding a column of just raster ID
 ID_newS$raster <- substr(ID_newS$ID, start=1, stop=4)
@@ -324,7 +326,24 @@ ID_newS_sub <- ID_newS[ID_newS$raster %in% IDlist,]
 #an ID order will be created each run. ID list sequence will determine the order in which 
   #rasters are added to geographic extent
 
-IDorder <- #reorder of IDlist
+
+#ORDER OF RASTER IDS
+  #coordinates of raster cell centroid
+coordcenter <-as.matrix(xyFromCell(oc_raster, IDlist))
+
+  #pairwise distances between each raster cell
+raster_dist <- as.data.frame(spDists(coordcenter, coordcenter))
+colnames(raster_dist) <- IDlist
+rownames(raster_dist) <- IDlist
+
+
+  #reorder of IDlist
+    #in raster_dist matrix each column can be ordered from least to greatest and 
+    #will be a new order of raster IDs
+  #for test run
+IDorder <- IDlist
+
+
   
 # GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO, ABUN AT SCALE AND TIME BIN #
 
@@ -352,69 +371,69 @@ IDorder <- #reorder of IDlist
   yr_cat <- NULL
   scale_pres <- NULL
   temp_pres <- NULL
-  scale_com_mat_pres <- NULL
+  scalecom_mat_pres <- NULL
   scale_bio <- NULL
   temp_bio <- NULL
-  scale_com_mat_bio <- NULL
+  scalecom_mat_bio <- NULL
   scale_abun <- NULL
   temp_abun <- NULL
-  scale_com_mat_abun <- NULL
+  scalecom_mat_abun <- NULL
   
   
   #loop that adds data from one raster at a time
 for (i in IDorder) { 
-
-#counter
-  scale <- scale + 1
   
 #subsetting rows
   #pulling ID from pres
-    pres_pull <- rastercom_mat_pres[ID == i, ]
+    pres_pull <- rastercom_mat_pres[rastercom_mat_pres$ID == i, ]
       #adding new pulled ID to growing data frame with data from rasters in the sequence
     pres_sub <- rbind(pres_sub, pres_pull)
   
   #pulling ID from bio
-    bio_pull <- rastercom_mat_bio[ID == i, ]
+    bio_pull <- rastercom_mat_bio[rastercom_mat_bio$ID == i, ]
       #adding new ID pull rows to new df
     bio_sub <- rbind(bio_sub, bio_pull)
     
   #pulling ID from abun
-    abun_pull <- rastercolsum_abun[ID == i, ]
+    abun_pull <- rastercom_mat_abun[rastercom_mat_abun$ID == i, ]
       #adding new ID pull rows to new df
     abun_sub <- rbind(abun_sub, abun_pull)
 
 #geographic merge. merge by same time bin. 
-  for (a in c("a", "b", "c", "d", "e", "f", "g", "h", "i")) {
+  for (z in c("a", "b", "c", "d", "e", "f", "g", "h", "i")) {
    
      #columns for ID and yrcat
-    ID <- c(ID, i)
-    yr_cat <- c(yr_cat, a)
+    ID <- i
+    yr_cat <- z
     
     #merging S
       #calc
-    scale_pres <- ifelse(pres_sub[yr_cat == a, 3:202] > 0, 1, 0)
+    scale_pres <- ifelse(pres_sub[yr_cat == z, 3:202] > 0, 1, 0)
       #store
-    temp_pres <- data.frame(scale, ID, yr_cat, scale_pres)
+    temp_pres <- data.frame(ID, yr_cat, scale_pres)
     scalecom_mat_pres <- rbind(scalecom_mat_pres, temp_pres)
     
     #merging biomass
       #calc
-    scale_bio <- colSums(bio_sub[yr_cat == a, 3:202])
+    scale_bio <- colSums(bio_sub[yr_cat == z, 3:202])
       #store
-    temp_bio <- data.frame(scale, ID, yr_cat, scale_bio)
+    temp_bio <- data.frame(ID, yr_cat, scale_bio)
     scalecom_mat_bio <- rbind(scalecom_mat_bio, temp_bio)
     
     #merging abundance
       #calc
     scale_abun <- colSums(abun_sub[yr_cat == a, 3:202])
       #store
-    temp_abun <- data.frame(scale, ID, yr_cat, scale_abun)
+    temp_abun <- data.frame(ID, yr_cat, scale_abun)
     scalecom_mat_abun <- rbind(scalecom_mat_abun, temp_abun)
     
   }
 
 }
  
+scalecom_mat_abun <- as.data.frame(scalecom_mat_abun)
+scalecom_mat_bio <- as.data.frame(scalecom_mat_bio)
+scalecom_mat_pres <- as.data.frame(scalecom_mat_pres)
 
 
 # TEMPORAL MERGE: OUTPUT = df WHERE EACH ROW IS SCALE WITH COL FOR S, BIO,
@@ -463,65 +482,18 @@ for (i in 1:36) {
 }
 
   
-
-
-
-
-
-#### OLD Spatial Scaling of DSR ####
-# Idea for how to write spatial part
-  #Make a loop that randomize the list of ID squares
-  #Loop makes calcs of var of invar and average species richness with 1 square included, 2 square until length(ID)
-  #Rerandomize list of IDs and repeat many many times to create curves
-  #Average curves
-
-
-
-#fake data set to try things on
-#a <- c(1,2,3,4,5,6,7,8,9,10)
-#b <- c(2,3,5,6,7,3,5,4,5,6)
-#ab <- data.frame(cbind(a,b))
-
-
+  
+  
+  
+  
+  
+##random
+  
 
 #examples of reordering data set
 #rows <- sample(nrow(ab))
 #abnew <- ab[rows, ]
 
-
-for (p in 1:5) {
-  rows <- sample(nrow(ssr_results))
-  ssr_new <- ssr_results[rows, ]
-  
-  for (a in 1:length(ssr_results)){
-    #selects 1 row then 2 then 3 until all row included
-    sub_ssr <- ssr_new[1:a, ]
-    
-    #vector of cumulative average of biomass and species as more IDs added
-    bio[a] <- average(sub_ssr$averagebio)
-    S[a] <- average(sub_ssr$averageS)
-    
-    #creates vectors of just varbio and averagebio columns to be used to calc 
-      #new cv and new invar for growing number of raster IDs
-    varbio[a] <- sub_ssr$varbio
-    averabiobio[a] <- sub_ssr$averagebio
-    
-    #calculating cv and invar each time a new raster ID is added
-    cv[a] <- varbio[a]/(averagebio[a] ^ 2)
-    invar[a] <- 1/(cv[a])
-    
-    
-    #creating columns that tell me how many raster IDs are included (numID) and 
-    # which reshuffling the row is associated with (run)
-    numID <- a
-    run <- p
-    
-    #creating data frame to save to
-    tempcurve <- data.frame(cbind(numID, run, bio, S, CV, invar))
-    tempcurve <- colnames("numID", "run", "bio", "S", "CV", "invar")
-  }
-  curve <- rbind(curve, tempcurve)  
-}
 
 
 
