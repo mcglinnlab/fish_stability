@@ -3,6 +3,7 @@ library(tidyr)
 library(vegan)
 library(raster)
 library(sp)
+library(reshape2)
 
 #### EXAMPLE OF CODE USING BCI DATA ####
 
@@ -209,7 +210,7 @@ s_bio_comm_sub <- s_bio_comm[s_bio_comm$ID %in% IDlist, ]
 
 
 #list of unique raster IDs through time #this works for all three matrices
-uniqueID <- unique(s_rarefac_sub$ID_yrcat)
+uniqueID <- unique(s_bio_comm_sub$ID_yrcat)
 
 ## for loop to calculate community matrix at the raster scale with presence/absence ##
 rastercom_mat_pres <- NULL
@@ -219,9 +220,9 @@ rastercom_mat_bio <- NULL
 for(i in uniqueID) {
   #pulling events from each unique ID through time
     #pres/ab
-  IDpull_pres <- subset(s_rarefac_sub, s_rarefac_sub$ID_yrcat == i)
+ # IDpull_pres <- subset(s_rarefac_sub, s_rarefac_sub$ID_yrcat == i)
     #abundance
-  IDpull_abun <- subset(s_spread_sub, s_spread_sub$ID_yrcat == i)
+  #IDpull_abun <- subset(s_spread_sub, s_spread_sub$ID_yrcat == i)
     #biomass
   IDpull_bio <- subset(s_bio_comm_sub, s_bio_comm_sub$ID_yrcat == i)
   
@@ -230,9 +231,9 @@ for(i in uniqueID) {
   
   #pulling 5 events from each raster
     #pres/ab
-  event_pres <- IDpull_pres[samp, ]
+  #event_pres <- IDpull_pres[samp, ]
     #abundance
-  event_abun <- IDpull_abun[samp, ]
+  #event_abun <- IDpull_abun[samp, ]
     #biomass
   event_bio <- IDpull_bio[samp, ]
   
@@ -240,31 +241,31 @@ for(i in uniqueID) {
   
   
     #pres/ab
-   comm_mat_pres <- event_pres[,16:215]
-   comm_mat_pres <- as.data.frame(sapply(comm_mat_pres, as.numeric))
+   #comm_mat_pres <- event_pres[,16:215]
+   #comm_mat_pres <- as.data.frame(sapply(comm_mat_pres, as.numeric))
     #abundance
-   comm_mat_abun <- event_abun[,17:216]
-   comm_mat_abun <- as.data.frame(sapply(comm_mat_abun, as.numeric))
+   #comm_mat_abun <- event_abun[,17:216]
+   #comm_mat_abun <- as.data.frame(sapply(comm_mat_abun, as.numeric))
     #biomass
    comm_mat_bio <- event_bio[,3:202]
    comm_mat_bio <- as.data.frame(sapply(comm_mat_bio, as.numeric))
     
   #summing the columns in the community matrix. This tells us how many events observed a species in a raster
     #pres/ab
-   rastercolsum_pres <- colSums(comm_mat_pres)
+   #rastercolsum_pres <- colSums(comm_mat_pres)
     #abundance
-   rastercolsum_abun <- colSums(comm_mat_abun)
+  # rastercolsum_abun <- colSums(comm_mat_abun)
     #biomass
    rastercolsum_bio <- colSums(comm_mat_bio)
   
   #changing col sum to presence/absence #only for pres
-  row <- ifelse(rastercolsum_pres > 0 , 1, 0)
+  #row <- ifelse(rastercolsum_pres > 0 , 1, 0)
   
   #adding each run with a unique ID to a matrix using rbind
     #pres
-  rastercom_mat_pres <- rbind(rastercom_mat_pres, row)
+  #rastercom_mat_pres <- rbind(rastercom_mat_pres, row)
     #abundance
-  rastercom_mat_abun <- rbind(rastercom_mat_abun, rastercolsum_abun)
+  #rastercom_mat_abun <- rbind(rastercom_mat_abun, rastercolsum_abun)
     #biomass
   rastercom_mat_bio <- rbind(rastercom_mat_bio, rastercolsum_bio)
 }
@@ -337,36 +338,52 @@ colnames(raster_dist) <- IDlist
 rownames(raster_dist) <- IDlist
 
 
-  #reorder of IDlist
-    #in raster_dist matrix each column can be ordered from least to greatest and 
-    #will be a new order of raster IDs
-  #for test run
-IDorder <- IDlist
+
+#using converting lat long to distances function
+sphere_dist = function(coords){
+  long = coords[ , 1]
+  lat = coords[ , 2]
+  # Convert degrees to radians
+  deg2rad = function(deg) return(deg * pi / 180)
+  delta_long = as.matrix(dist(as.matrix(deg2rad(long))))
+  delta_lat = as.matrix(dist(as.matrix(deg2rad(lat))))
+  hav = sin(delta_lat / 2)^2 + cos(lat) %*% t(cos(lat)) * sin(delta_long / 2)^2
+  dist = 2 * asin(sqrt(abs(hav)))
+  return(dist)
+}
+
+
+# Compute distance on sphere if xy are longitudes and latitudes
+# Assume x is longitude and y is latitude
+  pair_dist = sphere_dist(coordcenter)
+  
+  #each run of loop creates new order IDs should be pooled by nearest neighbor dist. 
+  n = 36    
+for (i in 1:n) {
+  dist_to_site = pair_dist[i, ]
+# Shuffle plots, so that tied grouping is not biased by original order.
+  new_order = sample(1:n)  
+  dist_new = dist_to_site[new_order]
+  new_order = new_order[order(dist_new)]
+# Move focal site to the front
+  new_order = c(i, new_order[new_order != i])
+      }
+
 
 
   
-# GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO, ABUN AT SCALE AND TIME BIN #
+# GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO AT SCALE AND TIME BIN #
 
+  #only imput bio but pres created within loop  
 #seperating unique ID col into ID and yr_cat
-  #pres
-  rastercom_mat_pres <- rastercom_mat_pres %>%
-    separate(uniqueID, c("ID", "yr_cat"))
   #bio
   rastercom_mat_bio <- rastercom_mat_bio %>%
-    separate(uniqueID, c("ID", "yr_cat"))
-  #abun
-  rastercom_mat_abun <- rastercom_mat_abun %>%
     separate(uniqueID, c("ID", "yr_cat"))
   
   
 #null objects
-  scale <- NULL
-  pres_pull <- NULL
-  pres_sub <- NULL
   bio_pull <- NULL
   bio_sub <- NULL
-  abun_pull <- NULL
-  abun_sub <- NULL
   ID <- NULL
   yr_cat <- NULL
   scale_pres <- NULL
@@ -375,65 +392,53 @@ IDorder <- IDlist
   scale_bio <- NULL
   temp_bio <- NULL
   scalecom_mat_bio <- NULL
-  scale_abun <- NULL
-  temp_abun <- NULL
-  scalecom_mat_abun <- NULL
-  
-  
+ 
   #loop that adds data from one raster at a time
-for (i in IDorder) { 
-  
+for (i in IDlist) { 
 #subsetting rows
-  #pulling ID from pres
-    pres_pull <- rastercom_mat_pres[rastercom_mat_pres$ID == i, ]
-      #adding new pulled ID to growing data frame with data from rasters in the sequence
-    pres_sub <- rbind(pres_sub, pres_pull)
-  
   #pulling ID from bio
     bio_pull <- rastercom_mat_bio[rastercom_mat_bio$ID == i, ]
       #adding new ID pull rows to new df
     bio_sub <- rbind(bio_sub, bio_pull)
     
-  #pulling ID from abun
-    abun_pull <- rastercom_mat_abun[rastercom_mat_abun$ID == i, ]
-      #adding new ID pull rows to new df
-    abun_sub <- rbind(abun_sub, abun_pull)
-
 #geographic merge. merge by same time bin. 
-  for (z in c("a", "b", "c", "d", "e", "f", "g", "h", "i")) {
-   
+  for (z in c("a", "b", "c", "d", "e", "f", "g", "h", "i")) {    #letters[1:9]
+    
      #columns for ID and yrcat
     ID <- i
     yr_cat <- z
     
     #merging S
       #calc
-    scale_pres <- ifelse(pres_sub[yr_cat == z, 3:202] > 0, 1, 0)
+    scale_pres <- bio_sub[bio_sub$yr_cat == z, ]
+    scale_press <- t(colSums(scale_pres[, 3:202])) #-(1:2)
+    scale_presss <- ifelse(scale_press > 0, 1, 0)
       #store
-    temp_pres <- data.frame(ID, yr_cat, scale_pres)
+    temp_pres <- data.frame(cbind(ID, yr_cat, scale_presss))
     scalecom_mat_pres <- rbind(scalecom_mat_pres, temp_pres)
     
     #merging biomass
       #calc
-    scale_bio <- colSums(bio_sub[yr_cat == z, 3:202])
+    scale_bio <- bio_sub[bio_sub$yr_cat == z, ] 
+    scale_bio <- t(colSums(scale_bio[, 3:202]))
       #store
-    temp_bio <- data.frame(ID, yr_cat, scale_bio)
+    temp_bio <- data.frame(cbind(ID, yr_cat, scale_bio))
     scalecom_mat_bio <- rbind(scalecom_mat_bio, temp_bio)
     
-    #merging abundance
-      #calc
-    scale_abun <- colSums(abun_sub[yr_cat == a, 3:202])
-      #store
-    temp_abun <- data.frame(ID, yr_cat, scale_abun)
-    scalecom_mat_abun <- rbind(scalecom_mat_abun, temp_abun)
-    
   }
-
 }
- 
-scalecom_mat_abun <- as.data.frame(scalecom_mat_abun)
-scalecom_mat_bio <- as.data.frame(scalecom_mat_bio)
-scalecom_mat_pres <- as.data.frame(scalecom_mat_pres)
+
+#creating scale vector   
+scale <- rep(1:36, each=9)
+
+
+## GEOGRAPHIC MERGE OUTPUT ##
+#merging scale vector and loop output
+scalecom_mat_pres <- as.data.frame(cbind(scale, scalecom_mat_pres))
+scalecom_mat_bio <- as.data.frame(cbind(scale, scalecom_mat_bio))
+
+write.csv(scalecom_mat_pres, "~/fish_stability/data/scalecom_mat_pres.csv")
+write.csv(scalecom_mat_bio, "~/fish_stability/data/scalecom_mat_bio.csv")
 
 
 # TEMPORAL MERGE: OUTPUT = df WHERE EACH ROW IS SCALE WITH COL FOR S, BIO,
@@ -443,12 +448,10 @@ scalecom_mat_pres <- as.data.frame(scalecom_mat_pres)
 #null objects
   scale_sub_pres <- NULL
   scale_sub_bio <- NULL
-  scale_sub_abun <- NULL
   S <- NULL
   varS <- NULL
   bio <- NULL
   varbio <- NULL
-  ttnum <- NULL
   scale <- NULL
   tempscale_output <- NULL
   scale_output <- NULL
@@ -458,34 +461,56 @@ for (i in 1:36) {
   
 #subsetting rows for each scale
   #pres
-  scale_sub_pres <- scalecom_mat_pres[scale == i, ]
+  scale_sub_pres <- scalecom_mat_pres[scalecom_mat_pres$scale == i, 4:203]
+  scale_sub_pres <- data.frame(sapply(scale_sub_pres, function(x) as.numeric(as.character(x))))
   #bio
-  scale_sub_bio <- scalecom_mat_bio[scale == i, ]
-  #abun
-  scale_sub_abun <- scalecom_mat_abun[scale == i, ]
+  scale_sub_bio <- scalecom_mat_bio[scalecom_mat_bio$scale == i, 4:203]
+  scale_sub_bio <- data.frame(sapply(scale_sub_bio, function(x) as.numeric(as.character(x))))
+
   
 #calculations
   #pres
-  S <- mean(rowsum(scale_sub_pres))
-  varS <- sd(rowsum(scale_sub_pres))
+  S <- mean(rowSums(scale_sub_pres))
+  varS <- sd(rowSums(scale_sub_pres))
   #bio
-  bio <- mean(rowsum(scale_sub_bio))
-  varbio <- var(rowsum(scale_sub_bio)) / (mean(rowsum(scale_sub_bio)) ^ 2)
-  #abun
-  ttnum <- mean(rowsum(scale_sub_abun))
-  
+  bio <- mean(rowSums(scale_sub_bio))
+  varbio <- var(rowSums(scale_sub_bio)) / (mean(rowSums(scale_sub_bio)) ^ 2)
+
 #storage
   scale <- i 
-  tempscale_output <- data.frame(scale, S, varS, bio, varbio, ttnum) 
-  colnames(tempscale_output) <- c("scale", "S", "varS", "bio", "varbio", "ttnum")
+  tempscale_output <- data.frame(scale, S, varS, bio, varbio) 
+  colnames(tempscale_output) <- c("scale", "S", "varS", "bio", "varbio")
   scale_output <- rbind(scale_output, tempscale_output)
 }
 
+
+scale_output <- as.data.frame(scale_output)
+
+write.csv(scale_output, "~/fish_stability/data/scale_output.csv")  #. instead ~/fish_stability
   
+
+#adding column for stability
+#scale_output$stability <- 1/scale_output$varbio
   
-  
-  
-  
+#a few quick graphs with scale_output 
+  #bio ~ S 
+with(scale_output, plot(bio ~ S))
+  #S ~ scale
+with(scale_output, plot(S ~ scale))
+  #varbio ~ bio
+with(scale_output, plot(varbio ~ bio))
+  #varbio ~ S
+with(scale_output, plot(varbio ~ S))
+  #varbio ~ scale
+with(scale_output, plot(varbio ~ scale))
+  #varbio ~ varS 
+with(scale_output, plot(varbio ~ varS))
+  #stability ~ S
+with(scale_output, plot(stability ~ S))
+  #stability ~ scale
+with(scale_output, plot(stability ~ scale))
+
+
   
 ##random
   
@@ -496,7 +521,43 @@ for (i in 1:36) {
 
 
 
-
-
-
-
+  
+  #### from mobr ####
+  x = rastercom_mat_bio
+  rownames(x) <- c(1:324)
+  
+  #making it a 
+  x = (x > 0) * 1             
+  # all sites are counted as samples even empty ones
+  n = nrow(x) 
+  x = colSums(x)
+  
+  explicit_loop = matrix(0, n, n)
+  
+  # Compute distance on sphere if xy are longitudes and latitudes
+  # Assume x is longitude and y is latitude
+  pair_dist = sphere_dist(coordcenter)
+  
+  n = 36    
+  
+  for (i in 1:n) {
+    dist_to_site = pair_dist[i, ]
+    # Shuffle plots, so that tied grouping is not biased by original order.
+    new_order = sample(1:n)  
+    dist_new = dist_to_site[new_order]
+    new_order = new_order[order(dist_new)]
+    # Move focal site to the front
+    new_order = c(i, new_order[new_order != i])
+  }
+  
+  ## to use, needs to be one row per site but we have nine rows per site. 
+  #if bio com mat is sorted by rasters then each distance needs to be repeated 
+  #in a sequence 9 times to get 324 rows and complete next step. 
+  comm_ordered = x[new_order, ]
+  # 1 for absence, 0 for presence
+  comm_bool = as.data.frame((comm_ordered == 0) * 1) 
+  rich = cumprod(comm_bool)
+  explicit_loop[ , i] = as.numeric(ncol(x) - rowSums(rich))
+  
+  out = apply(explicit_loop, 1, mean)[effort]
+  

@@ -105,15 +105,49 @@ rastercom_mat_bio <- rastercom_mat_bio[,-1]
 
 
 
+
+#scalecom_mat_pres
+  #geographic merge of raster pres matrix. incorperates scaling. 36 scale, 9 time bins
+scalecom_mat_pres <- read.csv("~/fish_stability/data/scalecom_mat_pres.csv", header = T)
+scalecom_mat_pres <- scalecom_mat_pres[,-1]
+
+#scalecom_mat_bio
+  #geographic merge of raster bio matrix. incorperates scaling. 36 scale, 9 time bins
+scalecom_mat_bio <- read.csv("~/fish_stability/data/scalecom_mat_bio.csv", header = T)
+scalecom_mat_bio <- scalecom_mat_bio[,-1]
+
+#scale_output
+  #final output. merged temporally. 36 rows. 1 for each time bin. 
+scale_output <- read.csv("~/fish_stability/data/scale_output.csv", header =  T)
+scale_output <- scale_output[,-1]
+
+
+
+
+
+
 #coordcenter
   #centroid coordinates for 36 good raster cells
 coordcenter <- read.csv("~/fish_stability/data/coordcenter.csv", header = T)
 coordcenter <- coordcenter[,-1]
 
+#rasterID_coord
+ #ID list and coordcenter merged in one data frame
+rasterID_coord <- read.csv("~/fish_stability/data/rasterID_coord.csv", header = T)
+rasterID_coord <- rasterID_coord[,-1]
+
 #raster_dist
-  #distance matrix with computed distances between each pairwise raster cells
+#distance matrix with computed distances between each pairwise raster cells
 raster_dist <- read.csv("~/fish_stability/data/raster_dist.csv", header = T)
 raster_dist <- raster_dist[,-1]
+
+
+
+
+
+
+
+
 
 
 #ID_newS
