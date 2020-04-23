@@ -332,12 +332,6 @@ ID_newS_sub <- ID_newS[ID_newS$raster %in% IDlist,]
   #coordinates of raster cell centroid
 coordcenter <-as.matrix(xyFromCell(oc_raster, IDlist))
 
-  #pairwise distances between each raster cell
-raster_dist <- as.data.frame(spDists(coordcenter, coordcenter))
-colnames(raster_dist) <- IDlist
-rownames(raster_dist) <- IDlist
-
-
 
 #using converting lat long to distances function
 sphere_dist = function(coords){
