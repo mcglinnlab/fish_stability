@@ -5,27 +5,15 @@ library(raster)
 library(sp)
 library(reshape2)
 
-#### EXAMPLE OF CODE USING BCI DATA ####
-
-#Example of rarefy
-data(BCI)
-S <- specnumber(BCI) # observed number of species
-(raremax <- min(rowSums(BCI)))
-Srare <- rarefy(BCI, raremax)
-plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
-abline(0, 1)
-rarecurve(BCI, step = 20, sample = raremax, col = "blue", cex = 0.6)
-
-
-####CREATING RASTER SCALE COMMUNITY MATRIX ####
-  #load s_rarefac from datasets script
+#### CREATING RASTER SCALE COMMUNITY MATRIX (ignore) #####
+#load s_rarefac from datasets script
 
 
   #pulling out 36 predetermined good IDs where we know theres at least 5 events in each time bin
-IDlist <- c(1496, 1554, 1610, 1786, 1842, 1844, 1846, 1902, 1906, 1960, 2020,
-            2080, 2137, 2138, 2196, 2255, 2313, 2314, 2372, 2373, 2431, 2432,
-            2550, 2609, 2610, 2669, 2729, 2788, 2789, 2909, 3029, 3089, 3150,
-            3210, 3271, 3331)
+IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
+            1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
+            2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
+            2670, 2721, 2771)
 s_rarefac_sub <- s_rarefac[s_rarefac$ID %in% IDlist,]
 
   #creating new col that merges col ID and yrcat. This makes unique ID for each raster through time.
@@ -139,7 +127,7 @@ rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
 write.csv(rastercom_mat_bio, "~/fish_stability/data/rastercom_mat_bio.csv")
 
 
-#### RARECURVES WITH PRESENCE AND ABUNDANCE DATA ####
+#### RARECURVES WITH PRESENCE AND ABUNDANCE DATA (ignore) ####
 
   ## using presence/absence matrix ##
 
@@ -168,21 +156,27 @@ slope <- rareslope(rastercom_mat_abun[,-1], 100)
 
 
 
-#### FOR LOOP CREATING ALL THREE RASTER LEVEL COMMUNITY MATRICES WITH A 5 EVENT PULL ####
-  
-  #prepping data sets
+#### FOR LOOP CREATING ALL THREE RASTER LEVEL COMMUNITY MATRICES WITH A 5 EVENT PULL (start here) ####
+  #LOAD DATA #    
+s_bio_comm <- read.csv(./fish_stability/data/s_bio_comm.csv, header =  T)
+s_bio_comm <- s_bio_comm[ , -1]
+
+ID.df <- read.csv(./fish_stability/data/ID.df.csv, header =  T)
+ID.df <- ID.df[, -1]
+
+  #PREPPING DATA SETS #
   # load s_rarefac, s_spreadd, s_bio_comm, and ID.df
     #s_rarefac for pres/ab
-s_rarefac$ID <- ID.df$point2resID
-s_rarefac$yrcat <- ID.df$yrcat
-s_rarefac$ID_yrcat <- paste(s_rarefac$ID, "_", s_rarefac$yrcat)
+#s_rarefac$ID <- ID.df$point2resID
+#s_rarefac$yrcat <- ID.df$yrcat
+#s_rarefac$ID_yrcat <- paste(s_rarefac$ID, "_", s_rarefac$yrcat)
 
     #s_spread for abundance
-s_spreadd$ID <- ID.df$point2resID
-s_spreadd$yrcat <- ID.df$yrcat
-s_spreadd$ID_yrcat <- paste(s_spreadd$ID, "_", s_spread$yrcat)
+#s_spreadd$ID <- ID.df$point2resID
+#s_spreadd$yrcat <- ID.df$yrcat
+#s_spreadd$ID_yrcat <- paste(s_spreadd$ID, "_", s_spread$yrcat)
 
-s_spreadd[is.na(s_spreadd)] <- 0
+#s_spreadd[is.na(s_spreadd)] <- 0
 
     #s_bio_comm for biomass
 s_bio_comm <- arrange(s_bio_comm, EVENTNAME)
@@ -200,11 +194,9 @@ IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680,
             2670, 2721, 2771)
 
     #good ID for pres/ab data set s_rarefac
-s_rarefac_sub <- s_rarefac[s_rarefac$ID %in% IDlist, ]
-
+#s_rarefac_sub <- s_rarefac[s_rarefac$ID %in% IDlist, ]
     #good ID for abundance data set
-s_spread_sub <- s_spreadd[s_spreadd$ID %in% IDlist, ]
-
+#s_spread_sub <- s_spreadd[s_spreadd$ID %in% IDlist, ]
     #good ID for biomass data set
 s_bio_comm_sub <- s_bio_comm[s_bio_comm$ID %in% IDlist, ]
 
@@ -239,7 +231,6 @@ for(i in uniqueID) {
   
   #removing environmental columns leaving only comm matrix
   
-  
     #pres/ab
    #comm_mat_pres <- event_pres[,16:215]
    #comm_mat_pres <- as.data.frame(sapply(comm_mat_pres, as.numeric))
@@ -272,18 +263,16 @@ for(i in uniqueID) {
 
 #turning output into a data frame and adding column with IDs back
   #pres
-rastercom_mat_pres <- as.data.frame(rastercom_mat_pres)
-rastercom_mat_pres <- as.data.frame(cbind(uniqueID, rastercom_mat_pres))
+#rastercom_mat_pres <- as.data.frame(rastercom_mat_pres)
+#rastercom_mat_pres <- as.data.frame(cbind(uniqueID, rastercom_mat_pres))
 
   #abundance
-rastercom_mat_abun <- as.data.frame(rastercom_mat_abun)
-rastercom_mat_abun <- as.data.frame(cbind(uniqueID, rastercom_mat_abun))
+#rastercom_mat_abun <- as.data.frame(rastercom_mat_abun)
+#rastercom_mat_abun <- as.data.frame(cbind(uniqueID, rastercom_mat_abun))
 
   #biomass
 rastercom_mat_bio <- as.data.frame(rastercom_mat_bio)
 rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
-
-
 
 
 
@@ -332,8 +321,7 @@ ID_newS_sub <- ID_newS[ID_newS$raster %in% IDlist,]
   #coordinates of raster cell centroid
 coordcenter <-as.matrix(xyFromCell(oc_raster, IDlist))
 
-
-#using converting lat long to distances function
+#using converting lat long to distances function (from mobr)
 sphere_dist = function(coords){
   long = coords[ , 1]
   lat = coords[ , 2]
@@ -345,8 +333,6 @@ sphere_dist = function(coords){
   dist = 2 * asin(sqrt(abs(hav)))
   return(dist)
 }
-
-
 # Compute distance on sphere if xy are longitudes and latitudes
 # Assume x is longitude and y is latitude
   pair_dist = sphere_dist(coordcenter)
@@ -363,12 +349,14 @@ for (i in 1:n) {
   new_order = c(i, new_order[new_order != i])
       }
 
-
+##!!! here is where bootstrap will need to recrease ID list for each run of loop below
+    #currently pulling ID list from above
+  
 
   
 # GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO AT SCALE AND TIME BIN #
 
-  #only imput bio but pres created within loop  
+  #only input bio but pres created within loop  
 #seperating unique ID col into ID and yr_cat
   #bio
   rastercom_mat_bio <- rastercom_mat_bio %>%
@@ -480,7 +468,7 @@ for (i in 1:36) {
 
 scale_output <- as.data.frame(scale_output)
 
-write.csv(scale_output, "~/fish_stability/data/scale_output.csv")  #. instead ~/fish_stability
+#write.csv(scale_output, "~/fish_stability/data/scale_output.csv")  #. instead ~/fish_stability
   
 
 #adding column for stability
@@ -504,14 +492,6 @@ with(scale_output, plot(stability ~ S))
   #stability ~ scale
 with(scale_output, plot(stability ~ scale))
 
-
-  
-##random
-  
-
-#examples of reordering data set
-#rows <- sample(nrow(ab))
-#abnew <- ab[rows, ]
 
 
 
