@@ -84,6 +84,30 @@ library(tidyr)
   
   
   
+  ####CHECKING FOR SPATIAL DEPENDENCE####
+  #calculate dist of community matrix with species richness inside
+  s_comm <- read.csv("~./fish_stability/data/s_comm.csv", header = T)
+  s_environ <- read.csv("~./fish_stability/data/s_environ.csv", header = T)
+  
+  sr = apply(s_comm, 1, function(x) sum(x > 0))
+  hist(sr)
+  
+  sr_dist = dist(sr)
+  latlong <- s_environ[,6:7]
+  xy_dist = dist(latlong)
+  max_dist = max(xy_dist) / 2
+  
+  #plot result
+  plot(xy_dist, sr_dist)
+  abline(lm(sr_dist ~ xy_dist), lwd=3, col='red')
+  lines(lowess(xy_dist, sr_dist), lwd=3, col='pink')
+  abline(v = max_dist, col='red', lwd=3, lty=2)
+  
+  mantel(xy_dist, sr_dist)
+  #output of test is correlation is zero and not significantly different from zero.  
+
+  
+  
   #### SINGLE TRAWL AVERAGE RASTER LEVEL - THREE YEAR TIME BIN ####
   
   #DATA SET ONE
