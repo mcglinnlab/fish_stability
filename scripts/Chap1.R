@@ -238,7 +238,7 @@ library(tidyr)
   abline(model132$coefficients, lwd = 2.5)
   
   #B_AV ~ S_AV
-  model14 <- lm(B_AV2 ~ S_AV2)
+  model142 <- lm(B_AV2 ~ S_AV2)
   summary(model142)
   plot(model142)
   
