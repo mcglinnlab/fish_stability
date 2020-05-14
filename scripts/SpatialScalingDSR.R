@@ -9,10 +9,10 @@ library(reshape2)
 
 ####### PREP DATA SET
   #LOAD DATA #    
-s_bio_comm <- read.csv(./fish_stability/data/s_bio_comm.csv, header =  T)
+s_bio_comm <- read.csv("~./fish_stability/data/s_bio_comm.csv", header =  T)
 s_bio_comm <- s_bio_comm[ , -1]
 
-ID.df <- read.csv(./fish_stability/data/ID.df.csv, header =  T)
+ID.df <- read.csv("~./fish_stability/data/ID.df.csv", header =  T)
 ID.df <- ID.df[, -1]
 
     #s_bio_comm for biomass
@@ -65,7 +65,7 @@ n = 36
 for (i in 1:n) {
   dist_to_site = pair_dist[i, ]
   # Shuffle plots, so that tied grouping is not biased by original order.
-  new_order = sample(1:n)  
+  new_order = sample(1:n, replace = F)  
   dist_new = dist_to_site[new_order]
   new_order = new_order[order(dist_new)]
   # Move focal site to the front
@@ -74,6 +74,22 @@ for (i in 1:n) {
 }
 
 IDorder <- data.frame(IDorder)
+
+
+#so far did it by hand but this for loop should work too
+for (i in rownames(IDorder)) { 
+IDorder <- IDorder %>%
+  mutate(X36 = recode(X36, '1' = '1246', '2' = '1294', '3' = '1340', '4' = '1486', '5' = '1532',
+                '6' = '1534', '7' = '1536', '8' = '1582', '9' = '1586', '10' = '1630',
+                '11' = '1680', '12' = '1730', '13' = '1777', '14' = '1778',
+                '15' = '1826','16' = '1875', '17' = '1923', '18' = '1924', 
+                '19' = '1972', '20' = '1973','21' = '2021','22' = '2022',
+                '23' = '2120', '24' = '2169', '25' = '2170','26' = '2219',
+                '27' = '2269', '28' = '2318', '29' = '2319', '30' = '2419',
+                '31' = '2519', '32' = '2569','33' = '2620', '34' = '2670', 
+                '35' = '2721', '36' = '2771'))
+}
+
 
 
 ####### BEGIN PERMUTATION FOR LOOP ########
@@ -86,7 +102,7 @@ for(a in uniqueID) {
   IDpull_bio <- subset(s_bio_comm_sub, s_bio_comm_sub$ID_yrcat == a)
   
   #determining which events will be pulled
-  samp <- sample(nrow(IDpull_pres), 5, replace = F)
+  samp <- sample(nrow(IDpull_bio), 5, replace = F)
   
   #pulling 5 events from each raster
     #biomass
@@ -135,8 +151,8 @@ rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
   
   
 #null objects
-  bio_pull <- NULL
-  bio_sub <- NULL
+  #bio_pull <- NULL
+  #bio_sub <- NULL
   ID <- NULL
   yr_cat <- NULL
   scale_pres <- NULL
@@ -145,12 +161,15 @@ rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
   scale_bio <- NULL
   temp_bio <- NULL
   scalecom_mat_bio <- NULL
-  scalecom_pres_out <- NULL
-  scalecom_bio_out <- NULL
+ 
   
 for (x in 1:36) {
   #pulling one row from IDorder to use as seq for next loop 
-  IDseq <- IDorder[x, ]
+  IDseq <- as.numeric(as.vector(IDorder[x, ]))
+  
+  #adding null objects for next inner loop
+  bio_pull <- NULL
+  bio_sub <- NULL
   
   #loop that adds data from one raster at a time
   for (y in IDseq) { 
@@ -159,13 +178,16 @@ for (x in 1:36) {
     bio_pull <- rastercom_mat_bio[rastercom_mat_bio$ID == y, ]
       #adding new ID pull rows to new df
     bio_sub <- rbind(bio_sub, bio_pull)
-    
+   
+   
 #geographic merge. merge by same time bin. 
     for (z in letters[1:9]) {
     
-     #columns for ID and yrcat
-      ID <- i
+     #columns for ID, yrcat and start ID
+      ID <- y
       yr_cat <- z
+      startID <- IDseq[1]
+      scale <- length(unique(bio_sub$ID))
     
     #merging S
       #calc
@@ -173,7 +195,7 @@ for (x in 1:36) {
       scale_press <- t(colSums(scale_pres[, 3:202])) #-(1:2)
       scale_presss <- ifelse(scale_press > 0, 1, 0)
       #store
-      temp_pres <- data.frame(cbind(ID, yr_cat, scale_presss))
+      temp_pres <- data.frame(cbind(startID, scale, ID, yr_cat, scale_presss))
       scalecom_mat_pres <- rbind(scalecom_mat_pres, temp_pres)
     
     #merging biomass
@@ -181,27 +203,16 @@ for (x in 1:36) {
       scale_bio <- bio_sub[bio_sub$yr_cat == z, ] 
       scale_bio <- t(colSums(scale_bio[, 3:202]))
       #store
-      temp_bio <- data.frame(cbind(ID, yr_cat, scale_bio))
+      temp_bio <- data.frame(cbind(startID, scale, ID, yr_cat, scale_bio))
       scalecom_mat_bio <- rbind(scalecom_mat_bio, temp_bio)
     
     }
   }
-  startID <- rep.int(IDseq[1], times = 324)
-  
-  temp_b <- data.frame(cbind(startID, scalecom_mat_bio))
-  scalecom_bio_out <- rbind(scalecom_bio_out, temp_b)
-  
-  temp_p <- data.frame(cbind(startID, scalecom_mat_bio))
-  scalecom_pres_out <- rbind(scalecom_pres_out, temp_p)
 }
 
 ## GEOGRAPHIC MERGE OUTPUT ##
-  #creating scale vector   
-scale <- rep(1:36, each=324)
 
-  #merging scale vector and loop output
-scalecom_pres_out <- as.data.frame(cbind(scale, scalecom_mat_pres))
-scalecom_bio_out <- as.data.frame(cbind(scale, scalecom_mat_bio))
+  #36 start ID with 36 scales within each and 9 time bins per scale = 11,664 rows
 
   #write.csv(scalecom_mat_pres, "~/fish_stability/data/scalecom_mat_pres.csv")
   #write.csv(scalecom_mat_bio, "~/fish_stability/data/scalecom_mat_bio.csv")
@@ -222,40 +233,41 @@ scalecom_bio_out <- as.data.frame(cbind(scale, scalecom_mat_bio))
   tempscale_output <- NULL
   scale_output <- NULL
 
-#add loop that subsets by start ID when merging temporally  
+  ###when permutation is added another loop needed here to subset per permutation. 
+    #permutation for loop only wrapped around top half. Second half only merging. 
+  
+#loop that subsets by start ID when merging temporally  
 for (g in IDlist) {
-  scale_sub_pres <- scalecom_pres_out[scalecom_pres_out$startID == g, ]
-  scale_sub_bio <- scalecom_bio_out[scalecom_bio_out$startID == g, ]
+  scale_sub_pres <- scalecom_mat_pres[scalecom_mat_pres$startID == g, ]
+  scale_sub_bio <- scalecom_mat_bio[scalecom_mat_bio$startID == g, ]
   
   #1:36 bc 36 raster so highest scale
   for (i in 1:36) {
   
   #subsetting rows for each scale
     #pres
-    scale_sub_pres <- scalecom_mat_pres[scalecom_mat_pres$scale == i, 4:203]
-    scale_sub_pres <- data.frame(sapply(scale_sub_pres, function(x) as.numeric(as.character(x))))
+    scale_sub_pres2 <- scale_sub_pres[scale_sub_pres$scale == i, -c(1:4)]
+    scale_sub_pres2 <- data.frame(sapply(scale_sub_pres2, function(x) as.numeric(as.character(x))))
     #bio
-    scale_sub_bio <- scalecom_mat_bio[scalecom_mat_bio$scale == i, 4:203]
-    scale_sub_bio <- data.frame(sapply(scale_sub_bio, function(x) as.numeric(as.character(x))))
+    scale_sub_bio2 <- scale_sub_bio[scale_sub_bio$scale == i, -c(1:4)]
+    scale_sub_bio2 <- data.frame(sapply(scale_sub_bio2, function(x) as.numeric(as.character(x))))
 
   
   #calculations
     #pres
-    S <- mean(rowSums(scale_sub_pres))
-    varS <- sd(rowSums(scale_sub_pres))
+    S <- mean(rowSums(scale_sub_pres2))
+    varS <- sd(rowSums(scale_sub_pres2))
     #bio
-    bio <- mean(rowSums(scale_sub_bio))
-    varbio <- var(rowSums(scale_sub_bio)) / (mean(rowSums(scale_sub_bio)) ^ 2)
+    bio <- mean(rowSums(scale_sub_bio2))
+    varbio <- var(rowSums(scale_sub_bio2)) / (mean(rowSums(scale_sub_bio2)) ^ 2)
 
   #storage
     scale <- i 
-    tempscale_output <- data.frame(scale, S, varS, bio, varbio) 
-    colnames(tempscale_output) <- c("scale", "S", "varS", "bio", "varbio")
+    startID <- g
+    tempscale_output <- data.frame(startID, scale, S, varS, bio, varbio) 
+    colnames(tempscale_output) <- c("startID", "scale", "S", "varS", "bio", "varbio")
     scale_output <- rbind(scale_output, tempscale_output)
   }
-  startID <- rep.int(g, times = 36)
-  out.temp <- data.frame(startID, scale_output)
-  out <- rbind(out, out.temp)
 }
   
 #write.csv(scale_output, "~/fish_stability/data/scale_output.csv")  #. instead ~/fish_stability
@@ -289,7 +301,135 @@ with(scale_output, plot(stability ~ S))
 with(scale_output, plot(stability ~ scale))
 
 
+  #varbio ~ scale. fill = startID
+ggplot(data = scale_output, aes(x = scale, y = varbio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("Scale") +
+  ylab("Var Biomass") +
+  theme_bw()
 
+  #invarbio ~ scale fill = startID
+ggplot(data = scale_output, aes(x = scale, y = 1/varbio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("Scale") +
+  ylab("Invar Biomass") +
+  theme_bw()
+
+  #varbio ~ S fill = scale
+ggplot(data = scale_output, aes(x = S, y = varbio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  xlab("S") +
+  ylab("Biomass Var") +
+  theme_bw()
+
+  #invarbio ~ S fill = startID
+ggplot(data = scale_output, aes(x = S, y = 1/varbio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  xlab("S") +
+  ylab("Invar Biomass") +
+  theme_bw()
+
+  #bio ~ S fill = scale
+ggplot(data = scale_output, aes(x = S, y = bio, fill = scale)) +
+  geom_point(size = 4.5, shape = 21) +
+  scale_fill_viridis(option = "C") +
+  xlab("S") +
+  ylab("Biomass") +
+  theme_bw()
+
+  #bio ~ S fill = startID
+ggplot(data = scale_output, aes(x = S, y = bio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("S") +
+  ylab("Biomass") +
+  theme_bw()
+
+#S ~ scale fill = startID
+ggplot(data = scale_output, aes(x = scale, y = S, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("Scale") +
+  ylab("S") +
+  theme_bw()
+
+
+  #bio ~ scale fill = startID
+ggplot(data = scale_output, aes(x = scale, y = bio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("Scale") +
+  ylab("Biomass") +
+  theme_bw()
+
+  #invar ~ scale fill = startID
+ggplot(data = scale_output, aes(x = scale, y = 1/varbio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  xlab("Scale") +
+  ylab(" Invar Biomass") +
+  theme_bw()
+
+  #invar ~ S fill = startID
+ggplot(data = scale_output, aes(x = scale, y = 1/varbio, fill = startID)) +
+  geom_point(size = 4.5, shape = 21) +
+  xlab("S") +
+  ylab("Invar Biomass") +
+  theme_bw()
+
+
+
+
+
+
+
+b <- with(scale_output, tapply(bio, list(scale), mean))
+s <- with(scale_output, tapply(S, list(scale), mean))
+ssd <- with(scale_output, tapply(S, list(scale), sd))
+bvar <- with(scale_output, tapply(varbio, list(scale),mean))
+bsd <- with(scale_output, tapply(bio, list(scale), sd))
+binvar<- 1/bvar
+
+scale <- c(1:36)
+
+plot(b ~ s, xlab = "S", ylab = "biomass", cex = 2, lwd = 2)
+plot(bvar ~ s, xlab = "S", ylab = "biomass var", cex = 2, lwd = 2)
+plot(binvar ~ s, xlab = "S", ylab = "biomass invar", cex = 2, lwd = 2)
+
+plot(b ~ scale, xlab = "scale", ylab = "biomass", cex = 2, lwd = 2)
+plot(bvar ~ scale, xlab = "scale", ylab = "biomass var", cex = 2, lwd = 2 )
+
+plot(binvar[binvar < 200] ~ scale[binvar < 200], xlab = "scale", 
+     ylab = "biomass invar", cex = 2, lwd = 2)
+plot(binvar[binvar < 1000] ~ scale[binvar < 1000], xlab = "scale", 
+     ylab = "biomass invar", cex = 2, lwd = 2)
+plot(binvar ~ scale, xlab = "scale", ylab = "biomass invar", cex = 2, lwd = 2)
+plot(s ~ scale, xlab = "scale", ylab = "S", cex = 2, lwd = 2)
+
+
+dat <- as.data.frame(cbind(b, s, bvar, binvar, scale))
+
+ggplot(data = dat, aes(x = s, y = b, fill = scale)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("S") +
+  ylab("Biomass") +
+  theme_bw()
+
+ggplot(data = dat, aes(x = s, y = binvar, fill = scale)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("S") +
+  ylab("Biomass") +
+  theme_bw()
+
+ggplot(data = dat, aes(x = scale, y = binvar, fill = s)) +
+  geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  xlab("Scale") +
+  ylab("Invar Biomass") +
+  theme_bw()
 
   
   #### from mobr ####
