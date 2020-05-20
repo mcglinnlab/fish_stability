@@ -92,184 +92,192 @@ IDorder <- IDorder %>%
 
 
 
-####### BEGIN PERMUTATION FOR LOOP ######## line 95 - 294 end
-  #just need to add a loop on outside and then rbind entire scale_output output 
-  #data frame for each permutation run, adding an additional column for permutation
-  #run identifier. Each row will be identified by perm #, start ID #, and scale #. 
+#start bootstrap loop - pulls new comm matrix of 5 random trawls and completes
+  #geographic merge before closing. 
 
-### for loop to calculate community matrix at the raster scale with bio 5 event pull ##
-rastercom_mat_bio <- NULL
-
-for(a in uniqueID) {
-    #biomass
-  IDpull_bio <- subset(s_bio_comm_sub, s_bio_comm_sub$ID_yrcat == a)
-  
-  #determining which events will be pulled
-  samp <- sample(nrow(IDpull_bio), 5, replace = F)
-  
-  #pulling 5 events from each raster
-    #biomass
-  event_bio <- IDpull_bio[samp, ]
-  
-  #removing environmental columns leaving only comm matrix
-    #biomass
-   comm_mat_bio <- event_bio[,3:202]
-   comm_mat_bio <- as.data.frame(sapply(comm_mat_bio, as.numeric))
-    
-  #summing the columns in the community matrix. This tells us how many events observed a species in a raster
-    #biomass
-   rastercolsum_bio <- colSums(comm_mat_bio)
-  
-  #adding each run with a unique ID to a matrix using rbind
-
-    #biomass
-  rastercom_mat_bio <- rbind(rastercom_mat_bio, rastercolsum_bio)
-}
-
-#turning output into a data frame and adding column with IDs back
-
-  #biomass
-rastercom_mat_bio <- as.data.frame(rastercom_mat_bio)
-rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
-
-
-#### SCALING ####
-
-  #input files 
-    #comm matrix of biomass where each row is raster and time bin
-    #file name rastercom_mat_bio
-      #load from dataset file and then run following transformation. Do not resave changes. 
-
-#an ID order will be created each run. ID list sequence will determine the order in which 
-  #rasters are added to geographic extent
-
-  
-# GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO AT SCALE AND TIME BIN #
-
-  #only input bio but pres created within loop  
-#seperating unique ID col into ID and yr_cat
-  #bio
-  rastercom_mat_bio <- rastercom_mat_bio %>%
-    separate(uniqueID, c("ID", "yr_cat"))
-  
-  
 #null objects
-  #bio_pull <- NULL
-  #bio_sub <- NULL
-  ID <- NULL
-  yr_cat <- NULL
-  scale_pres <- NULL
-  temp_pres <- NULL
-  scalecom_mat_pres <- NULL
-  scale_bio <- NULL
-  temp_bio <- NULL
-  scalecom_mat_bio <- NULL
+scalecom_mat_pres <- NULL
+scalecom_mat_bio <- NULL
+
+
+for (f in 1:100) {  
+  
+  ### for loop to calculate community matrix at the raster scale with 
+    #bio 5 event pull 
+  rastercom_mat_bio <- NULL
+
+  for(a in uniqueID) {
+      #biomass
+    IDpull_bio <- subset(s_bio_comm_sub, s_bio_comm_sub$ID_yrcat == a)
+  
+    #determining which events will be pulled
+    samp <- sample(nrow(IDpull_bio), 5, replace = F)
+  
+    #pulling 5 events from each raster
+      #biomass
+    event_bio <- IDpull_bio[samp, ]
+  
+    #removing environmental columns leaving only comm matrix
+      #biomass
+    comm_mat_bio <- event_bio[,3:202]
+    comm_mat_bio <- as.data.frame(sapply(comm_mat_bio, as.numeric))
+    
+    #summing the columns in the community matrix. This tells us how many events observed a species in a raster
+      #biomass
+    rastercolsum_bio <- colSums(comm_mat_bio)
+  
+    #adding each run with a unique ID to a matrix using rbind
+
+      #biomass
+    rastercom_mat_bio <- rbind(rastercom_mat_bio, rastercolsum_bio)
+  }
+
+  #turning output into a data frame and adding column with IDs back
+
+    #biomass
+  rastercom_mat_bio <- as.data.frame(rastercom_mat_bio)
+  rastercom_mat_bio <- as.data.frame(cbind(uniqueID, rastercom_mat_bio))
+
+
+  #### SCALING ####
+
+    #input files 
+      #comm matrix of biomass where each row is raster and time bin
+      #file name rastercom_mat_bio
+        #load from dataset file and then run following transformation. Do not resave changes. 
+
+  #an ID order will be created each run. ID list sequence will determine the order in which 
+    #rasters are added to geographic extent
+
+  
+  # GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO AT SCALE AND TIME BIN #
+
+    #only input bio but pres created within loop  
+  #seperating unique ID col into ID and yr_cat
+    #bio
+    rastercom_mat_bio <- rastercom_mat_bio %>%
+      separate(uniqueID, c("ID", "yr_cat"))
+  
+  
+  #null objects
+    ID <- NULL
+    yr_cat <- NULL
+    scale_pres <- NULL
+    temp_pres <- NULL
+    scale_bio <- NULL
+    temp_bio <- NULL
  
   
-for (x in 1:36) {
-  #pulling one row from IDorder to use as seq for next loop 
-  IDseq <- as.numeric(as.vector(IDorder[x, ]))
+  for (x in 1:36) {
+    #pulling one row from IDorder to use as seq for next loop 
+    IDseq <- as.numeric(as.vector(IDorder[x, ]))
   
-  #adding null objects for next inner loop
-  bio_pull <- NULL
-  bio_sub <- NULL
+    #adding null objects for next inner loop
+    bio_pull <- NULL
+    bio_sub <- NULL
   
-  #loop that adds data from one raster at a time
-  for (y in IDseq) { 
-    #subsetting rows
-      #pulling ID from bio
-    bio_pull <- rastercom_mat_bio[rastercom_mat_bio$ID == y, ]
-      #adding new ID pull rows to new df
-    bio_sub <- rbind(bio_sub, bio_pull)
+    #loop that adds data from one raster at a time
+    for (y in IDseq) { 
+      #subsetting rows
+        #pulling ID from bio
+      bio_pull <- rastercom_mat_bio[rastercom_mat_bio$ID == y, ]
+        #adding new ID pull rows to new df
+      bio_sub <- rbind(bio_sub, bio_pull)
    
    
-#geographic merge. merge by same time bin. 
-    for (z in letters[1:9]) {
+  #geographic merge. merge by same time bin. 
+      for (z in letters[1:9]) {
     
-     #columns for ID, yrcat and start ID
-      ID <- y
-      yr_cat <- z
-      startID <- IDseq[1]
-      scale <- length(unique(bio_sub$ID))
+       #columns for ID, yrcat and start ID
+        ID <- y
+        yr_cat <- z
+        startID <- IDseq[1]
+        scale <- length(unique(bio_sub$ID))
+        boot <- f
+      #merging S
+        #calc
+        scale_pres <- bio_sub[bio_sub$yr_cat == z, ]
+        scale_press <- t(colSums(scale_pres[, 3:202])) #-(1:2)
+        scale_presss <- ifelse(scale_press > 0, 1, 0)
+        #store
+        temp_pres <- data.frame(cbind(boot, startID, scale, ID, yr_cat,
+                                      scale_presss))
+        scalecom_mat_pres <- rbind(scalecom_mat_pres, temp_pres)
     
-    #merging S
-      #calc
-      scale_pres <- bio_sub[bio_sub$yr_cat == z, ]
-      scale_press <- t(colSums(scale_pres[, 3:202])) #-(1:2)
-      scale_presss <- ifelse(scale_press > 0, 1, 0)
-      #store
-      temp_pres <- data.frame(cbind(startID, scale, ID, yr_cat, scale_presss))
-      scalecom_mat_pres <- rbind(scalecom_mat_pres, temp_pres)
+      #merging biomass
+        #calc
+        scale_bio <- bio_sub[bio_sub$yr_cat == z, ] 
+        scale_bio <- t(colSums(scale_bio[, 3:202]))
+        #store
+        temp_bio <- data.frame(cbind(boot, startID, scale, ID, yr_cat, scale_bio))
+        scalecom_mat_bio <- rbind(scalecom_mat_bio, temp_bio)
     
-    #merging biomass
-      #calc
-      scale_bio <- bio_sub[bio_sub$yr_cat == z, ] 
-      scale_bio <- t(colSums(scale_bio[, 3:202]))
-      #store
-      temp_bio <- data.frame(cbind(startID, scale, ID, yr_cat, scale_bio))
-      scalecom_mat_bio <- rbind(scalecom_mat_bio, temp_bio)
-    
+      }
     }
   }
 }
+  ## GEOGRAPHIC MERGE OUTPUT ##
 
-## GEOGRAPHIC MERGE OUTPUT ##
+    #36 start ID with 36 scales within each and 9 time bins per scale = 11,664 rows
 
-  #36 start ID with 36 scales within each and 9 time bins per scale = 11,664 rows
+    #write.csv(scalecom_mat_pres, "~/fish_stability/data/scalecom_mat_pres.csv")
+    #write.csv(scalecom_mat_bio, "~/fish_stability/data/scalecom_mat_bio.csv")
 
-  #write.csv(scalecom_mat_pres, "~/fish_stability/data/scalecom_mat_pres.csv")
-  #write.csv(scalecom_mat_bio, "~/fish_stability/data/scalecom_mat_bio.csv")
 
 
 # TEMPORAL MERGE: OUTPUT = df WHERE EACH ROW IS SCALE WITH COL FOR S, BIO,
-  #ABUN, VAR S, VAR BIO #  
-  #calcs made from geographic merge output
+#ABUN, VAR S, VAR BIO #  
 
 #null objects
-  scale_sub_pres <- NULL
-  scale_sub_bio <- NULL
-  S <- NULL
-  varS <- NULL
-  bio <- NULL
-  varbio <- NULL
-  scale <- NULL
-  tempscale_output <- NULL
-  scale_output <- NULL
+scale_sub_pres <- NULL
+scale_sub_bio <- NULL
+S <- NULL
+varS <- NULL
+bio <- NULL
+varbio <- NULL
+scale <- NULL
+tempscale_output <- NULL
+scale_output <- NULL
 
-  ###when permutation is added another loop needed here to subset per permutation. 
-    #permutation for loop only wrapped around top half. Second half only merging. 
+#subsetting for bootstrap iteration
+for (h in 1:100) {
+  boot_sub_pres <- scalecom_mat_pres[scalecom_mat_pres$boot == h, ]
+  boot_sub_bio <- scalecom_mat_bio[scalecom_mat_bio$boot == h, ]
   
-#loop that subsets by start ID when merging temporally  
-for (g in IDlist) {
-  scale_sub_pres <- scalecom_mat_pres[scalecom_mat_pres$startID == g, ]
-  scale_sub_bio <- scalecom_mat_bio[scalecom_mat_bio$startID == g, ]
+  #loop that subsets by start ID when merging temporally  
+  for (g in IDlist) {
+    scale_sub_pres <- boot_sub_pres[boot_sub_pres$startID == g, ]
+    scale_sub_bio <- boot_sub_bio[boot_sub_bio$startID == g, ]
   
-  #1:36 bc 36 raster so highest scale
-  for (i in 1:36) {
+    #1:36 bc 36 raster so highest scale
+    for (i in 1:36) {
   
-  #subsetting rows for each scale
-    #pres
-    scale_sub_pres2 <- scale_sub_pres[scale_sub_pres$scale == i, -c(1:4)]
-    scale_sub_pres2 <- data.frame(sapply(scale_sub_pres2, function(x) as.numeric(as.character(x))))
-    #bio
-    scale_sub_bio2 <- scale_sub_bio[scale_sub_bio$scale == i, -c(1:4)]
-    scale_sub_bio2 <- data.frame(sapply(scale_sub_bio2, function(x) as.numeric(as.character(x))))
+    #subsetting rows for each scale
+      #pres
+      scale_sub_pres2 <- scale_sub_pres[scale_sub_pres$scale == i, -c(1:5)]
+      scale_sub_pres2 <- data.frame(sapply(scale_sub_pres2, function(x) as.numeric(as.character(x))))
+      #bio
+      scale_sub_bio2 <- scale_sub_bio[scale_sub_bio$scale == i, -c(1:5)]
+      scale_sub_bio2 <- data.frame(sapply(scale_sub_bio2, function(x) as.numeric(as.character(x))))
 
   
-  #calculations
-    #pres
-    S <- mean(rowSums(scale_sub_pres2))
-    varS <- sd(rowSums(scale_sub_pres2))
-    #bio
-    bio <- mean(rowSums(scale_sub_bio2))
-    varbio <- var(rowSums(scale_sub_bio2)) / (mean(rowSums(scale_sub_bio2)) ^ 2)
+    #calculations
+      #pres
+      S <- mean(rowSums(scale_sub_pres2))
+      varS <- sd(rowSums(scale_sub_pres2))
+      #bio
+      bio <- mean(rowSums(scale_sub_bio2))
+      varbio <- var(rowSums(scale_sub_bio2)) / (mean(rowSums(scale_sub_bio2)) ^ 2)
 
-  #storage
-    scale <- i 
-    startID <- g
-    tempscale_output <- data.frame(startID, scale, S, varS, bio, varbio) 
-    colnames(tempscale_output) <- c("startID", "scale", "S", "varS", "bio", "varbio")
-    scale_output <- rbind(scale_output, tempscale_output)
+    #storage
+      scale <- i 
+      startID <- g
+      boot <- h
+      tempscale_output <- data.frame(boot, startID, scale, S, varS, bio, varbio) 
+      colnames(tempscale_output) <- c("boot", "startID", "scale", "S", "varS", 
+                                      "bio", "varbio")
+      scale_output <- rbind(scale_output, tempscale_output)
+    }
   }
 }
   
