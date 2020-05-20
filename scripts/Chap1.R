@@ -1,6 +1,7 @@
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(lmodel2)
 
 #Organizing BEF analysis into single script with graphs and analysis
 
@@ -126,8 +127,8 @@ library(tidyr)
   B_invar <- 1/B_VAR
   
 #B_VAR ~ S_AV
-  model12 <- lm(B_VAR ~ S_AV)
-  summary(model12)
+  model12 <- lmodel2(B_VAR ~ S_AV, nperm = 100)
+  model12
   plot(model12)
   
   plot(B_VAR ~ S_AV, xlab = "Average Species Richness per Raster Region (S)", 
@@ -135,8 +136,8 @@ library(tidyr)
   abline(model12$coefficients, lwd = 2.5)
   
 #B_invar ~ S_AV
-  model15 <- lm(B_invar ~ S_AV)
-  summary(model15)
+  model15 <- lmodel2(B_invar ~ S_AV, nperm = 100)
+  model15
   plot(model15)
   
   plot(B_invar ~ S_AV, xlab = "Average Species Richness(S)", 
@@ -144,8 +145,8 @@ library(tidyr)
   abline(model15$coefficients, lwd = 2.5)
   
 #S_SD ~ S_AV
-  model13 <- lm(S_SD ~ S_AV)
-  summary(model13)
+  model13 <- lmodel2(S_SD ~ S_AV, nperm = 100)
+  model13
   plot(model13)
   
   plot(S_SD ~ S_AV, xlab = "Average Species Richness per Raster Region (S)"
@@ -153,8 +154,8 @@ library(tidyr)
   abline(model13$coefficients, lwd = 2.5)
   
 #B_AV ~ S_AV
-  model14 <- lm(B_AV ~ S_AV)
-  summary(model14)
+  model14 <- lmodel2(B_AV ~ S_AV, nperm = 100)
+  model14
   plot(model14)
   
   plot(B_AV ~ S_AV, xlab = "Average Species Richness", ylab = "Average Biomass (kg)",
@@ -211,8 +212,8 @@ library(tidyr)
   
 #graphs and models
   #B_VAR ~ S_AV
-  model122 <- lm(B_VAR2 ~ S_AV2)
-  summary(model122)
+  model122 <- lmodel2(B_VAR2 ~ S_AV2, nperm = 100)
+  model122
   plot(model122)
   
   plot(B_VAR2 ~ S_AV2, xlab = "Average Species Richness per Raster Region (S)", 
@@ -220,8 +221,8 @@ library(tidyr)
   abline(model122$coefficients, lwd = 2.5)
   
   #B_invar ~ S_AV
-  model152 <- lm(B_invar2 ~ S_AV2)
-  summary(model152)
+  model152 <- lmodel2(B_invar2 ~ S_AV2, nperm = 100)
+  model152
   plot(model152)
   
   plot(B_invar2 ~ S_AV2, xlab = "Average Species Richness(S)", 
@@ -229,8 +230,8 @@ library(tidyr)
   abline(model152$coefficients, lwd = 2.5)
   
   #S_SD ~ S_AV
-  model13 <- lm(S_SD2 ~ S_AV2)
-  summary(model132)
+  model13 <- lmodel2(S_SD2 ~ S_AV2, nperm = 100)
+  model132
   plot(model132)
   
   plot(S_SD2 ~ S_AV2, xlab = "Average Species Richness per Raster Region (S)"
@@ -238,8 +239,8 @@ library(tidyr)
   abline(model132$coefficients, lwd = 2.5)
   
   #B_AV ~ S_AV
-  model142 <- lm(B_AV2 ~ S_AV2)
-  summary(model142)
+  model142 <- lmodel2(B_AV2 ~ S_AV2, nperm = 100)
+  model142
   plot(model142)
   
   plot(B_AV2 ~ S_AV2, xlab = "Average Species Richness", ylab = "Average Biomass (kg)",

@@ -92,7 +92,10 @@ IDorder <- IDorder %>%
 
 
 
-####### BEGIN PERMUTATION FOR LOOP ########
+####### BEGIN PERMUTATION FOR LOOP ######## line 95 - 294 end
+  #just need to add a loop on outside and then rbind entire scale_output output 
+  #data frame for each permutation run, adding an additional column for permutation
+  #run identifier. Each row will be identified by perm #, start ID #, and scale #. 
 
 ### for loop to calculate community matrix at the raster scale with bio 5 event pull ##
 rastercom_mat_bio <- NULL
@@ -379,11 +382,24 @@ ggplot(data = scale_output, aes(x = scale, y = 1/varbio, fill = startID)) +
   theme_bw()
 
 
+  #creating graphs like above but fill is center raster lat/long
+coord <- as.data.frame(coordcenter)
+coordreplat <- rep(coord$y, each = 36)
+coordreplong <- rep(coord$x, each = 36)
+scale_output_locate <- as.data.frame(cbind(scale_output, coordreplong, coordreplat))
+
+ggplot(data = scale_output_locate, aes(x = scale, y = S, fill = coordreplat)) +
+  geom_point(size = 4, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  scale_fill_viridis(option = "C") +
+  xlab("Scale") +
+  ylab("S") +
+  theme_bw()
 
 
 
 
-
+  # averaging across start IDs
 b <- with(scale_output, tapply(bio, list(scale), mean))
 s <- with(scale_output, tapply(S, list(scale), mean))
 ssd <- with(scale_output, tapply(S, list(scale), sd))
