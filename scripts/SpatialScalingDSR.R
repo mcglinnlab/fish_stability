@@ -40,6 +40,7 @@ uniqueID <- unique(s_bio_comm_sub$ID_yrcat)
 
 ##### CREATE ORDER OF RASTER IDS
 #coordinates of raster cell centroid
+oc_raster <- oceans_raster
 coordcenter <-as.matrix(xyFromCell(oc_raster, IDlist))
 
 #using converting lat long to distances function (from mobr)
@@ -76,7 +77,8 @@ for (i in 1:n) {
 IDorder <- data.frame(IDorder)
 
 
-#so far did it by hand but this for loop should work too
+#so far did it by hand but this for loop should work too, this working funky
+#just loaded data frame from files for now
 for (i in rownames(IDorder)) { 
 IDorder <- IDorder %>%
   mutate(X36 = recode(X36, '1' = '1246', '2' = '1294', '3' = '1340', '4' = '1486', '5' = '1532',
