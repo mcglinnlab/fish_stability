@@ -2,6 +2,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(lmodel2)
+library(sjstats)
 
 #Organizing BEF analysis into single script with graphs and analysis
 
@@ -15,7 +16,8 @@ library(lmodel2)
   
   #DATA SET TWO
 #7,412 events. data aggregated by event 
-  s_environ
+s_environ <- read.csv("~/fish_stability/data/s_environ.csv", header = T)
+s_environ <- s_environ[,-1]
   
 #adding month column
   dates <- s_environ$date
@@ -25,11 +27,11 @@ library(lmodel2)
 
 #plots
   
-  plot(s_environ$biomass ~ s_environ$S)
+  plot(s_environ$biomass ~ s_environ$S, xlab = "S", ylab = "biomass (kg)")
   
-  plot(s_environ$biomass ~ s_environ$year)
+  plot(s_environ$biomass ~ s_environ$year, xlab = "year", ylab = "biomass (kg)")
   
-  plot(s_environ$biomass ~ s_environ$yrcat)
+  plot(s_environ$biomass ~ s_environ$yrcat, xlab = "yr cat", ylab = "biomass (kg)")
   
   
 #models and plots
@@ -65,7 +67,8 @@ library(lmodel2)
   
   
   #model 9 - just S 
-  model9 <- with(s_environ, lm(log(biomass) ~ S))
+  model9 <- with(s_environ, lmodel2(log(biomass) ~ S))
+  model9
   summary(model9)
   
   model9aov <- with(s_environ, aov(log(biomass) ~ S))
@@ -117,50 +120,87 @@ library(lmodel2)
   
   #DATA SET TWO
 #only 36 'good' IDs - where at least 5 events exist in each time bin 
-  yrag_sub
-  
+yrag_sub <- read.csv("~/fish_stability/data/yrag_sub.csv", header = T)
+yrag_sub <- yrag_sub[, -1]
+
+s_environ
+environ_dat <- s_environ %>%
+  group_by(ID, yrcat) %>%
+  summarize(tempS = mean(tempS),
+            salS = mean(salS),
+            salB = mean(salB),
+            numtotsum = sum(numtotal),
+            numtotmean = mean(numtotal)
+  )
+
+IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
+            1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
+            2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
+            2670, 2721, 2771)
+
+#good ID for environ data set
+environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]  
+
+
+#biologic  
   B_AV <- with(yrag_sub, tapply(averagebio, list(ID), mean))
   S_AV <- with(yrag_sub, tapply(averageS, list(ID), mean))
   S_SD <- with(yrag_sub, tapply(averageS, list(ID), sd))
   B_VAR <- with(yrag_sub, tapply(averagebio, list(ID), function(x)(var(x)/ (mean(x)^2))))
   B_SD <- with(yrag_sub, tapply(averagebio, list(ID), sd))
   B_invar <- 1/B_VAR
+
+#environmental 
+  TEMP <- with(environ_dat, tapply(tempS, list(ID), mean))
+  SALB <- with(environ_dat, tapply(salB, list(ID), mean))
+  SALS <- with(environ_dat, tapply(salS, list(ID), mean))
+  NUMTOTS <- with(environ_dat, tapply(numtotsum, list(ID), mean))
+  NUMTOTM <- with(environ_dat, tapply(numtotmean, list(ID), mean))
+  centercoord #lat long of centroid of 36 regions
+  LAT <- centercoords$y
+  
+##BIOLOGICAL COMPARISONS ####  
+  
   
 #B_VAR ~ S_AV
   model12 <- lmodel2(B_VAR ~ S_AV, nperm = 100)
   model12
-  plot(model12)
+  plot(model12, "SMA")
   
   plot(B_VAR ~ S_AV, xlab = "Average Species Richness per Raster Region (S)", 
        ylab = "Biomass Var per Raster Region (kg)", cex = 1.5)
-  abline(model12$coefficients, lwd = 2.5)
+  abline(a = model12$regression.results$Intercept[3],
+         b = model12$regression.results$Slope[3], lwd = 2.5)
   
 #B_invar ~ S_AV
   model15 <- lmodel2(B_invar ~ S_AV, nperm = 100)
   model15
-  plot(model15)
+  plot(model15, "SMA")
   
   plot(B_invar ~ S_AV, xlab = "Average Species Richness(S)", 
        ylab = "Biomass invar (kg)", cex = 1.5)
-  abline(model15$coefficients, lwd = 2.5)
+  abline(a = model15$regression.results$Intercept[3],
+         b = model15$regression.results$Slope[3], lwd = 2.5)
   
-#S_SD ~ S_AV
+#S_SD ~ S_A
   model13 <- lmodel2(S_SD ~ S_AV, nperm = 100)
   model13
-  plot(model13)
+  plot(model13, "SMA")
   
   plot(S_SD ~ S_AV, xlab = "Average Species Richness per Raster Region (S)"
        , ylab = "Species Richness SD per Raster Region (S)", cex = 1.5)
-  abline(model13$coefficients, lwd = 2.5)
+  abline(a = model13$regression.results$Intercept[3],
+         b = model13$regression.results$Slope[3], lwd = 2.5)
   
 #B_AV ~ S_AV
   model14 <- lmodel2(B_AV ~ S_AV, nperm = 100)
   model14
-  plot(model14)
+  plot(model14, "SMA")
   
   plot(B_AV ~ S_AV, xlab = "Average Species Richness", ylab = "Average Biomass (kg)",
        cex = 1.5)
-  abline(model14$coefficients, lwd = 2.5)
+  abline(a = model14$regression.results$Intercept[3],
+         b = model14$regression.results$Slope[3], lwd = 2.5)
   
 #B_VAR ~ S_SD with fill S_AV
   data <- as.data.frame(cbind(S_SD, S_AV, B_VAR))
@@ -168,7 +208,7 @@ library(lmodel2)
   
   ggplot(data = data, aes(x = S_SD, y = B_VAR, fill = S_AV)) +
     geom_point(size = 8, shape = 21) +
-    geom_smooth(data = dat, method = "lm" ) +
+    geom_smooth(data = dat, method = "" ) +
     xlab("Species Richness SD") +
     ylab("Biomass Var") +
     theme_bw()
@@ -185,6 +225,71 @@ library(lmodel2)
     theme_bw()
   
   
+#how to plot RMA with ggplot
+  reg <- mod$regression.results
+  names(reg) <- c("method", "intercept", "slope", "angle", "p-value")
+  ggplot(dat) + 
+    geom_point(aes(b, a)) +
+    geom_abline(data = reg, 
+                aes(intercept = intercept, slope = slope, colour = method))
+  
+  
+### ENVIRONMENTAL COMPARISONS ####
+  
+  #B_AV ~ LAT 
+  model16 <- lm(B_AV ~ LAT)
+  summary(model16)
+  plot(model16)
+  
+  plot(B_AV ~ LAT, xlab = "Raster Centroid Latitude", ylab = "Average Biomass (kg)",
+       cex = 1.5)
+  abline(model16$coefficients, lwd = 2.5)  
+
+  #S_AV ~ LAT 
+  model17 <- lm(S_AV ~ LAT)
+  summary(model17)
+  plot(model17)
+  
+  plot(S_AV ~ LAT, xlab = "Raster Centroid Latitude", 
+       ylab = "Average Species Richness", cex = 1.5)
+  abline(model17$coefficients, lwd = 2.5)
+  
+  #B_invar ~ LAT
+  model18 <- lm(B_invar ~ LAT)
+  summary(model18)
+  plot(model18)
+  
+  plot(B_invar ~ LAT, xlab = "Raster Centroid Latitude", 
+       ylab = "Stabiltiy (1/var)", cex = 1.5)
+  abline(model18$coefficients, lwd = 2.5)  
+  
+  #B_invar ~ tempS
+  model19 <- lmodel2(B_invar ~ TEMP)
+  model19
+  plot(model19)
+  
+  plot(B_invar ~ TEMP, xlab = "Average Surface Temp", 
+       ylab = "Stabiltiy (1/var)", cex = 1.5)
+  abline(model19$coefficients, lwd = 2.5)
+  
+  #B_AV ~ tempS
+  model20 <- lm(B_AV ~ TEMP)
+  summary(model20)
+  plot(model20)
+  
+  plot(B_AV ~ TEMP, xlab = "Average Surface Temp", 
+       ylab = "Stabiltiy (1/var)", cex = 1.5)
+  abline(model20$coefficients, lwd = 2.5)
+  
+  
+plot(TEMP ~ LAT)
+plot(S_AV ~ NUMTOTM)
+plot(S_AV ~ NUMTOTS)
+plot(B_AV ~ NUMTOTS)
+plot(B_AV ~ NUMTOTM)
+plot(B_invar ~ NUMTOTM)
+plot(B_invar ~ NUMTOTS)
+plot(NUMTOTM ~ LAT)  
   
   #### COMPLETE RASTER ESTIMATE LEVEL - THREE YEAR TIME BIN ####
 #community matrix to calc biomass values

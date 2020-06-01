@@ -4,6 +4,7 @@ library(vegan)
 library(raster)
 library(sp)
 library(reshape2)
+library(svMisc)
 
 
 
@@ -102,7 +103,8 @@ scalecom_mat_pres <- NULL
 scalecom_mat_bio <- NULL
 
 
-for (f in 1:100) {  
+for (f in 18:20) {  
+  progress(f)
   
   ### for loop to calculate community matrix at the raster scale with 
     #bio 5 event pull 
@@ -242,7 +244,9 @@ tempscale_output <- NULL
 scale_output <- NULL
 
 #subsetting for bootstrap iteration
-for (h in 1:100) {
+for (h in 1:20) {
+  progress(h)
+  
   boot_sub_pres <- scalecom_mat_pres[scalecom_mat_pres$boot == h, ]
   boot_sub_bio <- scalecom_mat_bio[scalecom_mat_bio$boot == h, ]
   
@@ -285,260 +289,3 @@ for (h in 1:100) {
   
 #write.csv(scale_output, "~/fish_stability/data/scale_output.csv")  #. instead ~/fish_stability
   
-  
-
-
-
-
-
-
-
-
-####QUICK GRAPHS####
-#a few quick graphs with scale_output 
-  #bio ~ S 
-with(scale_output, plot(bio ~ S))
-  #S ~ scale
-with(scale_output, plot(S ~ scale))
-  #varbio ~ bio
-with(scale_output, plot(varbio ~ bio))
-  #varbio ~ S
-with(scale_output, plot(varbio ~ S))
-  #varbio ~ scale
-with(scale_output, plot(varbio ~ scale))
-  #varbio ~ varS 
-with(scale_output, plot(varbio ~ varS))
-  #stability ~ S
-with(scale_output, plot(stability ~ S))
-  #stability ~ scale
-with(scale_output, plot(stability ~ scale))
-
-
-  #varbio ~ scale. fill = startID
-ggplot(data = scale_output, aes(x = scale, y = varbio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("Scale") +
-  ylab("Var Biomass") +
-  theme_bw()
-
-  #invarbio ~ scale fill = startID
-ggplot(data = scale_output, aes(x = scale, y = 1/varbio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("Scale") +
-  ylab("Invar Biomass") +
-  theme_bw()
-
-  #varbio ~ S fill = scale
-ggplot(data = scale_output, aes(x = S, y = varbio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  xlab("S") +
-  ylab("Biomass Var") +
-  theme_bw()
-
-  #invarbio ~ S fill = startID
-ggplot(data = scale_output, aes(x = S, y = 1/varbio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  xlab("S") +
-  ylab("Invar Biomass") +
-  theme_bw()
-
-  #bio ~ S fill = scale
-ggplot(data = scale_output, aes(x = S, y = bio, fill = scale)) +
-  geom_point(size = 4.5, shape = 21) +
-  scale_fill_viridis(option = "C") +
-  xlab("S") +
-  ylab("Biomass") +
-  theme_bw()
-
-  #bio ~ S fill = startID
-ggplot(data = scale_output, aes(x = S, y = bio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("S") +
-  ylab("Biomass") +
-  theme_bw()
-
-#S ~ scale fill = startID
-ggplot(data = scale_output, aes(x = scale, y = S, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("Scale") +
-  ylab("S") +
-  theme_bw()
-
-
-  #bio ~ scale fill = startID
-ggplot(data = scale_output, aes(x = scale, y = bio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("Scale") +
-  ylab("Biomass") +
-  theme_bw()
-
-  #invar ~ scale fill = startID
-ggplot(data = scale_output, aes(x = scale, y = 1/varbio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  xlab("Scale") +
-  ylab(" Invar Biomass") +
-  theme_bw()
-
-  #invar ~ S fill = startID
-ggplot(data = scale_output, aes(x = scale, y = 1/varbio, fill = startID)) +
-  geom_point(size = 4.5, shape = 21) +
-  xlab("S") +
-  ylab("Invar Biomass") +
-  theme_bw()
-
-
-  #creating graphs like above but fill is center raster lat/long
-coord <- as.data.frame(coordcenter)
-coordreplat <- rep(coord$y, each = 36)
-coordreplong <- rep(coord$x, each = 36)
-scale_output_locate <- as.data.frame(cbind(scale_output, coordreplong, coordreplat))
-
-ggplot(data = scale_output_locate, aes(x = scale, y = S, fill = coordreplat)) +
-  geom_point(size = 4, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  scale_fill_viridis(option = "C") +
-  xlab("Scale") +
-  ylab("S") +
-  theme_bw()
-
-
-
-
-  # averaging across start IDs
-b <- with(scale_output, tapply(bio, list(scale), mean))
-s <- with(scale_output, tapply(S, list(scale), mean))
-ssd <- with(scale_output, tapply(S, list(scale), sd))
-bvar <- with(scale_output, tapply(varbio, list(scale),mean))
-bsd <- with(scale_output, tapply(bio, list(scale), sd))
-binvar<- 1/bvar
-
-scale <- c(1:36)
-
-plot(b ~ s, xlab = "S", ylab = "biomass", cex = 2, lwd = 2)
-plot(bvar ~ s, xlab = "S", ylab = "biomass var", cex = 2, lwd = 2)
-plot(binvar ~ s, xlab = "S", ylab = "biomass invar", cex = 2, lwd = 2)
-
-plot(b ~ scale, xlab = "scale", ylab = "biomass", cex = 2, lwd = 2)
-plot(bvar ~ scale, xlab = "scale", ylab = "biomass var", cex = 2, lwd = 2 )
-
-plot(binvar[binvar < 200] ~ scale[binvar < 200], xlab = "scale", 
-     ylab = "biomass invar", cex = 2, lwd = 2)
-plot(binvar[binvar < 1000] ~ scale[binvar < 1000], xlab = "scale", 
-     ylab = "biomass invar", cex = 2, lwd = 2)
-plot(binvar ~ scale, xlab = "scale", ylab = "biomass invar", cex = 2, lwd = 2)
-plot(s ~ scale, xlab = "scale", ylab = "S", cex = 2, lwd = 2)
-
-
-dat <- as.data.frame(cbind(b, s, bvar, binvar, scale))
-
-ggplot(data = dat, aes(x = s, y = b, fill = scale)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("S") +
-  ylab("Biomass") +
-  theme_bw()
-
-ggplot(data = dat, aes(x = s, y = binvar, fill = scale)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("S") +
-  ylab("Biomass") +
-  theme_bw()
-
-ggplot(data = dat, aes(x = scale, y = binvar, fill = s)) +
-  geom_point(size = 4.5, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
-  xlab("Scale") +
-  ylab("Invar Biomass") +
-  theme_bw()
-
-  
-  #### from mobr ####
-  x = rastercom_mat_bio
-  rownames(x) <- c(1:324)
-  
-  #making it a 
-  x = (x > 0) * 1             
-  # all sites are counted as samples even empty ones
-  n = nrow(x) 
-  x = colSums(x)
-  
-  explicit_loop = matrix(0, n, n)
-  
-  # Compute distance on sphere if xy are longitudes and latitudes
-  # Assume x is longitude and y is latitude
-  pair_dist = sphere_dist(coordcenter)
-  
-  n = 36    
-  
-  for (i in 1:n) {
-    dist_to_site = pair_dist[i, ]
-    # Shuffle plots, so that tied grouping is not biased by original order.
-    new_order = sample(1:n)  
-    dist_new = dist_to_site[new_order]
-    new_order = new_order[order(dist_new)]
-    # Move focal site to the front
-    new_order = c(i, new_order[new_order != i])
-  }
-  
-  ## to use, needs to be one row per site but we have nine rows per site. 
-  #if bio com mat is sorted by rasters then each distance needs to be repeated 
-  #in a sequence 9 times to get 324 rows and complete next step. 
-  comm_ordered = x[new_order, ]
-  # 1 for absence, 0 for presence
-  comm_bool = as.data.frame((comm_ordered == 0) * 1) 
-  rich = cumprod(comm_bool)
-  explicit_loop[ , i] = as.numeric(ncol(x) - rowSums(rich))
-  
-  out = apply(explicit_loop, 1, mean)[effort]
-  
-
-  #### RARECURVES WITH PRESENCE AND ABUNDANCE DATA (ignore) ####
-  
-  ## using presence/absence matrix ##
-  
-  S <- specnumber(rastercom_mat[,-1]) # observed number of species
-  (raremax <- min(rowSums(rastercom_mat[,-1])))
-  Srare <- rarefy(rastercom_mat[,-1], raremax)
-  plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
-  abline(0, 1)
-  rarecurve(rastercom_mat[,-1], step = 20, sample = raremax, col = "blue", cex = 0.6, label = F)
-  
-  
-  ## using number of individuals matrix ##
-  S <- specnumber(rastercom_mat_abun[,-1]) # observed number of species
-  raremax <- min(rowSums(rastercom_mat_abun[,-1]))
-  Srare <- rarefy(rastercom_mat_abun[,-1], raremax)
-  plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
-  abline(0, 1)
-  rarecurve(rastercom_mat_abun[,-1], step = 20, sample = raremax, col = "blue", cex = 0.6, label = F)
-  slope <- rareslope(rastercom_mat_abun[,-1], 100)
-  #### CALC NEW S FROM rastercom_mat and rastercom_mat_abun ####
-  #asymptote from rastercom_mat_abun rarecurve() = row sum of rastercom_mat
-  
-  #calc new S
-  newS <- rowSums(rastercom_mat[,-1])
-  ID <- rastercom_mat$uniqueID
-  ID_newS <- cbind.data.frame(ID, newS)
-  #write.csv(ID_newS, "~/fish_stability/data/ID_newS.csv")
-  
-  
-  #pull ID with all yrcat: goodID list from DSR_analysis script
-  IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
-              1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
-              2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
-              2670, 2721, 2771)
-  
-  #adding a column of just raster ID
-  ID_newS$raster <- substr(ID_newS$ID, start=1, stop=4)
-  
-  #pulling out rows with the above listed raster IDs
-  ID_newS_sub <- ID_newS[ID_newS$raster %in% IDlist,]
-  
-  #save
-  #write.csv(ID_newS_sub, "~/fish_stability/data/ID_newS_sub.csv")

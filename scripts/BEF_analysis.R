@@ -12,7 +12,7 @@ s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 
  #model 1 biomass ~ species
 model1 <- lm(s_rarefac$biomass ~ s_rarefac$S)
-plot(s_rarefac$biomass ~ s_rarefac$S)
+plot(s_rarefac$biomass ~ s_rarefac$S, xlab = 'S', ylab = 'biomass (kg)')
 abline(coefficients(model1))
 summary(model1)
 plot(model1)
