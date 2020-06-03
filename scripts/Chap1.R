@@ -151,11 +151,11 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
   B_invar <- 1/B_VAR
 
 #environmental 
-  TEMP <- with(environ_dat, tapply(tempS, list(ID), mean))
-  SALB <- with(environ_dat, tapply(salB, list(ID), mean))
-  SALS <- with(environ_dat, tapply(salS, list(ID), mean))
-  NUMTOTS <- with(environ_dat, tapply(numtotsum, list(ID), mean))
-  NUMTOTM <- with(environ_dat, tapply(numtotmean, list(ID), mean))
+  TEMP <- with(environ_dat, tapply(tempS, list(ID), mean, na.rm = T))
+  SALB <- with(environ_dat, tapply(salB, list(ID), mean, na.rm =T))
+  SALS <- with(environ_dat, tapply(salS, list(ID), mean, na.rm = T))
+  NUMTOTS <- with(environ_dat, tapply(numtotsum, list(ID), mean, na.rm =T))
+  NUMTOTM <- with(environ_dat, tapply(numtotmean, list(ID), mean, na.rm = T))
   centercoord #lat long of centroid of 36 regions
   LAT <- centercoords$y
   
@@ -171,6 +171,7 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
        ylab = "Biomass Var per Raster Region (kg)", cex = 1.5)
   abline(a = model12$regression.results$Intercept[3],
          b = model12$regression.results$Slope[3], lwd = 2.5)
+  cor(B_VAR, S_AV)
   
 #B_invar ~ S_AV
   model15 <- lmodel2(B_invar ~ S_AV, nperm = 100)
@@ -181,6 +182,7 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
        ylab = "Biomass invar (kg)", cex = 1.5)
   abline(a = model15$regression.results$Intercept[3],
          b = model15$regression.results$Slope[3], lwd = 2.5)
+  cor(B_invar, S_AV)
   
 #S_SD ~ S_A
   model13 <- lmodel2(S_SD ~ S_AV, nperm = 100)
@@ -191,6 +193,7 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
        , ylab = "Species Richness SD per Raster Region (S)", cex = 1.5)
   abline(a = model13$regression.results$Intercept[3],
          b = model13$regression.results$Slope[3], lwd = 2.5)
+  cor(S_SD, S_AV)
   
 #B_AV ~ S_AV
   model14 <- lmodel2(B_AV ~ S_AV, nperm = 100)
@@ -201,6 +204,7 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
        cex = 1.5)
   abline(a = model14$regression.results$Intercept[3],
          b = model14$regression.results$Slope[3], lwd = 2.5)
+  cor(B_AV, S_AV)
   
 #B_VAR ~ S_SD with fill S_AV
   data <- as.data.frame(cbind(S_SD, S_AV, B_VAR))
@@ -243,7 +247,9 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
   
   plot(B_AV ~ LAT, xlab = "Raster Centroid Latitude", ylab = "Average Biomass (kg)",
        cex = 1.5)
+  lines(lowess(LAT, B_AV), col = 2, lwd = 3)
   abline(model16$coefficients, lwd = 2.5)  
+  cor(B_AV, LAT)
 
   #S_AV ~ LAT 
   model17 <- lm(S_AV ~ LAT)
@@ -252,7 +258,9 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
   
   plot(S_AV ~ LAT, xlab = "Raster Centroid Latitude", 
        ylab = "Average Species Richness", cex = 1.5)
+  lines(lowess(LAT, S_AV), col = 2, lwd = 3)
   abline(model17$coefficients, lwd = 2.5)
+  cor(S_AV, LAT)
   
   #B_invar ~ LAT
   model18 <- lm(B_invar ~ LAT)
@@ -261,7 +269,9 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
   
   plot(B_invar ~ LAT, xlab = "Raster Centroid Latitude", 
        ylab = "Stabiltiy (1/var)", cex = 1.5)
+  lines(lowess(LAT, B_invar), col = 2, lwd = 3)
   abline(model18$coefficients, lwd = 2.5)  
+  cor(B_invar, LAT)
   
   #B_invar ~ tempS
   model19 <- lmodel2(B_invar ~ TEMP)
@@ -270,7 +280,9 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
   
   plot(B_invar ~ TEMP, xlab = "Average Surface Temp", 
        ylab = "Stabiltiy (1/var)", cex = 1.5)
+  lines(lowess(TEMP, B_invar), col = 2, lwd = 3)
   abline(model19$coefficients, lwd = 2.5)
+  cor(B_invar, TEMP)
   
   #B_AV ~ tempS
   model20 <- lm(B_AV ~ TEMP)
@@ -278,19 +290,51 @@ environ_dat <- environ_dat[environ_dat$ID %in% IDlist, ]
   plot(model20)
   
   plot(B_AV ~ TEMP, xlab = "Average Surface Temp", 
-       ylab = "Stabiltiy (1/var)", cex = 1.5)
+       ylab = "Biomass (kg)", cex = 1.5)
+  lines(lowess(TEMP, B_AV), col = 2, lwd = 3)
   abline(model20$coefficients, lwd = 2.5)
+  cor(B_AV, TEMP)
   
-  
-plot(TEMP ~ LAT)
-plot(S_AV ~ NUMTOTM)
-plot(S_AV ~ NUMTOTS)
-plot(B_AV ~ NUMTOTS)
-plot(B_AV ~ NUMTOTM)
-plot(B_invar ~ NUMTOTM)
-plot(B_invar ~ NUMTOTS)
-plot(NUMTOTM ~ LAT)  
-  
+plot(TEMP ~ LAT, xlab = "Raster Centroid Latitude", ylab = "Surface Temp",
+     cex = 1.5)
+lines(lowess(LAT, TEMP), col = 2, lwd = 3)
+cor(TEMP, LAT)
+
+plot(S_AV ~ NUMTOTM, xlab = "Mean Total Number Individuals per Raster Subsample ",
+     ylab = "average S", cex = 1.5)
+lines(lowess(NUMTOTM, S_AV), col = 2, lwd = 3)
+cor(S_AV, NUMTOTM)
+
+plot(S_AV ~ NUMTOTS, xlab = "Total Number Individuals per Reaster", 
+     ylab = "average S", cex = 1.5)
+lines(lowess(NUMTOTS, S_AV), col = 2, lwd = 3)
+cor(S_AV, NUMTOTS)
+
+plot(B_AV ~ NUMTOTS, xlab = "Total Number of Individuals per Raster", 
+     ylab = "Average Biomass", cex = 1.5)
+lines(lowess(NUMTOTS, B_AV), col = 2, lwd = 3)
+cor(B_AV, NUMTOTS)
+
+plot(B_AV ~ NUMTOTM, xlab = "Mean Total Number Individuals", 
+     ylab = "Average Biomass (kg)", cex = 1.5)
+lines(lowess(NUMTOTM, B_AV), col = 2, lwd = 3)
+cor(B_AV, NUMTOTM)
+
+plot(B_invar ~ NUMTOTM, xlab = "Mean Total Number Individuals", 
+     ylab = "Stability (1/var)", cex = 1.5)
+lines(lowess(NUMTOTM, B_invar), col = 2, lwd = 3)
+cor(B_invar, NUMTOTM)
+
+plot(B_invar ~ NUMTOTS, xlab = "Total Number of Individuals per Raster", 
+     ylab = "Stability (1/var)", cex = 1.5)
+lines(lowess(NUMTOTS, B_invar), col = 2, lwd = 3)
+cor(B_invar, NUMTOTS)
+
+plot(NUMTOTM ~ LAT, xlab = "Raster Centroid Latitude", 
+     ylab = "Mean Total Number Individuals", cex = 1.5)
+lines(lowess(LAT, NUMTOTM), col = 2, lwd = 3)
+cor(NUMTOTM, LAT)  
+
   #### COMPLETE RASTER ESTIMATE LEVEL - THREE YEAR TIME BIN ####
 #community matrix to calc biomass values
   rastercom_mat_bio
