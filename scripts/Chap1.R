@@ -541,9 +541,186 @@ summary(bioModel)
 
 
 with(final_output, plot(Bio ~ rasterlat))
-> with(final_output, plot(avbootstabbio ~ rasterlat))
-> with(final_output, plot(avbootstabbio ~ Srich))
-> with(final_output, lines(lowess(avbootstabbio ~ Srich)))
-> with(final_output, plot(Bio ~ tempS))
-> with(final_output, plot(avbootstabbio ~ tempS))
+with(final_output, plot(avbootstabbio ~ rasterlat))
+with(final_output, plot(avbootstabbio ~ Srich))
+with(final_output, lines(lowess(avbootstabbio ~ Srich)))
+with(final_output, plot(Bio ~ tempS))
+with(final_output, plot(avbootstabbio ~ tempS))
+
+
+#### FIGURE 1 -  4 Panel maps  ####
+library(tmap)
+library(tmaptools)
+
+#a) number of trawls per pixel - uses ID.df
+ID.df$identity <- 1
+
+trawl_num <- ID.df %>%
+  group_by(point2resID) %>%
+  summarize(trawlnum = sum(identity))
+
+trawl_num <- trawl_num[trawl_num$point2resID %in% IDlist, ]
+trawl_num <- cbind(trawl_num, raster_cord$x, raster_cord$y)
+names(trawl_num) <- c("ID", "trawlnum", "long", "lat")
+
+Trawl_raster <- rasterize(trawl_num[,3:4], oc_raster, trawl_num$trawlnum)
+res(Trawl_raster)
+plot(Trawl_raster)
+
+Trawl_raster <- crop(x = Trawl_raster, y = new.extent)
+
+tm_shape(Trawl_raster) +
+  tm_raster(title = "") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+
+#b) average rarefied richness to 5 trawls
+Species_Raster <- rasterize(trawl_num[, 3:4], oc_raster, final_output$Srich)
+res(Species_Raster)
+plot(Species_Raster)
+
+Species_Raster <- crop( x = Species_Raster, y = new.extent)
+
+tm_shape(Species_Raster) +
+  tm_raster(title = "", palette = "Blues") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+#c) average total biomass 5 trawls
+Biomass_Raster <- rasterize(trawl_num[, 3:4], oc_raster, final_output$Bio)
+res(Biomass_Raster)
+plot(Biomass_Raster)
+
+Biomass_Raster <- crop(x = Biomass_Raster, y = new.extent)
+
+tm_shape(Biomass_Raster) +
+  tm_raster(title = "", palette = "Greens") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+#d) average stability biomass at 5 trawls
+Stability_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                              final_output$avbootstabbio)
+res(Stability_Raster)
+plot(Stability_Raster)
+
+Stability_Raster <- crop(x = Stability_Raster, y = new.extent)
+
+tm_shape(Stability_Raster) +
+  tm_raster(title = "", palette = "PuRd") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+
+
+
+#FIGURE 2 - Multiple Regression Results
+
+  #biomass
+bioModel <- lm(log2(Bio) ~ log2(Srich) + rasterlat + tempS +
+                                    salS, data = final_output)
+summary(bioModel)
+#standardized regression coefficients
+lm.beta(bioModel)
+plot(bioModel)
+
+  #stability
+stabModel <- lm(log2(avbootstabbio) ~ log2(Srich) + rasterlat +
+                                     tempS + salS, data = final_output)
+summary(stabModel)
+#standardized regression coefficients
+lm.beta(stabModel)
+plot(stabModel)
+
+
+
+#FIGURE 3 - Partial Regression and Lowess smoother - 6 panel
+
+#a) biomass ~ richness
+termplot(bioModel, terms = "log2(Srich)", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 2))
+axis(side=1, cex.axis=2, at = seq(35, 55, 1))
+axis(side=2, cex.axis=2)
+res = residuals(bioModel, 'partial')
+res = res[ , 'log2(Srich)', drop=FALSE]
+lines(lowess((final_output$Srich), res), col='red', lty=2, lwd=5)
+
+#b) stability ~ richness
+termplot(stabModel, terms = "log2(Srich)", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 2))
+axis(side=1, cex.axis=2, at = seq(35, 55, 1))
+axis(side=2, cex.axis=2)
+res = residuals(stabModel, 'partial')
+res = res[ , 'log2(Srich)', drop=FALSE]
+lines(lowess((final_output$Srich), res), col='red', lty=2, lwd=5)
+
+#c) biomass ~ latitude
+termplot(bioModel, terms = "rasterlat", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-1, 1))
+axis(side=1, cex.axis=2, at = seq(27, 36, 1))
+axis(side=2, cex.axis=2)
+res = residuals(bioModel, 'partial')
+res = res[ , 'rasterlat', drop=FALSE]
+lines(lowess(final_output$rasterlat, res), col='red', lty=2, lwd=5)
+
+#d) stability ~ latitude
+termplot(stabModel, terms = "rasterlat", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 2))
+axis(side=1, cex.axis=2, at = seq(27, 36, 1))
+axis(side=2, cex.axis=2)
+res = residuals(stabModel, 'partial')
+res = res[ , 'rasterlat', drop=FALSE]
+lines(lowess(final_output$rasterlat, res), col='red', lty=2, lwd=5)
+
+#e) biomass ~ temperature
+termplot(bioModel, terms = "tempS", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-1, 1))
+axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
+axis(side=2, cex.axis=2)
+res = residuals(bioModel, 'partial')
+res = res[ , 'tempS', drop=FALSE]
+lines(lowess(final_output$tempS, res), col='red', lty=2, lwd=5)
+
+#f) stability ~ temperature 
+termplot(stabModel, terms = "tempS", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 2))
+axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
+axis(side=2, cex.axis=2)
+res = residuals(stabModel, 'partial')
+res = res[ , 'tempS', drop=FALSE]
+lines(lowess(final_output$tempS, res), col='red', lty=2, lwd=5)
+
 

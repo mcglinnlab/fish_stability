@@ -290,11 +290,11 @@ ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
 ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
   geom_point(aes(y = ((stability)) - min((stability))), size = 3, shape = 23 ) +
   geom_point(aes(y = (S- min(S))), size = 6, shape = 21 ) +
-  geom_ribbon(data = stabSUMM, aes(ymin = ((stability) - min(stability)) - ci,
-                                   ymax = ((stability) - min(stability)) + ci), 
-              fill = "grey70") +
-  geom_ribbon(data = sSUMM, aes(ymin = (S - min(S)) - ci,
-                                ymax = (S- min(S)) + ci), fill = "grey70") +
+ # geom_ribbon(data = stabSUMM, aes(ymin = ((stability) - min(stability)) - ci,
+  #                                 ymax = ((stability) - min(stability)) + ci), 
+   #           fill = "grey70") +
+  #geom_ribbon(data = sSUMM, aes(ymin = (S - min(S)) - ci,
+    #                            ymax = (S- min(S)) + ci), fill = "grey70") +
   geom_line(data = dat, aes(x= scale, y = (stability)-min(stability)),
             size = 4, color = "red") +
   geom_line(data= dat, aes(x = scale, y = (s - min(s))), size = 4) +
@@ -311,11 +311,11 @@ ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
 ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
   geom_point(aes(y = ((stability)) - min((stability))), size = 3, shape = 23 ) +
   geom_point(aes(y = (S)), size = 6, shape = 21 ) +
-  geom_ribbon(data = stabSUMM, aes(ymin = ((stability)) - ci,
-                                   ymax = ((stability)) + ci), 
-              fill = "grey70") +
-  geom_ribbon(data = sSUMM, aes(ymin = (S - ci),
-                                ymax = (S + ci)), fill = "grey70") +
+  #geom_ribbon(data = stabSUMM, aes(ymin = ((stability)) - ci,
+   #                                ymax = ((stability)) + ci), 
+    #          fill = "grey70") +
+  #geom_ribbon(data = sSUMM, aes(ymin = (S - ci),
+     #                           ymax = (S + ci)), fill = "grey70") +
   geom_line(data = dat, aes(x= scale, y = (stability)),
             size = 4, color = "red") +
   geom_line(data= dat, aes(x = scale, y = (s)), size = 4) +
@@ -328,13 +328,14 @@ ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
 
 
 #recreate Zhang et al analysis making curves linear with log transformations
-S_scale_lm <- with(av_scale_output, lm(log(S) ~ log(scale)))
+S_scale_lm <- with(av_scale_output, lm(log10(S) ~ log10(scale)))
 summary(S_scale_lm)
-with(av_scale_output, plot(log(S) ~ log(scale)))
+with(av_scale_output, plot(S ~ scale))
+with(av_scale_output, plot(log10(S) ~ log10(scale)))
 abline(S_scale_lm$coefficients)
 
 
-ggplot(data = av_scale_output, aes(x = log(scale), y = log(S), fill = boot)) +
+ggplot(data = av_scale_output, aes(x = log10(scale), y = log10(S), fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
   geom_smooth(method = lm, size = 2, se = T) +
   scale_fill_viridis(option = "C") +
@@ -343,13 +344,14 @@ ggplot(data = av_scale_output, aes(x = log(scale), y = log(S), fill = boot)) +
   theme_bw()
 
 
-stab_scale_lm <- with(av_scale_output, lm(log(stability) ~ log(scale)))
+stab_scale_lm <- with(av_scale_output, lm(log10(stability) ~ log10(scale)))
 summary(stab_scale_lm)
-with(av_scale_output, plot(log(stability) ~ log(scale)))
+with(av_scale_output, plot(stability ~ scale))
+with(av_scale_output, plot(log10(stability) ~ log10(scale)))
 abline(stab_scale_lm$coefficients)
 
 
-ggplot(data = av_scale_output, aes(x = log(scale), y = log(stability), fill = boot)) +
+ggplot(data = av_scale_output, aes(x = log10(scale), y = log10(stability), fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
   geom_smooth(method = lm, size = 2, se = T) +
   scale_fill_viridis(option = "C") +
@@ -382,7 +384,7 @@ plot(stability ~ scale, xlab = "scale", ylab = "stability", cex = 2, lwd = 2)
 plot(s ~ scale, xlab = "scale", ylab = "S", cex = 2, lwd = 2)
 
 
-dat <- as.data.frame(cbind(b, s, bvar, binvar, scale, stability))
+dat <- as.data.frame(cbind(b, s, bvar, stability, scale))
 
 ggplot(data = dat, aes(x = s, y = b, fill = scale)) +
   geom_point(size = 4.5, shape = 21) +
@@ -611,5 +613,14 @@ bef_scale_output <- as.data.frame(bef_scale_output)
 
 #quick graphs
 with(av_scale_output, plot(bio[scale == "2"] ~ s[scale == "2"]))
+
+
+
+
+
+#### TAKE TWO #### 
+
+
+
 
 
