@@ -439,7 +439,7 @@ cor(NUMTOTM, LAT)
   BEF2 <- cbind(identifier, newS, newbio)
   
 #averaging across boot iterations  
-  BEF2 <- BEF2 %>%
+  BEF3 <- BEF2 %>%
     group_by(startID, yr_cat) %>%
   summarize(S = mean(newS),
             bio = mean(newbio),
@@ -456,10 +456,10 @@ cor(NUMTOTM, LAT)
   environ <- environ[, 3:4]
   
  #creating data frame for biomass ~ S + others model
-BEF <- as.data.frame(cbind(BEF2$startID, BEF2$yr_cat, BEF2$S, BEF2$bio, BEF2$Ssd, BEF2$biosd,
-             environ$tempS, environ$salS, rasterlat, rasterlong))
+BEF <- as.data.frame(cbind(BEF2$startID, BEF3$yr_cat, BEF3$S, BEF3$bio, BEF3$Ssd,
+                           BEF3$biosd, environ$tempS, environ$salS, rasterlat))
 names(BEF) <- c("ID", "yr_cat", "S", "bio", "Sbootsd", "biobootsd", "tempS",
-                "salS", "rasterlat", "rasterlong")
+                "salS", "rasterlat")
   
 #plots
 plot(log2(BEF$bio) ~ log2(BEF$S))  
@@ -524,6 +524,10 @@ final_output <- output_res %>%
             avbootstabbio = mean(stabbio),
             avvarS = mean(varS))
 
+final_output <- cbind(final_output, BEFovTime$rasterlat, BEFovTime$tempS, BEFovTime$salS)
+names(final_output) <- c("startID", "Srich", "Bio", "avbootvarbio", "avbootstabbio",
+                         "avvarS", "rasterlat", "tempS", "salS")
+
 
 stabModel <- with(final_output, lm(log2(stability) ~ log2(Srich) + rasterlat + tempS + salS))
 summary(stabModel)
@@ -534,3 +538,12 @@ bioModel <- with(final_output, lm(log2(Bio) ~ log2(Srich) + rasterlat + tempS + 
 summary(bioModel)
 bioModel <- with(final_output, lm(log2(Bio) ~ log2(Srich)))
 summary(bioModel)
+
+
+with(final_output, plot(Bio ~ rasterlat))
+> with(final_output, plot(avbootstabbio ~ rasterlat))
+> with(final_output, plot(avbootstabbio ~ Srich))
+> with(final_output, lines(lowess(avbootstabbio ~ Srich)))
+> with(final_output, plot(Bio ~ tempS))
+> with(final_output, plot(avbootstabbio ~ tempS))
+
