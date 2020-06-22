@@ -103,7 +103,7 @@ scalecom_mat_pres <- NULL
 scalecom_mat_bio <- NULL
 
 
-for (f in 18:20) {  
+for (f in 56:59) {  
   progress(f)
   
   ### for loop to calculate community matrix at the raster scale with 
@@ -274,6 +274,7 @@ for (h in 1:20) {
       #bio
       bio <- mean(rowSums(scale_sub_bio2))
       varbio <- var(rowSums(scale_sub_bio2)) / (mean(rowSums(scale_sub_bio2)) ^ 2)
+      stability <- 1/varbio
 
     #storage
       scale <- i 

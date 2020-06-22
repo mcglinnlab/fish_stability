@@ -421,5 +421,116 @@ cor(NUMTOTM, LAT)
   
   
   
+  ####TAKE 2 ####
   
+  #sub only scale 1
+  Smatrix <- presrun1_20[presrun1_20$scale== "1" , ]
+  Bmatrix <- biorun1_20[biorun1_20$scale == "1", ]
   
+  #calculating new S and bio
+  identifier <- Smatrix[, 1:5]
+  Smatrix <- Smatrix[, 6:205]
+  newS <- rowSums(Smatrix)
+  
+  identifier <- Bmatrix[, 1:5]
+  Bmatrix <- Bmatrix[, 6:205]
+  newbio <- rowSums(Bmatrix)
+  
+  BEF2 <- cbind(identifier, newS, newbio)
+  
+#averaging across boot iterations  
+  BEF2 <- BEF2 %>%
+    group_by(startID, yr_cat) %>%
+  summarize(S = mean(newS),
+            bio = mean(newbio),
+            Ssd = sd(newS),
+            biosd = sd(newbio))
+  
+#getting surface temp and surface salinity
+  environ <- s_environ %>%
+    group_by(ID, yrcat) %>%
+    summarize(tempS = mean(tempS, na.rm = T),
+              salS = mean(salS, na.rm =T))
+  
+  environ <- environ[environ$ID %in% IDlist, ]  
+  environ <- environ[, 3:4]
+  
+ #creating data frame for biomass ~ S + others model
+BEF <- as.data.frame(cbind(BEF2$startID, BEF2$yr_cat, BEF2$S, BEF2$bio, BEF2$Ssd, BEF2$biosd,
+             environ$tempS, environ$salS, rasterlat, rasterlong))
+names(BEF) <- c("ID", "yr_cat", "S", "bio", "Sbootsd", "biobootsd", "tempS",
+                "salS", "rasterlat", "rasterlong")
+  
+#plots
+plot(log2(BEF$bio) ~ log2(BEF$S))  
+
+
+  
+#collapsing over time bins
+
+tempvar <- function(x) {
+  var(x)/ (mean(x)^2)
+}
+
+BEFovTime <- BEF %>%
+  group_by(ID) %>%
+  summarize(Srich = mean(S),
+            Bio = mean(bio),
+            StimeVar = sd(S),
+            biotimeVar = var(bio)/ (mean(bio) ^2),
+            stability = 1/biotimeVar,
+            stab = (mean(bio) ^2)/ var(bio), 
+            tempS = mean(tempS),
+            salS = mean(salS),
+            rasterlat = unique(rasterlat)
+            )
+    
+  #plots
+with(BEFovTime, plot(log2(Bio) ~ log2(Srich)))
+bioModel <- with(BEFovTime, lm(log2(Bio) ~ log2(Srich) + rasterlat + tempS + salS))
+summary(bioModel)
+
+with(BEFovTime, plot((stability) ~ (Srich)))
+stabModel <- with(BEFovTime, lm((stability) ~ (Srich) + rasterlat + tempS + salS))
+summary(stabModel)
+
+summary(lm(stability ~ Srich, data = BEFovTime))
+
+
+tempresults <- NULL
+output_res <- NULL
+
+for (i in 1:20) {
+  step1 <- BEF2[BEF2$boot == i, ]
+  step2 <- step1 %>%
+    group_by(startID) %>%
+    summarize(boot = unique(boot),
+              S = mean(newS),
+              bio = mean(newbio),
+              varbio = var(newbio)/(mean(newbio) ^2),
+              stabbio = (mean(newbio)^2) / var(newbio),
+              varS = var(newS)
+              )
+  tempresults <- step2
+  output_res <- rbind(output_res, tempresults)
+}
+
+
+final_output <- output_res %>% 
+  group_by(startID) %>%
+  summarize(Srich = mean(S),
+            Bio = mean(bio),
+            avbootvarbio = mean(varbio),
+            avbootstabbio = mean(stabbio),
+            avvarS = mean(varS))
+
+
+stabModel <- with(final_output, lm(log2(stability) ~ log2(Srich) + rasterlat + tempS + salS))
+summary(stabModel)
+stabModel <- with(final_output, lm(log2(avbootstabbio) ~ log2(Srich)))
+summary(stabModel)
+
+bioModel <- with(final_output, lm(log2(Bio) ~ log2(Srich) + rasterlat + tempS + salS))
+summary(bioModel)
+bioModel <- with(final_output, lm(log2(Bio) ~ log2(Srich)))
+summary(bioModel)

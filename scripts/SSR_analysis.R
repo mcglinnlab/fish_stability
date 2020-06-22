@@ -126,7 +126,7 @@ av_scale_output <- scale_output %>%
             varbio = mean(varbio),
             S = mean(S),
             varS = mean(varS),
-            stability = 1/mean(varbio)
+            stability = mean(stability)
             )
 
 #a few quick graphs with av_scale_output 
@@ -152,20 +152,27 @@ with(av_scale_output, plot(stability ~ scale))
 #varbio ~ scale. fill = boot
 ggplot(data = av_scale_output, aes(x = scale, y = varbio, fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
-  geom_smooth(method = loess, size = 3) +
+  geom_smooth(method = loess, size = 3, col = 2) +
   scale_fill_viridis(option = "C") +
   xlab("Scale") +
   ylab("Var Biomass") +
   theme_bw()
 
+with(av_scale_output, cor(scale, varbio))
+
+
 #invarbio ~ scale fill = boot
-ggplot(data = av_scale_output, aes(x = scale, y = 1/varbio, fill = boot)) +
+ggplot(data = av_scale_output, aes(x = scale, y = stability, fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
-  geom_smooth(method = loess, size = 3, se = T) +
+  geom_smooth(method = loess, size = 3, se = T, col = 2) +
   scale_fill_viridis(option = "C") +
+  labs(fill = "Bootstrap") +
   xlab("Scale") +
-  ylab("Invar Biomass") +
+  ylab("Stability") +
   theme_bw()
+
+with(av_scale_output, cor(scale, stability ))
+
 
 #varbio ~ S fill = boot
 ggplot(data = av_scale_output, aes(x = S, y = varbio, fill = boot)) +
@@ -176,44 +183,57 @@ ggplot(data = av_scale_output, aes(x = S, y = varbio, fill = boot)) +
   ylab("Biomass Var") +
   theme_bw()
 
+with(av_scale_output, cor(S, varbio))
+
 #invarbio ~ S fill = boot
-ggplot(data = av_scale_output, aes(x = S, y = 1/varbio, fill = boot)) +
+ggplot(data = av_scale_output, aes(x = S, y = stability, fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
-  geom_smooth(method = loess, size = 3, se = T) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
   scale_fill_viridis(option = "C") +
+  labs(fill = "Bootstrap") +
   xlab("S") +
-  ylab("Invar Biomass") +
+  ylab("Stability") +
   theme_bw()
 
-#bio ~ S fill = scale
-ggplot(data = av_scale_output, aes(x = S, y = bio, fill = scale)) +
-  geom_point(size = 4.5, shape = 21) +
-  scale_fill_viridis(option = "C") +
-  xlab("S") +
-  ylab("Biomass") +
-  theme_bw()
+with(av_scale_output, cor(S, stability))
 
 #bio ~ S fill = boot
 ggplot(data = av_scale_output, aes(x = S, y = bio, fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
-  geom_smooth(method = loess, size = 3, se = T) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
   scale_fill_viridis(option = "C") +
+  labs(fill = "Bootstrap") +
   xlab("S") +
   ylab("Biomass") +
   theme_bw()
+
+with(av_scale_output, cor(S, bio))
+
+#bio ~ S fill = boot
+#ggplot(data = av_scale_output, aes(x = S, y = bio, fill = boot)) +
+ # geom_point(size = 4.5, shape = 21) +
+  #geom_smooth(method = loess, size = 3, se = T) +
+  #scale_fill_viridis(option = "C") +
+  #xlab("S") +
+  #ylab("Biomass") +
+  #theme_bw()
 
 
 #bio ~ scale fill = boot
 ggplot(data = av_scale_output, aes(x = scale, y = bio, fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
-  geom_smooth(method = loess, size = 3, se = T) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  #geom_smooth(method = "lm", col = 2, size = 3) +
   scale_fill_viridis(option = "C") +
+  labs(fill = "Bootstrap") +
   xlab("Scale") +
   ylab("Biomass") +
   theme_bw()
 
+with(av_scale_output, cor(scale, bio))
+
 #invar ~ scale fill = boot
-ggplot(data = av_scale_output, aes(x = scale, y = 1/varbio, fill = boot)) +
+ggplot(data = av_scale_output, aes(x = scale, y = stability, fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
   geom_smooth(method = loess, size = 3, se = T) +
   scale_fill_viridis(option = "C") +
@@ -221,14 +241,19 @@ ggplot(data = av_scale_output, aes(x = scale, y = 1/varbio, fill = boot)) +
   ylab(" Invar Biomass") +
   theme_bw()
 
+with(av_scale_output, cor(scale, stability))
+
 #S ~ scale fill = boot
 ggplot(data = av_scale_output, aes(x = scale, y = S, fill = boot)) +
   geom_point(size = 4.5, shape = 21) +
-  geom_smooth(method = loess, size = 1, se = T) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
   scale_fill_viridis(option = "C") +
+  labs(fill = "Bootstrap") +
   xlab("Scale") +
   ylab("S") +
   theme_bw()
+
+with(av_scale_output, cor(scale, S))
 
 #invar ~ S fill = boot
 ggplot(data = av_scale_output, aes(x = scale, y = 1/varbio, fill = boot)) +
@@ -243,18 +268,58 @@ ggplot(data = av_scale_output, aes(x = scale, y = 1/varbio, fill = boot)) +
 #major graph comparing SAR and SSR runs and averages
 
 ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
-  geom_point(aes(y = ((1/varbio)*7) - min((1/varbio)*7)), size = 3, shape = 23 ) +
-  geom_point(aes(y = (S- min(S))), size = 6, shape = 21 ) +
-  geom_ribbon(data = stabSUMM, aes(ymin = ((stability*7) - min(stability*7)) - ci,
-                                   ymax = ((stability*7) - min(stability*7)) + ci), 
+ # geom_point(aes(y = ((stability)*2) - min((stability)*2)), size = 3, shape = 23 ) +
+  #geom_point(aes(y = (S- min(S))), size = 6, shape = 21 ) +
+  geom_ribbon(data = stabSUMM, aes(ymin = ((stability*2) - min(stability*2)) - ci,
+                                   ymax = ((stability*2) - min(stability*2)) + ci), 
               fill = "grey70") +
   geom_ribbon(data = sSUMM, aes(ymin = (S - min(S)) - ci,
                                 ymax = (S- min(S)) + ci), fill = "grey70") +
-  geom_line(data = dat, aes(x= scale, y = (stability*7)-min(stability*7)),
+  geom_line(data = dat, aes(x= scale, y = (stability*2)-min(stability*2)),
+            size = 4, color = "red") +
+  geom_line(data= dat, aes(x = scale, y = (s - min(s))), size = 4) +
+  scale_fill_viridis(option = "C") +
+  scale_y_continuous(sec.axis = sec_axis(~./2, name = "Stability"))+
+  labs(fill = "Bootstrap") +
+  xlab("Scale") +
+  ylab("S") +
+  theme_bw()
+
+#no y axis change
+
+ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
+  geom_point(aes(y = ((stability)) - min((stability))), size = 3, shape = 23 ) +
+  geom_point(aes(y = (S- min(S))), size = 6, shape = 21 ) +
+  geom_ribbon(data = stabSUMM, aes(ymin = ((stability) - min(stability)) - ci,
+                                   ymax = ((stability) - min(stability)) + ci), 
+              fill = "grey70") +
+  geom_ribbon(data = sSUMM, aes(ymin = (S - min(S)) - ci,
+                                ymax = (S- min(S)) + ci), fill = "grey70") +
+  geom_line(data = dat, aes(x= scale, y = (stability)-min(stability)),
             size = 4, color = "red") +
   geom_line(data= dat, aes(x = scale, y = (s - min(s))), size = 4) +
   scale_fill_viridis(aes(y= S), option = "C") +
-  scale_y_continuous(sec.axis = sec_axis(~./7, name = "Stability"))+
+  scale_y_continuous(sec.axis = sec_axis(~./1, name = "Stability"))+
+  xlab("Scale") +
+  ylab("S") +
+  theme_bw()
+
+
+
+#major graph without any the transformations
+
+ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
+  geom_point(aes(y = ((stability)) - min((stability))), size = 3, shape = 23 ) +
+  geom_point(aes(y = (S)), size = 6, shape = 21 ) +
+  geom_ribbon(data = stabSUMM, aes(ymin = ((stability)) - ci,
+                                   ymax = ((stability)) + ci), 
+              fill = "grey70") +
+  geom_ribbon(data = sSUMM, aes(ymin = (S - ci),
+                                ymax = (S + ci)), fill = "grey70") +
+  geom_line(data = dat, aes(x= scale, y = (stability)),
+            size = 4, color = "red") +
+  geom_line(data= dat, aes(x = scale, y = (s)), size = 4) +
+  scale_fill_viridis(aes(y= S), option = "C") +
   xlab("Scale") +
   ylab("S") +
   theme_bw()
@@ -262,19 +327,36 @@ ggplot(data = av_scale_output, aes(x = scale, fill = boot)) +
 
 
 
-#creating graphs like above but fill is center raster lat/long
-coord <- as.data.frame(coordcenter)
-coordreplat <- rep(coord$y, each = 36)
-coordreplong <- rep(coord$x, each = 36)
-scale_output_locate <- as.data.frame(cbind(scale_output, coordreplong, coordreplat))
+#recreate Zhang et al analysis making curves linear with log transformations
+S_scale_lm <- with(av_scale_output, lm(log(S) ~ log(scale)))
+summary(S_scale_lm)
+with(av_scale_output, plot(log(S) ~ log(scale)))
+abline(S_scale_lm$coefficients)
 
-ggplot(data = scale_output_locate, aes(x = scale, y = S, fill = coordreplat)) +
-  geom_point(size = 4, shape = 21) +
-  #geom_smooth(data = dat, method = "lm" ) +
+
+ggplot(data = av_scale_output, aes(x = log(scale), y = log(S), fill = boot)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = lm, size = 2, se = T) +
   scale_fill_viridis(option = "C") +
-  xlab("Scale") +
-  ylab("S") +
+  xlab("log Scale") +
+  ylab(" log S") +
   theme_bw()
+
+
+stab_scale_lm <- with(av_scale_output, lm(log(stability) ~ log(scale)))
+summary(stab_scale_lm)
+with(av_scale_output, plot(log(stability) ~ log(scale)))
+abline(stab_scale_lm$coefficients)
+
+
+ggplot(data = av_scale_output, aes(x = log(scale), y = log(stability), fill = boot)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = lm, size = 2, se = T) +
+  scale_fill_viridis(option = "C") +
+  xlab("log Scale") +
+  ylab("log Stability") +
+  theme_bw()
+
 
 
 
@@ -322,4 +404,212 @@ ggplot(data = dat, aes(x = scale, y = binvar, fill = s)) +
   xlab("Scale") +
   ylab("Invar Biomass") +
   theme_bw()
+
+
+#Investigate Latitude 
+
+#averaging by start ID runs
+lat_scale_output <- scale_output %>% 
+ dplyr::group_by(startID, scale) %>%
+  dplyr::summarize(bio = mean(bio),
+            varbio = mean(varbio),
+            S = mean(S),
+            varS = mean(varS),
+            stability = 1/mean(varbio))
+
+lat_scale_output <- as.data.frame(lat_scale_output)
+
+
+#creating graphs like above but fill is center raster lat/long
+coord <- as.data.frame(coordcenter)
+coordreplat <- rep(coord$y, each = 36)
+coordreplong <- rep(coord$x, each = 36)
+lat_scale_output <- as.data.frame(cbind(lat_scale_output, coordreplong, coordreplat))
+
+
+ggplot(data = lat_scale_output, aes(x = scale, y = S, fill = coordreplat)) +
+  geom_point(size = 5, shape = 21) +
+  #geom_smooth(data = dat, method = "lm" ) +
+  scale_fill_viridis(option = "A") +
+  xlab("Scale") +
+  ylab("S") +
+  theme_bw()
+
+#a few quick graphs with av_scale_output 
+#bio ~ S 
+with(lat_scale_output, plot(bio ~ S))
+#S ~ scale
+with(lat_scale_output, plot(S ~ scale))
+#varbio ~ bio
+with(lat_scale_output, plot(varbio ~ bio))
+#varbio ~ S
+with(lat_scale_output, plot(varbio ~ S))
+#varbio ~ scale
+with(lat_scale_output, plot(varbio ~ scale))
+#varbio ~ varS 
+with(lat_scale_output, plot(varbio ~ varS))
+#stability ~ S
+with(lat_scale_output, plot(stability ~ S))
+#stability ~ scale
+with(lat_scale_output, plot(stability ~ scale))
+
+
+
+#stability through latitude 
+with(lat_scale_output, boxplot(stability ~ coordreplat, 
+        xlab = "Raster Centroid Latitude", ylab = "Stability"))
+
+with(lat_scale_output, boxplot(S ~ coordreplat, 
+       xlab = "Raster Centroid Latitude", ylab = "S"))
+
+with(lat_scale_output, boxplot(bio ~ coordreplat, 
+      xlab = "Raster Centroid Latitude", ylab = "Biomass"))
+
+
+#varbio ~ scale. fill = lat
+ggplot(data = lat_scale_output, aes(x = scale, y = varbio, fill = coordreplat)) +
+  geom_point(size = 5, shape = 21) +
+  geom_smooth(method = loess, size = 3, col = 2) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("Scale") +
+  ylab("Var Biomass") +
+  theme_bw()
+
+with(lat_scale_output, cor(scale, varbio))
+
+
+#invarbio ~ scale fill = lat
+ggplot(data = lat_scale_output, aes(x = scale, y = stability, fill = coordreplat)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = loess, size = 3, se = T, col = 2) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("Scale") +
+  ylab("Invar Biomass") +
+  theme_bw()az
+
+with(lat_scale_output, cor(scale, stability ))
+
+
+#varbio ~ S fill = boot
+ggplot(data = lat_scale_output, aes(x = S, y = varbio, fill = coordreplat)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = loess, size = 3, se = T) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("S") +
+  ylab("Biomass Var") +
+  theme_bw()
+
+with(lat_scale_output, cor(S, varbio))
+
+#invarbio ~ S fill = boot
+ggplot(data = lat_scale_output, aes(x = S, y = stability, fill = coordreplat)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("S") +
+  ylab("Stability") +
+  theme_bw()
+
+with(lat_scale_output, cor(S, stability))
+
+#bio ~ S fill = boot
+ggplot(data = lat_scale_output, aes(x = S, y = bio, fill = coordreplat)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("S") +
+  ylab("Biomass") +
+  theme_bw()
+
+with(lat_scale_output, cor(S, bio))
+
+
+#bio ~ scale fill = boot
+ggplot(data = lat_scale_output, aes(x = scale, y = bio, fill = coordreplat)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  #geom_smooth(method = "lm", col = 2, size = 3) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("Scale") +
+  ylab("Biomass") +
+  theme_bw()
+
+with(lat_scale_output, cor(scale, bio))
+
+#invar ~ scale fill = boot
+ggplot(data = lat_scale_output, aes(x = scale, y = stability, fill = coordreplat)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("Scale") +
+  ylab("Stability") +
+  theme_bw()
+
+with(lat_scale_output, cor(scale, stability))
+
+#S ~ scale fill = boot
+ggplot(data = lat_scale_output, aes(x = scale, y = S, fill = coordreplat)) +
+  geom_point(size = 4.5, shape = 21) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  scale_fill_viridis(option = "A") +
+  labs(fill = "Latitude") +
+  xlab("Scale") +
+  ylab("S") +
+  theme_bw()
+
+with(lat_scale_output, cor(scale, S))
+
+
+
+#big plot #not working right now
+ggplot(data = lat_scale_output, aes(x = scale, fill = startID)) +
+  geom_point(aes(y = ((stability)*2) - min((stability)*2)), size = 3, shape = 23 ) +
+  geom_point(aes(y = (S- min(S))), size = 6, shape = 21 ) +
+  geom_line(data = dat2, aes(x= scalel, y = (stabilityl*2)-min(stabilityl*2)),
+            size = 4, color = "red") +
+  geom_line(data= dat2, aes(x = scalel, y = (sl - min(sl))), size = 4) +
+  scale_fill_viridis(aes(y= S), option = "C") +
+  scale_y_continuous(sec.axis = sec_axis(~./2, name = "Stability"))+
+  xlab("Scale") +
+  ylab("S") +
+  theme_bw()
+
+
+
+##single curve latitude 
+bl <- with(lat_scale_output, tapply(bio, list(scale), mean))
+sl <- with(lat_scale_output, tapply(S, list(scale), mean))
+ssdl <- with(lat_scale_output, tapply(S, list(scale), sd))
+bvarl <- with(lat_scale_output, tapply(varbio, list(scale),mean))
+bsdl <- with(lat_scale_output, tapply(bio, list(scale), sd))
+stabilityl <- with(lat_scale_output, tapply(stability, list(scale), mean))
+scalel <- c(1:36)
+dat2 <- as.data.frame(cbind(bl, sl, bvarl, scalel, stabilityl))
+
+
+
+
+
+#SCALE IMPACT ON BEF
+
+bef_scale_output <- scale_output %>% 
+  dplyr::group_by(scale) %>%
+  dplyr::summarize(bio = mean(bio),
+                   varbio = mean(varbio),
+                   S = mean(S),
+                   varS = mean(varS),
+                   stability = 1/mean(varbio))
+
+bef_scale_output <- as.data.frame(bef_scale_output)
+
+#quick graphs
+with(av_scale_output, plot(bio[scale == "2"] ~ s[scale == "2"]))
+
 
