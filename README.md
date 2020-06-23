@@ -1,30 +1,27 @@
 # fish_stability
 code for analysis of fish biodiversity and stability
 
-This project serves as an initial analysis for my larger thesis work.
+This project serves as the analysis for my larger thesis work.
 
 Objectives of my overall work: 
 
 1: Investigate the relationships between species diversity and community biomass and stability dynamics using fishery independent monitoring data.
 
-2: Explore whether stability is due to asynchronous interaction between species and if this mechanism exhibits spatial scale dependence using fishery independent monitoring data.
-
-3: Test theoretical prediction of scale-dependence in diversity-stability relationship using fishery independent monitoring data.
+2: Test theoretical prediction of scale-dependence in diversity-stability relationship using fishery independent monitoring data.
 
 
 
-Scripts included in the scripts folder are as follows:
+Key Scripts included in the scripts folder are as follows:
 
 DSR_analysis
 Permutation
 SpatialScalingDSR
 creating_rasterized_maps
-data_processing_Baker
 data_processing_Caughron
-rarefaction_curves
 rasterizing_polygons_Caughron
-spread_function
-
+Chap1
+BEF analysis
+SSR_analysis
 
 DSR_analysis
   reads in resultsfullpoint2 and creates graphs of various relationships between species richness, biomass, variance and invariance. 
@@ -59,6 +56,15 @@ rasterizing_polygons_Caughron
 spread_function
 
   function called spread_with_multiple_values() which is used in data_processing_Caughron and can be accessed at: https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
+  
+  Chap1 
+summary of BEF results summarizing relationships under objective 1
+
+BEF analysis
+diversity ecosystem function and stability relationships at the single raster level
+
+SSR_analysis
+Major analyses under the second objective. Testing scale dependence in diversity stability relationship and diversity biomass relationship. 
 
 
   
