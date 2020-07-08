@@ -620,15 +620,114 @@ with(av_scale_output, plot(bio[scale == "2"] ~ s[scale == "2"]))
 
 #### TAKE TWO #### 
 
-#Figure 1: Map of Number of Trawls -- see Chap 1 take 2 figure 1a
+##PREP ##
 
-#Figure 2:
+#averaging scale_output across bootstrap iterations #se in this case is between
+#boot iterations at the same location
+scale_output_av <- scale_output1_20 %>%
+  group_by(startID, scale) %>%
+  summarize(Sav = mean(S),
+            Sse = sqrt(var(S)/length(S)),
+            varS = mean(varS),
+            bioav = mean(bio),
+            biose = sqrt(var(bio)/length(bio)),
+            varbio = mean(varbio),
+            stabilityav = mean(stability),
+            stabilityse = sqrt(var(stability)/length(stability))
+  )
+
+names(scale_output_av) <- c( "startID", "scale", "S", "Sse", "varS", "bio", 
+                             "biose", "varbio", "stability", "stabilityse" )
+
+
+#log(biomass) ~ log(S) at each scale
+tempslope <- NULL
+tempintercpt <- NULL
+tempscale <- NULL
+tempboot <- NULL
+boot_sub <- NULL
+
+for (a in 1:20) { 
+  boot_sub <- scale_output1_20[scale_output1_20$boot == a, ]
+  for (i in 1:30) {
+    mod <- with(boot_sub, lm(log2(bio[scale == i]) ~ 
+                                             log2(S[scale == i])))
+    scale <- i 
+    boot <- a
+    slope <- mod$coefficients[2]
+    intercpt <- mod$coefficients[1]
+    
+    tempslope <- c(tempslope, slope)
+    tempintercpt <- c(tempintercpt, intercpt)
+    tempscale <- c(tempscale, scale)
+    tempboot <- c(tempboot, boot)
+  }
+}
+bioSscale <- as.data.frame(cbind(tempboot, tempscale, tempslope, tempintercpt))
+names(bioSscale) <- c("boot", "scale", "slope", "intercept")
+plot(slope ~ scale, data = bioSscale, ylim= c(0, 15))
+
+test <- as.data.frame(cbind(tempboot, tempscale, tempslope, tempintercpt))
+names(test) <- c("boot", "scale", "slope", "intercept")
+plot(slope ~ scale, data = bioSscale, ylim= c(0, 15))
+
+
+bioSscale_av <- bioSscale %>%
+  group_by(scale) %>%
+  summarize(slopeav = mean(slope),
+            slopese = sqrt(var(slope)/length(slope)),
+            interceptav = mean(intercept),
+            interceptse = sqrt(var(intercept)/length(intercept)))
+
+with(bioSscale_av, plot(slopeav ~ scale))
+
+
+#log(stability) ~ log(s) at each scale
+tempslope <- NULL
+tempintercpt <- NULL
+tempscale <- NULL
+tempboot <- NULL
+boot_sub <- NULL
+
+for (a in 1:20) { 
+  boot_sub <- scale_output1_20[scale_output1_20$boot == a, ]
+  for (i in 1:30) {
+    with(boot_sub, plot(log2(stability[scale == i]) ~ log2(S[scale == i])))
+    mod <- with(boot_sub, lm(log2(stability[scale == i]) ~ log2(S[scale == i])))
+    scale <- i 
+    boot <- a
+    slope <- mod$coefficients[2]
+    intercpt <- mod$coefficients[1]
+    
+    tempslope <- c(tempslope, slope)
+    tempintercpt <- c(tempintercpt, intercpt)
+    tempscale <- c(tempscale, scale)
+    tempboot <- c(tempboot, boot)
+  }
+}
+stabSscale <- as.data.frame(cbind(tempboot, tempscale, tempslope, tempintercpt))
+names(stabSscale) <- c("boot", "scale", "slope", "intercept")
+plot(slope ~ scale, data = stabSscale, ylim= c(0, 15))
+
+
+stabSscale_av <- stabSscale %>%
+  group_by(scale) %>%
+  summarize(slopeav = mean(slope),
+            slopese = sqrt(var(slope)/length(slope)),
+            interceptav = mean(intercept),
+            interceptse = sqrt(var(intercept)/length(intercept)))
+
+with(stabSscale_av, plot(slopeav ~ scale))
+
+## FIGURE 1: Map of Number of Trawls -- see Chap 1 take 2 figure 1a
+
+## FIGURE 2:
 #a) log biomass ~ log richness; fill = scale
 
 scale_output_av_scto30 <- scale_output_av[scale_output_av$scale < 31,]
 
 ggplot(data = scale_output_av_scto30,
-       aes(x = log2(bio), y = log2(S), fill = scale)) +
+       aes(x = log2(S), y = log2(bio), fill = scale)) +
   geom_point(size = 4.5, shape = 21) +
   geom_smooth(method = loess, size = 3, se = F, col = 2) +
   scale_fill_viridis(option = "A") +
@@ -637,7 +736,7 @@ ggplot(data = scale_output_av_scto30,
   #xmin = log2(S) - log2(Sse),
   #xmax = log2(S) + log2(Sse)), width = 0.2) +
   xlab("log Species Richness (S)") +
-  ylim(5, 7.5) +
+  #ylim(5, 7.5) +
   ylab("log Biomass (kg)") +
   theme_bw() +
   theme(panel.border = element_blank(),
@@ -648,12 +747,35 @@ ggplot(data = scale_output_av_scto30,
         axis.title=element_text(size=20,face="bold"))
 
 
+  
+invervals <- scale_output_av_scto30[scale_output_av_scto30$scale
+                                                           %in% 
+                                                             c(1,5,10,15,20,25,30),]
+invervals$scale <- as.factor(invervals$scale)
+
+ggplot(invervals, aes(x = log2(S), y = log2(bio), color = scale)) +
+  geom_point() +
+  geom_smooth(aes(group = scale),method = "lm", se = F, size = 3) +
+  xlab("log species richness (S)") +
+  ylab("log biomass (kg)") +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"), 
+        axis.text=element_text(size=20, color = "black"),
+        axis.title=element_text(size=20,face="bold"),
+        legend.title = element_text(size = 20, face = "bold"),
+        legend.text = element_text(size = 15))
+
+    
+
 #b) log stability ~ log richness; fill = scale
 
 scale_output_av_scto30 <- scale_output_av[scale_output_av$scale < 31,]
 
 ggplot(data = scale_output_av_scto30,
-       aes(x = log2(stability), y = log2(S), fill = scale)) +
+       aes(x = log2(S), y = log2(stability), fill = scale)) +
   geom_point(size = 4.5, shape = 21) +
   geom_smooth(method = loess, size = 3, se = F, col = 2) +
   scale_fill_viridis(option = "A") +
@@ -662,7 +784,7 @@ ggplot(data = scale_output_av_scto30,
                    #xmin = log2(S) - Sse,
                    #xmax = log2(S) + Sse), width = 0.2) +
   xlab("log Species Richness (S)") +
-  ylim(5, 7.5) +
+  #ylim(5, 7.5) +
   ylab("log Stability of Biomass") +
   theme_bw() +
   theme(panel.border = element_blank(),
@@ -671,6 +793,24 @@ ggplot(data = scale_output_av_scto30,
          axis.line = element_line(colour = "black"), 
          axis.text=element_text(size=20, color = "black"),
          axis.title=element_text(size=20,face="bold"))
+
+invervals$scale <- as.factor(invervals$scale)
+
+ggplot(invervals, aes(x = log2(S), y = log2(stability), color = scale)) +
+  geom_point() +
+  geom_smooth(aes(group = scale),method = "lm", se = F, size = 3) +
+  xlab("log species richness (S)") +
+  ylab("log stability (kg)") +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"), 
+        axis.text=element_text(size=20, color = "black"),
+        axis.title=element_text(size=20,face="bold"),
+        legend.title = element_text(size = 20, face = "bold"),
+        legend.text = element_text(size = 15))
+
 
 #c) slope of (log biomass ~ log richness) ~ scale
 
@@ -681,7 +821,7 @@ ggplot(data = bioSscale_av[-c(31:36), ], aes(x = scale, y = slopeav)) +
   geom_errorbar( aes(ymin = slopeav-slopese, ymax = slopeav+slopese),width = 0.2) +
   xlab("Scale") +
   ylim(3.5, 7) +
-  ylab("log Biomass (kg) ~ log Species Slope") +
+  ylab("DPR Slope") +
   theme_bw() +
   theme(panel.border = element_blank(),
         panel.grid.major = element_blank(),
@@ -698,16 +838,16 @@ ggplot(data = stabSscale_av[-c(31:36), ], aes(x = scale, y = slopeav)) +
   scale_fill_viridis(option = "A") +
   geom_errorbar( aes(ymin = slopeav-slopese, ymax = slopeav+slopese),width = 0.2) +
   xlab("Scale") +
-  ylab("log stability ~ log Species Slope") +
+  ylab("DSR Slope") +
   theme_bw() +
   theme(panel.border = element_blank(),
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(), 
         axis.line = element_line(colour = "black"), 
-        axis.text=element_text(size=25, color = "black"),
+        axis.text=element_text(size=20, color = "black"),
         axis.title=element_text(size=20,face="bold"))
 
-#Figure 3
+## FIGURE 3
 #a) SAR
 
 #to scale 36
@@ -873,150 +1013,37 @@ ggplot(data = singlecurveSARSSR, aes(x = scale, y = bio)) +
         axis.text=element_text(size=20, color = "black"),
         axis.title=element_text(size=20,face="bold"))
 
-#Table 1: Multiple Regression Interaction Effects 
-#a) log biomass ~ log(S) + log(scale) + log(S * scale) ?? should scale be log
-  
-  #to scale 30
-bioscalemod <- lm(log2(bio) ~ log2(S) * scale, data = scale_output_av_scto30)
+## TABLE 1: Multiple Regression Interaction Effects Model Comparison
+library(QuantPsyc)
+
+#a) log biomass ~ log(S)
+bioscalemod1 <- lm(log2(bio) ~ log2(S), data = scale_output_av_scto30)
+summary(bioscalemod1)
+AIC(bioscalemod1)
+
+#a) log stability ~ log(S)
+stabscalemod1 <- lm(log2(stability) ~ log2(S), data = scale_output_av_scto30)
+summary(stabscalemod1)
+AIC(stabscalemod1)
+
+#b) log biomass ~ log(S) +log(scale)
+bioscalemod2 <- lm(log2(bio) ~ log2(S) + log2(scale), data = scale_output_av_scto30)
+summary(bioscalemod2)
+AIC(bioscalemod2)
+
+#b) log stability ~ log(S) + log(scale)
+stabscalemod2 <- lm(log2(stability) ~ log2(S) + log2(scale), data = scale_output_av_scto30)
+summary(stabscalemod2)
+AIC(stabscalemod2)
+
+#c) log biomass ~ log(S) + log(scale) + log(S:scale) 
+bioscalemod3 <- lm(log2(bio) ~ log2(S) * log2(scale), data = scale_output_av_scto30)
 summary(bioscalemod)
+AIC(bioscalemod3)
 
-#b) log stability ~ log(S) + log(scale) + log(S*scale)
-stabscalemod <- lm(log2(stability) ~ log2(S) * scale, data = scale_output_av_scto30)
-summary(stabscalemod)
-
-
-
-
-
-
-#averaging scale_output across bootstrap iterations #se in this case is between
-  #boot iterations at the same location
-scale_output_av <- scale_output1_20 %>%
-  group_by(startID, scale) %>%
-  summarize(Sav = mean(S),
-            Sse = sqrt(var(S)/length(S)),
-            varS = mean(varS),
-            bioav = mean(bio),
-            biose = sqrt(var(bio)/length(bio)),
-            varbio = mean(varbio),
-            stabilityav = mean(stability),
-            stabilityse = sqrt(var(stability)/length(stability))
-            )
-
-names(scale_output_av) <- c( "startID", "scale", "S", "Sse", "varS", "bio", 
-                            "biose", "varbio", "stability", "stabilityse" )
-            
-
-#log(biomass) ~ log(S) at each scale
-tempslope <- NULL
-tempintercpt <- NULL
-tempscale <- NULL
-tempboot <- NULL
-boot_sub <- NULL
-
-for (a in 1:20) { 
-  boot_sub <- scale_output1_20[scale_output1_20$boot == a, ]
-  for (i in 1:36) {
-    mod <- with(boot_sub, lm(log2(bio[scale == i]) ~ log2(S[scale == i])))
-    scale <- i 
-    boot <- a
-    slope <- mod$coefficients[2]
-    intercpt <- mod$coefficients[1]
-    
-    tempslope <- c(tempslope, slope)
-    tempintercpt <- c(tempintercpt, intercpt)
-    tempscale <- c(tempscale, scale)
-    tempboot <- c(tempboot, boot)
-  }
-}
-bioSscale <- as.data.frame(cbind(tempboot, tempscale, tempslope, tempintercpt))
-names(bioSscale) <- c("boot", "scale", "slope", "intercept")
-plot(slope ~ scale, data = bioSscale, ylim= c(0, 15))
-
-
-bioSscale_av <- bioSscale %>%
-  group_by(scale) %>%
-  summarize(slopeav = mean(slope),
-            slopese = sqrt(var(slope)/length(slope)),
-            interceptav = mean(intercept),
-            interceptse = sqrt(var(intercept)/length(intercept)))
-
-with(bioSscale_av, plot(slopeav ~ scale))
-
-
-ggplot(data = bioSscale_av[-c(31:36), ], aes(x = scale, y = slopeav)) +
-  geom_point(size = 4.5, shape = 16) +
-  geom_smooth(method = loess, size = 3, se = F, col = 2) +
-  scale_fill_viridis(option = "A") +
-  geom_errorbar( aes(ymin = slopeav-slopese, ymax = slopeav+slopese),width = 0.2) +
-  xlab("Scale") +
-  ylim(3.5, 7) +
-  ylab("log Biomass (kg) ~ log Species Slope") +
-  theme_bw() +
-  theme(panel.border = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line = element_line(colour = "black"), 
-        axis.text=element_text(size=20, color = "black"),
-        axis.title=element_text(size=20,face="bold"))
-
-
-
-
-
-#log(stability) ~ log(s) at each scale
-tempslope <- NULL
-tempintercpt <- NULL
-tempscale <- NULL
-tempboot <- NULL
-boot_sub <- NULL
-
-for (a in 1:20) { 
-  boot_sub <- scale_output1_20[scale_output1_20$boot == a, ]
-  for (i in 1:36) {
-    with(boot_sub, plot(log2(stability[scale == i]) ~ log2(S[scale == i])))
-    mod <- with(boot_sub, lm(log2(stability[scale == i]) ~ log2(S[scale == i])))
-    scale <- i 
-    boot <- a
-    slope <- mod$coefficients[2]
-    intercpt <- mod$coefficients[1]
-
-    tempslope <- c(tempslope, slope)
-    tempintercpt <- c(tempintercpt, intercpt)
-    tempscale <- c(tempscale, scale)
-    tempboot <- c(tempboot, boot)
-  }
-}
-stabSscale <- as.data.frame(cbind(tempboot, tempscale, tempslope, tempintercpt))
-names(stabSscale) <- c("boot", "scale", "slope", "intercept")
-plot(slope ~ scale, data = stabSscale, ylim= c(0, 15))
-
-
-stabSscale_av <- stabSscale %>%
-  group_by(scale) %>%
-  summarize(slopeav = mean(slope),
-            slopese = sqrt(var(slope)/length(slope)),
-            interceptav = mean(intercept),
-            interceptse = sqrt(var(intercept)/length(intercept)))
-
-with(stabSscale_av, plot(slopeav ~ scale))
-
-
-ggplot(data = stabSscale_av[-c(31:36), ], aes(x = scale, y = slopeav)) +
-  geom_point(size = 4.5, shape = 16) +
-  geom_smooth(method = loess, size = 3, se = F, col = 2) +
-  scale_fill_viridis(option = "A") +
-  geom_errorbar( aes(ymin = slopeav-slopese, ymax = slopeav+slopese),width = 0.2) +
-  xlab("Scale") +
-  ylab("log stability ~ log Species Slope") +
-  theme_bw() +
-  theme(panel.border = element_blank(),
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), 
-        axis.line = element_line(colour = "black"), 
-        axis.text=element_text(size=25, color = "black"),
-        axis.title=element_text(size=20,face="bold"))
-
-
+#c) log stability ~ log(S) + log(scale) + log(S:scale)
+stabscalemod3 <- lm(log2(stability) ~ log2(S) * log2(scale), data = scale_output_av_scto30)
+summary(stabscalemod3)
+AIC(stabscalemod3)
 
 

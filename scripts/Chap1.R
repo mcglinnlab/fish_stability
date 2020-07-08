@@ -4,7 +4,7 @@ library(tidyr)
 library(lmodel2)
 library(sjstats)
 
-#Organizing BEF analysis into single script with graphs and analysis
+####Organizing BEF analysis into single script with graphs and analysis####
 
   #### PRE RASTERIZATION - AT TRAWL EVENT LEVEL ####
 #data sets
@@ -563,6 +563,10 @@ trawl_num <- trawl_num[trawl_num$point2resID %in% IDlist, ]
 trawl_num <- cbind(trawl_num, raster_cord$x, raster_cord$y)
 names(trawl_num) <- c("ID", "trawlnum", "long", "lat")
 
+#extent of maps
+new.extent <- c(-84, -75, 25, 38)
+
+#36 good raster regions
 Trawl_raster <- rasterize(trawl_num[,3:4], oc_raster, trawl_num$trawlnum)
 res(Trawl_raster)
 plot(Trawl_raster)
@@ -621,71 +625,124 @@ tm_shape(Stability_Raster) +
   tm_compass()
 
 
+#e) average surface temperature
+SurfaceTemp_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                              final_output$tempS)
+res(SurfaceTemp_Raster)
+plot(SurfaceTemp_Raster)
+
+SurfaceTemp_Raster <- crop(x = SurfaceTemp_Raster, y = new.extent)
+
+tm_shape(SurfaceTemp_Raster) +
+  tm_raster(title = "", palette = "-RdYlBu") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+#f) average surface salinity
+SurfaceSal_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                               final_output$salS)
+res(SurfaceSal_Raster)
+plot(SurfaceSal_Raster)
+
+SurfaceSal_Raster <- crop(x = SurfaceSal_Raster, y = new.extent)
+
+tm_shape(SurfaceSal_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+
 
 
 #FIGURE 2 - Multiple Regression Results
+library(QuantPsyc)
+#data prep
+  #pulling columns from final_output that are used and log transforming bio, stab, and S
+moddat <- as.data.frame(cbind(log2(final_output$Bio), log2(final_output$avbootstabbio),
+                              log2(final_output$Srich), final_output$rasterlat, 
+                              final_output$tempS, final_output$salS))
+names(moddat) <- c("Bio", "avbootstabbio", "Srich", "rasterlat", "tempS", "salS")
+  
 
-  #biomass
-bioModel <- lm(log2(Bio) ~ log2(Srich) + rasterlat + tempS +
-                                    salS, data = final_output)
-summary(bioModel)
+ 
+#Standardized beta coefficient models
+
+#scaling variables (subtracting mean and dividing by standard deviation)
+moddat_S <- scale(moddat, center = T, scale = T)
+#adding startID column and renaming columns
+moddat_S <- as.data.frame(cbind(final_output$startID, moddat))
+names(moddat_S) <- c("startID", "Bio", "avbootstabbio", "Srich", "rasterlat",
+                   "tempS", "salS")
+ #biomass
+  #run model; log transformations built in before scaling step
+bioModel_S <- lm(Bio ~ Srich + tempS + salS, data = moddat_S)
+summary(bioModel_S)
+
 #standardized regression coefficients
-lm.beta(bioModel)
-plot(bioModel)
+lm.beta(bioModel_S)
+plot(bioModel_S)
 
   #stability
-stabModel <- lm(log2(avbootstabbio) ~ log2(Srich) + rasterlat +
-                                     tempS + salS, data = final_output)
-summary(stabModel)
+stabModel_S <- lm(avbootstabbio ~ Srich + tempS + salS, data = moddat_S)
+summary(stabModel_S)
 #standardized regression coefficients
-lm.beta(stabModel)
-plot(stabModel)
+lm.beta(stabModel_S)
+plot(stabModel_S)
 
 
 
 #FIGURE 3 - Partial Regression and Lowess smoother - 6 panel
+  #models without scaling
+bioModel <- lm(Bio ~ Srich + tempS + salS, data = moddat)
+summary(bioModel)
+stabModel <- lm(avbootstabbio ~ Srich + tempS + salS, data = moddat)
+summary(stabModel)
 
 #a) biomass ~ richness
-termplot(bioModel, terms = "log2(Srich)", partial=T, se=T,
+termplot(bioModel, terms = "Srich", partial=T, se=T,
          lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
          ylim=c(-2, 2))
-axis(side=1, cex.axis=2, at = seq(35, 55, 1))
+axis(side=1, cex.axis=2, at = seq(5.0, 5.8, 0.1))
 axis(side=2, cex.axis=2)
 res = residuals(bioModel, 'partial')
-res = res[ , 'log2(Srich)', drop=FALSE]
-lines(lowess((final_output$Srich), res), col='red', lty=2, lwd=5)
+res = res[ , 'Srich', drop=FALSE]
+lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
 
 #b) stability ~ richness
-termplot(stabModel, terms = "log2(Srich)", partial=T, se=T,
+termplot(stabModel, terms = "Srich", partial=T, se=T,
          lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
          ylim=c(-2, 2))
-axis(side=1, cex.axis=2, at = seq(35, 55, 1))
+axis(side=1, cex.axis=2, at = seq(5.0, 6.0, 0.1))
 axis(side=2, cex.axis=2)
 res = residuals(stabModel, 'partial')
-res = res[ , 'log2(Srich)', drop=FALSE]
-lines(lowess((final_output$Srich), res), col='red', lty=2, lwd=5)
+res = res[ , 'Srich', drop=FALSE]
+lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
 
-#c) biomass ~ latitude
-termplot(bioModel, terms = "rasterlat", partial=T, se=T,
+#c) biomass ~ salinity
+termplot(bioModel, terms = "salS", partial=T, se=T,
          lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
          ylim=c(-1, 1))
-axis(side=1, cex.axis=2, at = seq(27, 36, 1))
+axis(side=1, cex.axis=2, at = seq(31, 36, 1))
 axis(side=2, cex.axis=2)
 res = residuals(bioModel, 'partial')
-res = res[ , 'rasterlat', drop=FALSE]
-lines(lowess(final_output$rasterlat, res), col='red', lty=2, lwd=5)
+res = res[ , 'salS', drop=FALSE]
+lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
 
-#d) stability ~ latitude
-termplot(stabModel, terms = "rasterlat", partial=T, se=T,
+#d) stability ~ salinity
+termplot(stabModel, terms = "salS", partial=T, se=T,
          lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
@@ -694,8 +751,8 @@ termplot(stabModel, terms = "rasterlat", partial=T, se=T,
 axis(side=1, cex.axis=2, at = seq(27, 36, 1))
 axis(side=2, cex.axis=2)
 res = residuals(stabModel, 'partial')
-res = res[ , 'rasterlat', drop=FALSE]
-lines(lowess(final_output$rasterlat, res), col='red', lty=2, lwd=5)
+res = res[ , 'salS', drop=FALSE]
+lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
 
 #e) biomass ~ temperature
 termplot(bioModel, terms = "tempS", partial=T, se=T,
@@ -708,7 +765,7 @@ axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
 axis(side=2, cex.axis=2)
 res = residuals(bioModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
-lines(lowess(final_output$tempS, res), col='red', lty=2, lwd=5)
+lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
 
 #f) stability ~ temperature 
 termplot(stabModel, terms = "tempS", partial=T, se=T,
@@ -716,11 +773,11 @@ termplot(stabModel, terms = "tempS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-2, 3))
 axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-2, 3, 1))
 res = residuals(stabModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
-lines(lowess(final_output$tempS, res), col='red', lty=2, lwd=5)
+lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
 
 
