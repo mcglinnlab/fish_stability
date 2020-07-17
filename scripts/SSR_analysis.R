@@ -800,7 +800,7 @@ ggplot(invervals, aes(x = log2(S), y = log2(stability), color = scale)) +
   geom_point() +
   geom_smooth(aes(group = scale),method = "lm", se = F, size = 3) +
   xlab("log species richness (S)") +
-  ylab("log stability (kg)") +
+  ylab("log stability") +
   theme_bw() +
   theme(panel.border = element_blank(),
         panel.grid.major = element_blank(),
