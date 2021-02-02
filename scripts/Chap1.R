@@ -656,6 +656,35 @@ tm_shape(SurfaceSal_Raster) +
   tm_compass()
 
 
+#plotting residuals of DPR model
+DPRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                               bioModel$residuals)
+res(DPRresiduals_Raster)
+plot(DPRresiduals_Raster)
+
+DPRresiduals_Raster <- crop(x = DPRresiduals_Raster, y = new.extent)
+
+tm_shape(DPRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
+
+#plotting residuals of DSR model
+DSRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                                 stabModel$residuals)
+res(DSRresiduals_Raster)
+plot(DSRresiduals_Raster)
+
+DSRresiduals_Raster <- crop(x = DSRresiduals_Raster, y = new.extent)
+
+tm_shape(DSRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(continents) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass()
 
 
 #FIGURE 2 - Multiple Regression Results
@@ -781,3 +810,50 @@ res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
 
 
+
+
+##SUPPLEMENTARY 
+#S ~ lat
+ggplot(data = final_output, aes(x = rasterlat, y = Srich)) +
+  geom_point(size = 4.5, shape = 16) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  xlab("Raster Centroid Latitude") +
+  xlim(28, 36) +
+  ylab("Species Richness") +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"), 
+        axis.text=element_text(size=20, color = "black"),
+        axis.title=element_text(size=20,face="bold"))
+
+#bio ~ lat
+ggplot(data = final_output, aes(x = rasterlat, y = Bio)) +
+  geom_point(size = 4.5, shape = 16) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  xlab("Raster Centroid Latitude") +
+  xlim(28, 36) +
+  ylab("Biomass (kg)") +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"), 
+        axis.text=element_text(size=20, color = "black"),
+        axis.title=element_text(size=20,face="bold"))
+
+# stab ~ lat 
+ggplot(data = final_output, aes(x = rasterlat, y = avbootstabbio)) +
+  geom_point(size = 4.5, shape = 16) +
+  geom_smooth(method = loess, size = 3, se = F, col = 2) +
+  xlab("Raster Centroid Latitude") +
+  xlim(28, 36) +
+  ylab("Stability") +
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"), 
+        axis.text=element_text(size=20, color = "black"),
+        axis.title=element_text(size=20,face="bold"))

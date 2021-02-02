@@ -53,16 +53,17 @@ continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.
 s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
 
 
-#making coordinates numeric
-s_spread$lat <- as.numeric(s_spread$lat)
-s_spread$long <- as.numeric(s_spread$long)
+#changing eventname and S to character and factor variables
 s_spread$EVENTNAME <- as.character(s_spread$EVENTNAME)
 s_spread$S <- as.numeric(s_spread$S)
+
+#fixing two incorrect coordinates
+
 
 #adding identity column called trawl number
 s_spread$TRAWLNUMBER <- 1
 
-#setting lat and long columns and projection
+#setting lat and long columns as coordinates
 coordinates(s_spread) <- ~ long + lat
 
 
@@ -71,10 +72,6 @@ Trawl_raster <- rasterize(s_spread, oceans_raster, s_spread$TRAWLNUMBER, fun = "
 res(Trawl_raster)
 plot(Trawl_raster)
 
-Trawl_raster@data@values <- Trawl_raster@data@values[!is.na(Trawl_raster@data@values)]
-hist(Trawl_raster@data@values, breaks =25)
-summary(Trawl_raster@data@values)
-length(Trawl_raster@data@values)
 
 #Creating Species Richness Raster
 SpeciesRich_raster <- rasterize(s_spread, oceans_raster, s_spread$S, 
@@ -99,10 +96,11 @@ plot(oceans_raster)
 #pulling cell IDs for each of the trawls for 0.2 res raster
 
 coord_trawls <- data.frame(cbind(s_spread$long, s_spread$lat))
+names(coord_trawls) <- c("long", "lat")
 coord_trawls <- SpatialPoints(coord_trawls,
-                              proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
-coordinates(coord_trawls) <- ~ X1 + X2
-proj4string(coord_trawls) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6 + ellps=WGS84"
+                              proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6 + ellps=WGS84"))
+#coordinates(coord_trawls) <- ~ long + lat
+#proj4string(coord_trawls) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6 + ellps=WGS84"
 
 raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
 
@@ -139,24 +137,10 @@ summary(narep)
 timebin_raster <- setValues(timebin_raster,narep)
 plot(timebin_raster)
 
-
-
-allrasters <- rastervals$layer
-narep <- rep(NA, 6000)
-narep <- replace(narep, allrasters, allrasters)
-summary(allrasters)
+#all rasters
 all_raster <- oceans_raster
-plot(all_raster)
-all_raster <- setValues(all_raster, narep)
-plot(all_raster)
-
-
-allrasters <- raster_values0.2$layer
 narep <- rep(NA, 3750)
-narep <- replace(narep, allrasters, allrasters)
-summary(allrasters)
-all_raster <- oceans_raster
-plot(all_raster)
+narep <- replace(narep, raster_values0.2$layer, raster_values0.2$layer)
 all_raster <- setValues(all_raster, narep)
 plot(all_raster)
 
