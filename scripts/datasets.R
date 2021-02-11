@@ -23,42 +23,52 @@ ID.df <- ID.df[,-1]
 
 
 
-#s_rarefac
+#s_pres
   #has environmental matrix and community matrix with presence/ absence
 s_rarefac <- read.csv("~./fish_stability/data/s_rarefac.csv", header = T)
 s_rarefac <- s_rarefac[,-1]
 
+
+################
 #s_rarefac_sub
   #same as s_rarefac but subset for 36 good raster IDs
 s_rarefac_sub <- read.csv("~/fish_stability/data/s_rarefac_sub.csv", header = T)
 s_rarefac_sub <- s_rarefac_sub[,-1]
 
+
+################
 #s_comm
   #community matrix where rows are events and columns are species with presence
     #absence
 s_comm <- read.csv("~./fish_stability/data/s_comm.csv", header = T)
 s_comm <- s_comm[,-1]
 
-#s_environ
+
+#event_dat
   #environmental matrix where rows are events and columns are parameters
-s_environ <- read.csv("~./fish_stability/data/s_environ.csv", header = T)
-s_environ <- s_environ[,-1]
+event_dat <- read.csv("~./fish_stability/data/event_dat.csv", header = T)
+event_dat <- event_dat[,-1]
 
 
 #s_spread
 #spatial points data frame/ leave it alone
-s_spreadd <- as.data.frame(read.csv("~./fish_stability/data/s_spread.csv", header = T))
-s_spreadd <- s_spreadd[,-1]
+#s_spreadd <- as.data.frame(read.csv("~./fish_stability/data/s_spread.csv", header = T))
+#s_spreadd <- s_spreadd[,-1]
 
-#s_spreadd
-  #community matrix with number of individuals in cells and environmental included
-s_spreadd <- as.data.frame(read.csv("~./fish_stability/data/s_spread.csv", header = T))
-s_spreadd <- s_spreadd[,-1]
+#s_spread
+  #community matrix with number of individuals in cells
+s_spread <- as.data.frame(read.csv("~./fish_stability/data/s_spread.csv", header = T))
+s_spread <- s_spread[,-1]
 
-#s_bio_comm 
-  #community matrix with biomass in cells and no environmental included
-s_bio_comm <- read.csv("~/fish_stability/data/s_bio_comm.csv", header = T)
-s_bio_comm <- s_bio_comm[,-1]
+#s_spread 
+  #community mantrix with pres/abs in cells
+s_pres <- read.csv("~/fish_stability/data/s_pres.csv", header = T)
+s_pres <- s_pres[,-1]
+
+#s_bio
+  #community matrix with biomass in cells
+s_bio <- read.csv("~/fish_stability/data/s_bio.csv", header = T)
+s_bio <- s_bio[,-1]
 
 
 

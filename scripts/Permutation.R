@@ -14,7 +14,7 @@ s_environ <- read.csv("~./fish_stability/data/s_environ.csv", header = T)
 
 #### PERMUTATION 1 YR BIN ####
 
-#creating null vectors that will eventually store data
+#creating null vectors
 
 yearpull <- NULL
 eventsavail <- NULL
@@ -119,7 +119,7 @@ write.csv(resultsfullpoint2, "~./fish_stability/data/yrag_resultsfullpoint2.csv"
 
 #### PERUMATION 3 YR BIN ####
 
-#creating null vectors that will eventually store data
+#creating null vectors
 
 yearpull <- NULL
 eventsavail <- NULL
@@ -136,7 +136,6 @@ results <- NULL
 results1 <- NULL
 
 #pulling out events for specific years
-# make empty results matrix or data.frame, can be a matrix if only inputing numbers
 
 #year for loop
 for (i in c("a","b","c","d","e","f","g","h","i")) {
@@ -145,7 +144,7 @@ for (i in c("a","b","c","d","e","f","g","h","i")) {
   yearpull <- subset(s_environ, s_environ$yrcat == i)
   yearIDs <- unique(s_environ$ID[s_environ$yrcat == i])
   
-  #subsetting the trawl events that occurred in each ID 
+#subsetting the trawl events that occurred in each ID 
   for (j in yearIDs) {
     
     #subsetting events avail for subsampling

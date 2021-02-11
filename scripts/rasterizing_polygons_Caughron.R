@@ -57,8 +57,6 @@ s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
 s_spread$EVENTNAME <- as.character(s_spread$EVENTNAME)
 s_spread$S <- as.numeric(s_spread$S)
 
-#fixing two incorrect coordinates
-
 
 #adding identity column called trawl number
 s_spread$TRAWLNUMBER <- 1
@@ -99,48 +97,40 @@ coord_trawls <- data.frame(cbind(s_spread$long, s_spread$lat))
 names(coord_trawls) <- c("long", "lat")
 coord_trawls <- SpatialPoints(coord_trawls,
                               proj4string = CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6 + ellps=WGS84"))
-#coordinates(coord_trawls) <- ~ long + lat
-#proj4string(coord_trawls) <- "+proj=longlat +lat_0=32.4 +lon_0=-79.6 + ellps=WGS84"
-
-raster_values0.2 <-raster::extract(oceans_raster, coord_trawls, df = T)
+raster_vals <-raster::extract(oceans_raster, coord_trawls, df = T)
 
 
-#write.csv(raster_values0.2, "~./fish_stability/data/raster_values0.2.csv")
-# repeat process for multiple resolutions
-#join cellID vectors for each resolution in data frame called cellIDs
-#join cellIDs data frame with s_spread
-#s_spread should be ready for analysis
+#write.csv(raster_vals, "~./fish_stability/data/raster_vals.csv")
 
 
 
 
-#### trying to create raster map with only 3 yr bin subset regions #####
 
-setofID <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
+#### raster map with only 3 yr bin subset regions #####
+
+goodID <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
              1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
              2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
              2670, 2721, 2771)
 
-oc_raster <- oceans_raster
 
 
-plot(oc_raster)
 plot(oceans_raster)
 
 
 #just 36 rasters that exist over all time bins 
-timebin_raster <- oceans_raster
+goodID_raster <- oceans_raster
 
 narep <- rep(NA, 3750)
-narep <- replace(narep, setofID, setofID)
+narep <- replace(narep, goodID, goodID)
 summary(narep)
-timebin_raster <- setValues(timebin_raster,narep)
-plot(timebin_raster)
+goodID_raster <- setValues(goodID_raster,narep)
+plot(goodID_raster)
 
 #all rasters
 all_raster <- oceans_raster
 narep <- rep(NA, 3750)
-narep <- replace(narep, raster_values0.2$layer, raster_values0.2$layer)
+narep <- replace(narep, raster_vals$layer, raster_vals$layer)
 all_raster <- setValues(all_raster, narep)
 plot(all_raster)
 

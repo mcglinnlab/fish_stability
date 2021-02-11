@@ -126,8 +126,8 @@ for (f in 56:59) {
     comm_mat_bio <- event_bio[,3:202]
     comm_mat_bio <- as.data.frame(sapply(comm_mat_bio, as.numeric))
     
-    #summing the columns in the community matrix. This tells us how many events observed a species in a raster
-      #biomass
+    #summing the columns in the community matrix. This tells us how many events 
+    #observed a species in a raster biomass
     rastercolsum_bio <- colSums(comm_mat_bio)
   
     #adding each run with a unique ID to a matrix using rbind
