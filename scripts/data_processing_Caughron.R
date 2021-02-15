@@ -54,7 +54,7 @@ uni_sp[!(uni_sp %in% fish_species$species)]
 gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME
                                                    %in% gd_common_names])
 
-#write.csv(gd_sci_names, file='./gd_sci_names.csv', row.names=F)
+write.csv(gd_sci_names, './good_sci_names.csv', row.names=F)
 
 #output names that we have filtered out of the dataset
 #uni_sci_sp = unique(SEAMAP$SPECIESSCIENTIFICNAME)
@@ -63,7 +63,7 @@ gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME
 
 
 #manually enter in small subset of species that lack common names
-gd_sci_names = read.csv('./gd_sci_names.csv')
+gd_sci_names = read.csv('./good_sci_names.csv')
 names(gd_sci_names) = 'species'
 
 SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME
@@ -160,7 +160,7 @@ s_spread <- data.frame(left_join(event_dat, s_wide, by='EVENTNAME'))
 
 
 ##Creating presence/absence community matrix ## 
-s_pres <- data.frame(s_wide[,2:195])
+s_pres <- data.frame(s_wide[,2:198])
 s_pres[is.na(s_pres)] <- 0
 s_pres[s_pres > 0] <- 1
 s_pres <- cbind(s_wide$EVENTNAME, s_pres)
@@ -193,11 +193,4 @@ s_bio <- data.frame(left_join(event_dat, s_bio, by='EVENTNAME'))
 
 #Export s_bio to csv
 #write.csv(s_bio, file = "./data/s_bio.csv")
-
-
-
-
-
-
-
 

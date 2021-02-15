@@ -62,6 +62,8 @@ s_spread$S <- as.numeric(s_spread$S)
 s_spread$TRAWLNUMBER <- 1
 
 #setting lat and long columns as coordinates
+s_spread$lat <- as.numeric(s_spread$lat)
+s_spread$long <- as.numeric(s_spread$long)
 coordinates(s_spread) <- ~ long + lat
 
 
