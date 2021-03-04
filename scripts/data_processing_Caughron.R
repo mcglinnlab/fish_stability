@@ -125,10 +125,6 @@ event_dat <- SEAMAP_sub %>%
 event_dat$EVENTNAME <-as.character(event_dat$EVENTNAME)
 event_dat$long <- as.numeric(event_dat$long)
 
-#replacing incorrect longtitudes
-event_dat["2673", "long"] <- -78.1
-event_dat["6160", "long"] <- -80.1
-
 
 
 ##creating number of individuals community matrix##
@@ -193,4 +189,94 @@ s_bio <- data.frame(left_join(event_dat, s_bio, by='EVENTNAME'))
 
 #Export s_bio to csv
 #write.csv(s_bio, file = "./data/s_bio.csv")
+
+
+
+#### CREATING SHRIMP AND FLOUNDER DATA SETS ####
+
+#importing shrimp and flounder species lists
+shrimp_sp <- read.csv("./shrimp_sp.csv", header = T)
+flounder_sp <- read.csv("./flounder_sp.csv", header = T)
+
+#subset shrimp and flounder from SEAMAP
+  #shrimp
+SEAMAP_shrimp = subset(SEAMAP, SEAMAP$SPECIESCOMMONNAME
+                    %in% shrimp_sp$species)
+  #flounder
+SEAMAP_flounder = subset(SEAMAP, SEAMAP$SPECIESCOMMONNAME
+                    %in% flounder_sp$species)
+
+#find and remove rows with nonlogical coordinates
+  #shrimp
+apply(SEAMAP_shrimp[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")],2, summary)
+SEAMAP_shrimp <- subset(SEAMAP_shrimp, LONGITUDESTART < -90 & LATITUDESTART < 90)
+  #flounder
+apply(SEAMAP_flounder[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")],2, summary)
+SEAMAP_flounder <- subset(SEAMAP_flounder, LONGITUDESTART < -90 & LATITUDESTART < 90)
+
+#removing deep strata collection events
+  #shrimp
+SEAMAP_shrimp <- subset(SEAMAP_shrimp, DEPTHZONE == "INNER")
+  #flounder
+SEAMAP_flounder <- subset(SEAMAP_flounder, DEPTHZONE == "INNER")
+
+#selecting only needed columns
+  #shrimp
+SEAMAP_shrimp <- SEAMAP_shrimp[,c("DATE", "Year", "LONGITUDESTART",
+                            "LATITUDESTART", "COLLECTIONNUMBER", 
+                            "EVENTNAME", "SPECIESSCIENTIFICNAME", 
+                            "SPECIESCOMMONNAME", "NUMBERTOTAL", 
+                            "SPECIESTOTALWEIGHT", "LOCATION", "REGION", 
+                            "TEMPSURFACE", "TEMPBOTTOM", "SALINITYSURFACE",
+                            "SALINITYBOTTOM")]
+  #flounder
+SEAMAP_flounder <- SEAMAP_flounder[,c("DATE", "Year", "LONGITUDESTART",
+                            "LATITUDESTART", "COLLECTIONNUMBER", 
+                            "EVENTNAME", "SPECIESSCIENTIFICNAME", 
+                            "SPECIESCOMMONNAME", "NUMBERTOTAL", 
+                            "SPECIESTOTALWEIGHT", "LOCATION", "REGION", 
+                            "TEMPSURFACE", "TEMPBOTTOM", "SALINITYSURFACE",
+                            "SALINITYBOTTOM")]
+
+##creating biomass community matrix for shrimp and flounder subset
+  #shrimp
+s_bio_shrimp <- SEAMAP_shrimp[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
+
+#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
+#run function found in script spread_function
+
+s_bio_shrimp$EVENTNAME <-as.character(s_bio_shrimp$EVENTNAME)
+s_bio_shrimp$SPECIESCOMMONNAME <-as.character(s_bio_shrimp$SPECIESCOMMONNAME)
+s_bio_shrimp$SPECIESTOTALWEIGHT <-as.numeric(s_bio_shrimp$SPECIESTOTALWEIGHT)
+
+s_bio_shrimp <- spread_with_multiple_values(s_bio_shrimp, SPECIESCOMMONNAME,SPECIESTOTALWEIGHT, 
+                                     aggfunc = sum)
+
+s_bio_shrimp <- data.frame(merge(event_dat, s_bio_shrimp, all = T))
+
+s_bio_shrimp[is.na(s_bio_shrimp)] <-0
+#Export s_bio_shrimp to csv
+#write.csv(s_bio_shrimp, file = "./data/s_bio_shrimp.csv")
+
+  #flounder
+s_bio_flounder <- SEAMAP_flounder[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
+
+#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
+#run function found in script spread_function
+
+s_bio_flounder$EVENTNAME <-as.character(s_bio_flounder$EVENTNAME)
+s_bio_flounder$SPECIESCOMMONNAME <-as.character(s_bio_flounder$SPECIESCOMMONNAME)
+s_bio_flounder$SPECIESTOTALWEIGHT <-as.numeric(s_bio_flounder$SPECIESTOTALWEIGHT)
+
+s_bio_flounder <- spread_with_multiple_values(s_bio_flounder, SPECIESCOMMONNAME,SPECIESTOTALWEIGHT, 
+                                            aggfunc = sum)
+
+s_bio_flounder <- data.frame(merge(event_dat, s_bio_flounder, all = T))
+
+s_bio_flounder[is.na(s_bio_flounder)] <-0
+#Export s_bio_flounder to csv
+#write.csv(s_bio_flounder, file = "./data/s_bio_flounder.csv")
+
+
+
 
