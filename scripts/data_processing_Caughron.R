@@ -98,7 +98,8 @@ SEAMAP_sub <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART",
                                  "TEMPSURFACE", "TEMPBOTTOM", "SALINITYSURFACE",
                                  "SALINITYBOTTOM")]
 
-
+SEAMAP_sub$LONGITUDESTART[SEAMAP_sub$EVENTNAME == "2010233"] <- -80.1
+SEAMAP_sub$LONGITUDESTART[SEAMAP_sub$EVENTNAME == "1998467"] <- -78.1
 
 #### CREATING COMMUNITY MATRICES ####
 
@@ -137,11 +138,9 @@ s_wide$EVENTNAME <-as.character(s_wide$EVENTNAME)
 s_wide$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
 s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
 
-  #function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
-  #run function found in script spread_function
+s_wide <- s_wide %>%
+  pivot_wider(id_cols = EVENTNAME, names_from = SPECIESCOMMONNAME, values_from = NUMBERTOTAL, values_fn = sum)
 
-s_wide <- spread_with_multiple_values(s_wide, SPECIESCOMMONNAME,NUMBERTOTAL, 
-                                       aggfunc = sum)
 
 # Wide form including individual number
 
@@ -174,15 +173,15 @@ s_pres <- data.frame(left_join(event_dat, s_pres, by='EVENTNAME'))
 
 s_bio <- SEAMAP_sub[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
 
-#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
-#run function found in script spread_function
 
 s_bio$EVENTNAME <-as.character(s_bio$EVENTNAME)
 s_bio$SPECIESCOMMONNAME <-as.character(s_bio$SPECIESCOMMONNAME)
 s_bio$SPECIESTOTALWEIGHT <-as.numeric(s_bio$SPECIESTOTALWEIGHT)
 
-s_bio <- spread_with_multiple_values(s_bio, SPECIESCOMMONNAME,SPECIESTOTALWEIGHT, 
-                                       aggfunc = sum)
+s_bio <- s_bio %>%
+  pivot_wider(id_cols = EVENTNAME, names_from = SPECIESCOMMONNAME, values_from = NUMBERTOTAL, values_fn = sum)
+
+
 s_bio[is.na(s_bio)] <-0
 
 s_bio <- data.frame(left_join(event_dat, s_bio, by='EVENTNAME'))

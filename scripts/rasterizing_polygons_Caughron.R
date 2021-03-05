@@ -132,7 +132,7 @@ plot(goodID_raster)
 #all rasters
 all_raster <- oceans_raster
 narep <- rep(NA, 3750)
-narep <- replace(narep, raster_vals$layer, raster_vals$layer)
+narep <- replace(narep, na.omit(raster_vals$layer), na.omit(raster_vals$layer))
 all_raster <- setValues(all_raster, narep)
 plot(all_raster)
 
