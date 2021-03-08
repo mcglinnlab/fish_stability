@@ -10,20 +10,35 @@ library(svMisc)
 
 ####### PREP DATA SET
   #LOAD DATA #    
-s_bio <- read.csv("~./fish_stability/data/s_bio_comm.csv", header =  T)
-s_bio <- s_bio_comm[ , -1]
+s_bio <- read.csv("~./fish_stability/data/s_bio.csv", header =  T)
+s_bio <- s_bio[ , -1]
 
 #ID.df is basic info on each event including event,  ID and yr cat
 ID.df <- read.csv("~./fish_stability/data/ID.df.csv", header =  T)
 ID.df <- ID.df[, -1]
 
-    #s_bio_comm for biomass
+    #s_bio for biomass
 s_bio <- arrange(s_bio, EVENTNAME)
-
 s_bio$ID <- ID.df$rasterID
 s_bio$yrcat <- ID.df$yrcat
 s_bio$ID_yrcat <- paste(s_bio$ID, "_", s_bio$yrcat)
 
+  #s_ind for number of individuals
+s_ind <- s_spread
+s_ind$ID <- ID.df$rasterID
+s_ind$yrcat <- ID.df$yrcat
+s_ind$ID_yrcat <- paste(s_ind$ID, "_", s_ind$yrcat)
+s_ind[is.na(s_ind)] <- 0
+
+  #s_bio_shrimp
+s_bio_shrimp$ID <- ID.df$rasterID
+s_bio_shrimp$yrcat <- ID.df$yrcat
+s_bio_shrimp$ID_yrcat <- paste(s_bio_shrimp$ID, "_", s_bio_shrimp$yrcat)
+
+  #s_bio_flounder
+s_bio_flounder$ID <- ID.df$rasterID
+s_bio_flounder$yrcat <- ID.df$yrcat
+s_bio_flounder$ID_yrcat <- paste(s_bio_flounder$ID, "_", s_bio_flounder$yrcat)
 
   #pulling out 36 predetermined good IDs where we know theres at least 5 events in each time bin
 IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
@@ -34,7 +49,13 @@ IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680,
     #good ID for biomass data set
 s_bio_sub <- s_bio[s_bio$ID %in% IDlist, ]
 
-
+  #for number of individuals
+s_ind_sub <- s_ind[s_ind$ID %in% IDlist, ]
+  
+  #shrimp biomass
+s_bio_shrimp_sub <- s_bio_shrimp[s_bio_shrimp$ID %in% IDlist, ]
+  #flounder biomass 
+s_bio_flounder_sub <- s_bio_flounder[s_bio_flounder$ID %in% IDlist, ]
 
 #list of unique raster IDs through time #this works for all three matrices
 uniqueID <- unique(s_bio_sub$ID_yrcat)
@@ -81,8 +102,10 @@ IDorder <- data.frame(IDorder)
 
 
 #done manually be replacing X1:X36
+
+
 IDorder <- IDorder %>%
-  mutate(X36 = recode(X36, '1' = '1246', '2' = '1294', '3' = '1340', '4' = '1486', '5' = '1532',
+  mutate(X2 = recode(X2, '1' = '1246', '2' = '1294', '3' = '1340', '4' = '1486', '5' = '1532',
                 '6' = '1534', '7' = '1536', '8' = '1582', '9' = '1586', '10' = '1630',
                 '11' = '1680', '12' = '1730', '13' = '1777', '14' = '1778',
                 '15' = '1826','16' = '1875', '17' = '1923', '18' = '1924', 
@@ -92,6 +115,9 @@ IDorder <- IDorder %>%
                 '31' = '2519', '32' = '2569','33' = '2620', '34' = '2670', 
                 '35' = '2721', '36' = '2771'))
 
+#load IDorder 
+IDorder <- read.csv("~/fish_stability/data/IDorder.csv", header = T)
+IDorder <- IDorder[, -1]
 
 #start bootstrap loop - pulls new comm matrix of 5 random trawls and completes
   #geographic merge before closing. 
@@ -101,7 +127,7 @@ scale_pres <- NULL
 scale_bio <- NULL
 
 
-for (f in 1:2) {  
+for (f in 1) {  
   
   ### for loop to calculate community matrix at the raster scale with 
     #bio 5 event pull 
@@ -123,8 +149,8 @@ for (f in 1:2) {
     comm_bio <- event_bio[,15:211]
     comm_bio <- as.data.frame(sapply(comm_bio, as.numeric))
     
-    #summing the columns in the community matrix. This tells us how many events 
-    #observed a species in a raster biomass
+    #summing the columns in the community matrix. This tells us total biomass 
+    #for each species at 5 event rarefaction 
     rastercolsum_bio <- colSums(comm_bio)
   
     #adding each run with a unique ID to a matrix using rbind
@@ -142,19 +168,12 @@ for (f in 1:2) {
 
   #### SCALING ####
 
-    #input files 
-      #comm matrix of biomass where each row is raster and time bin
-      #file name rastercom_mat_bio
-        #load from dataset file and then run following transformation. Do not resave changes. 
-
-  #an ID order will be created each run. ID list sequence will determine the order in which 
-    #rasters are added to geographic extent
+  #Scaling takes place in 2 steps: geographic merging then temporal merging
 
   
-  # GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO AT SCALE AND TIME BIN #
+## GEOGRAPHIC MERGE: OUTPUT = COMM MAT PRES, BIO AT SCALE AND TIME BIN ##
 
-    #only input bio but pres created within loop  
-  #seperating unique ID col into ID and yr_cat
+  #separating unique ID col into ID and yr_cat
     #bio
     raster_bio <- raster_bio %>%
       separate(uniqueID, c("ID", "yr_cat"))

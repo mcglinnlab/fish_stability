@@ -54,7 +54,7 @@ uni_sp[!(uni_sp %in% fish_species$species)]
 gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME
                                                    %in% gd_common_names])
 
-write.csv(gd_sci_names, './good_sci_names.csv', row.names=F)
+#write.csv(gd_sci_names, './good_sci_names.csv', row.names=F)
 
 #output names that we have filtered out of the dataset
 #uni_sci_sp = unique(SEAMAP$SPECIESSCIENTIFICNAME)
@@ -179,7 +179,7 @@ s_bio$SPECIESCOMMONNAME <-as.character(s_bio$SPECIESCOMMONNAME)
 s_bio$SPECIESTOTALWEIGHT <-as.numeric(s_bio$SPECIESTOTALWEIGHT)
 
 s_bio <- s_bio %>%
-  pivot_wider(id_cols = EVENTNAME, names_from = SPECIESCOMMONNAME, values_from = NUMBERTOTAL, values_fn = sum)
+  pivot_wider(id_cols = EVENTNAME, names_from = SPECIESCOMMONNAME, values_from = SPECIESTOTALWEIGHT, values_fn = sum)
 
 
 s_bio[is.na(s_bio)] <-0
@@ -241,15 +241,15 @@ SEAMAP_flounder <- SEAMAP_flounder[,c("DATE", "Year", "LONGITUDESTART",
   #shrimp
 s_bio_shrimp <- SEAMAP_shrimp[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
 
-#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
-#run function found in script spread_function
+
 
 s_bio_shrimp$EVENTNAME <-as.character(s_bio_shrimp$EVENTNAME)
 s_bio_shrimp$SPECIESCOMMONNAME <-as.character(s_bio_shrimp$SPECIESCOMMONNAME)
 s_bio_shrimp$SPECIESTOTALWEIGHT <-as.numeric(s_bio_shrimp$SPECIESTOTALWEIGHT)
 
-s_bio_shrimp <- spread_with_multiple_values(s_bio_shrimp, SPECIESCOMMONNAME,SPECIESTOTALWEIGHT, 
-                                     aggfunc = sum)
+s_bio_shrimp <- s_bio_shrimp %>%
+  pivot_wider(id_cols = EVENTNAME, names_from = SPECIESCOMMONNAME, values_from = SPECIESTOTALWEIGHT, values_fn = sum)
+
 
 s_bio_shrimp <- data.frame(merge(event_dat, s_bio_shrimp, all = T))
 
@@ -260,15 +260,13 @@ s_bio_shrimp[is.na(s_bio_shrimp)] <-0
   #flounder
 s_bio_flounder <- SEAMAP_flounder[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
 
-#function found at https://rdrr.io/github/trias-project/trias/src/R/spread_with_multiple_values.R
-#run function found in script spread_function
-
 s_bio_flounder$EVENTNAME <-as.character(s_bio_flounder$EVENTNAME)
 s_bio_flounder$SPECIESCOMMONNAME <-as.character(s_bio_flounder$SPECIESCOMMONNAME)
 s_bio_flounder$SPECIESTOTALWEIGHT <-as.numeric(s_bio_flounder$SPECIESTOTALWEIGHT)
 
-s_bio_flounder <- spread_with_multiple_values(s_bio_flounder, SPECIESCOMMONNAME,SPECIESTOTALWEIGHT, 
-                                            aggfunc = sum)
+s_bio_flounder <- s_bio_flounder %>%
+  pivot_wider(id_cols = EVENTNAME, names_from = SPECIESCOMMONNAME, values_from = SPECIESTOTALWEIGHT, values_fn = sum)
+
 
 s_bio_flounder <- data.frame(merge(event_dat, s_bio_flounder, all = T))
 
