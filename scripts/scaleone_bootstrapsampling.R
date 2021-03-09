@@ -1,4 +1,6 @@
 
+library(mobr)
+
 #Input: s_bio_sub, s_ind_sub s_shrimp_sub and s_flounder_sub from SpatialScalingDSR
 
 ##sampling loop ##
@@ -135,14 +137,19 @@ for (b in 1) {
     #calcSpie
     sPIE <- calc_PIE(raster_ind_sub[, -(1:2)], ENS = T)
     
+    #rarefaction
+    s_N <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 100) 
+    
+    #number of individuals
+    Nind <- rowSums(raster_ind_sub[, -(1:2)])
     #storage
       #temp
-    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, biomass, shrimp_bio, flounder_bio))
+    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, s_N, Nind, biomass, shrimp_bio, flounder_bio))
     summary_BEF <- rbind(summary_BEF, temp)
   }
 }
 
-summary_BEF[, 3:7] <- as.data.frame(sapply(summary_BEF[, 3:7], as.numeric))
+summary_BEF[, 3:9] <- as.data.frame(sapply(summary_BEF[, 3:9], as.numeric))
 
 
 
@@ -151,12 +158,23 @@ with(summary_BEF, plot(biomass ~ S))
 with(summary_BEF, plot(flounder_bio ~ S))
 with(summary_BEF, plot(shrimp_bio ~ S))
 
-with(summary_BEF, plot(log(shrimp_bio) ~ S))
-with(summary_BEF, plot(log(flounder_bio) ~ S))
-with(summary_BEF, plot(log(biomass) ~ S))
+with(summary_BEF, plot(log(shrimp_bio) ~ log(S)))
+shrimp_lm <- lm(log(summary_BEF$biomass) ~ summary_BEF$S)
+with(summary_BEF, plot(log(flounder_bio) ~ log(S)))
+with(summary_BEF, plot(log(biomass) ~ log(S)))
 
-with(summary_BEF, plot(log(biomass) ~ sPIE))
+with(summary_BEF, plot(log(biomass) ~ log(sPIE)))
 with(summary_BEF, plot(log(shrimp_bio) ~ sPIE))
 with(summary_BEF, plot(log(flounder_bio) ~ sPIE))
+
+with(summary_BEF, plot(log(biomass) ~ log(Nind)))
+
+with(summary_BEF, plot(log(biomass) ~ log(s_N)))
+
+
+
+summary(summary_BEF$Nind)
+
+
 
 
