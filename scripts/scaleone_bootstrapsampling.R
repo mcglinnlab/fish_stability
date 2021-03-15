@@ -3,17 +3,27 @@ library(mobr)
 
 #Input: s_bio_sub, s_ind_sub s_shrimp_sub and s_flounder_sub from SpatialScalingDSR
 
+
+
+### for loop to calculate community matrix at the raster scale with 
+#bio 5 event pull 
+raster_bio <- NULL
+raster_ind <- NULL
+raster_shrimp <- NULL
+raster_flounder <- NULL
+raster_environ <- NULL
+
 ##sampling loop ##
-for (f in 1) {  
+for (f in 1:10) {  
   
-  ### for loop to calculate community matrix at the raster scale with 
-  #bio 5 event pull 
-  raster_bio <- NULL
-  raster_ind <- NULL
-  raster_shrimp <- NULL
-  raster_flounder <- NULL
+  raster_bio_boot <- NULL
+  raster_ind_boot <- NULL
+  raster_shrimp_boot <- NULL
+  raster_flounder_boot <- NULL
+  raster_environ_boot <- NULL
   
   for(a in uniqueID) {
+    
   #subsetting each unique ID
     #biomass
     IDpull_bio <- subset(s_bio_sub, s_bio_sub$ID_yrcat == a)
@@ -23,6 +33,8 @@ for (f in 1) {
     IDpull_bio_shrimp <- subset(s_bio_shrimp_sub, s_bio_shrimp_sub$ID_yrcat == a)
     #flounder biomass 
     IDpull_bio_flounder <- subset(s_bio_flounder_sub, s_bio_flounder_sub$ID_yrcat == a)
+    #environment
+    IDpull_environ <- subset(event_dat_sub, event_dat_sub$ID_yrcat == a)
     
     #determining which events will be pulled
     samp <- sample(nrow(IDpull_bio), 5, replace = F)
@@ -36,6 +48,8 @@ for (f in 1) {
     event_shrimp <- IDpull_bio_shrimp[samp, ]
     #flounder
     event_flounder <- IDpull_bio_flounder[samp, ]
+    #environment
+    event_environ <- IDpull_environ[samp, ]
     
     #removing environmental columns leaving only comm matrix
     #biomass
@@ -50,7 +64,9 @@ for (f in 1) {
     #flounder
     comm_flounder <- event_flounder[, 15:17]
     comm_flounder <- as.data.frame(sapply(comm_flounder, as.numeric))
-    
+    #evnironment
+    dat_environ <- event_environ[, 11:14]
+    dat_environ <- as.data.frame(sapply(dat_environ, as.numeric))
     
   #summing the columns in the community matrix. This tells us total biomass 
   #for each species at 5 event rarefaction 
@@ -62,36 +78,61 @@ for (f in 1) {
     rastercolsum_shrimp <- colSums(comm_shrimp)
     #flounder 
     rastercolsum_flounder <- colSums(comm_flounder)
+    #environment
+    rastercolav_environment <- colMeans(dat_environ, na.rm = T)
   
   #adding each run with a unique ID to a matrix using rbind
     #biomass
-    raster_bio <- rbind(raster_bio, rastercolsum_bio)
+    raster_bio_boot <- rbind(raster_bio_boot, rastercolsum_bio)
     #number of individuals
-    raster_ind <- rbind(raster_ind, rastercolsum_ind)
+    raster_ind_boot <- rbind(raster_ind_boot, rastercolsum_ind)
     #shrimp
-    raster_shrimp <- rbind(raster_shrimp, rastercolsum_shrimp)
+    raster_shrimp_boot <- rbind(raster_shrimp_boot, rastercolsum_shrimp)
     #flounder
-    raster_flounder <- rbind(raster_flounder, rastercolsum_flounder)
-  }
+    raster_flounder_boot <- rbind(raster_flounder_boot, rastercolsum_flounder)
+    #environment
+    raster_environ_boot <- rbind(raster_environ_boot, rastercolav_environment)
+  
+    }
   
 #turning output into a data frame and adding column with IDs back
   
   #logging the iteration number
   boot <- f
   
+  
+  #prep data storage 
   #biomass
-  raster_bio <- as.data.frame(raster_bio)
-  raster_bio <- as.data.frame(cbind(uniqueID, boot, raster_bio))
+  raster_bio_boot <- as.data.frame(raster_bio_boot)
+  raster_bio_boot <- as.data.frame(cbind(uniqueID, boot, raster_bio_boot))
   #number of individuals
-  raster_ind <- as.data.frame(raster_ind)
-  raster_ind <- as.data.frame(cbind(uniqueID, boot, raster_ind))
+  raster_ind_boot <- as.data.frame(raster_ind_boot)
+  raster_ind_boot <- as.data.frame(cbind(uniqueID, boot, raster_ind_boot))
   #shrimp
-  raster_shrimp <- as.data.frame(raster_shrimp)
-  raster_shrimp <- as.data.frame(cbind(uniqueID, boot, raster_shrimp))
+  raster_shrimp_boot <- as.data.frame(raster_shrimp_boot)
+  raster_shrimp_boot <- as.data.frame(cbind(uniqueID, boot, raster_shrimp_boot))
   #flounder
-  raster_flounder <- as.data.frame(raster_flounder)
-  raster_flounder <- as.data.frame(cbind(uniqueID, boot, raster_flounder))
+  raster_flounder_boot <- as.data.frame(raster_flounder_boot)
+  raster_flounder_boot <- as.data.frame(cbind(uniqueID, boot, raster_flounder_boot))
+  #environment 
+  raster_environ_boot <- as.data.frame(raster_environ_boot)
+  raster_environ_boot <- as.data.frame(cbind(uniqueID, boot, raster_environ_boot))
+
+  #biomass
+  raster_bio <- as.data.frame(rbind(raster_bio, raster_bio_boot))
+  #number of individuals
+  raster_ind <- as.data.frame(rbind(raster_ind, raster_ind_boot))
+  #shrimp
+  raster_shrimp <- as.data.frame(rbind(raster_shrimp, raster_shrimp_boot))
+  #flounder
+  raster_flounder <- as.data.frame(rbind(raster_flounder, raster_flounder_boot))
+  #environment 
+  raster_environ <- as.data.frame(rbind(raster_environ, raster_environ_boot))
+  
 }
+
+
+
 
 
 ## summary loop ##
@@ -100,12 +141,14 @@ temp <- NULL
 summary_BEF <- NULL
 
   #for number of iterations
-for (b in 1) {
+for (b in 1:10) {
+  
   #subsetting based on each bootstrap iteration
   boot_bio <- subset(raster_bio, raster_bio$boot == b)
   boot_ind <- subset(raster_ind, raster_ind$boot == b)
   boot_shrimp <- subset(raster_shrimp, raster_shrimp$boot == b)
   boot_flounder <- subset(raster_flounder, raster_flounder$boot == b)
+  boot_environ <- subset(raster_environ, raster_environ$boot == b)
   
   for (c in uniqueID) {
     #pull row for each unique ID 
@@ -113,7 +156,7 @@ for (b in 1) {
     raster_ind_sub <- subset(boot_ind, boot_ind$uniqueID == c)
     raster_shrimp_sub <- subset(boot_shrimp, boot_shrimp$uniqueID == c)
     raster_flounder_sub <- subset(boot_flounder, boot_flounder$uniqueID == c)
-    
+    raster_environ_sub <- subset(boot_environ, boot_environ$uniqueID == c)
     #boot 
     boot <- b
     
@@ -142,14 +185,24 @@ for (b in 1) {
     
     #number of individuals
     Nind <- rowSums(raster_ind_sub[, -(1:2)])
-    #storage
+    
+    #surface temp
+    tempS <- raster_environ_sub$tempS
+    #bottom temp
+    tempB <- raster_environ_sub$tempB
+    #surface salinity
+    salS <- raster_environ_sub$salS
+    #bottom salinity
+    salB <- raster_environ_sub$salB
+   
+     #storage
       #temp
-    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, s_N, Nind, biomass, shrimp_bio, flounder_bio))
+    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, s_N, Nind, biomass, shrimp_bio, flounder_bio, tempS, tempB, salS, salB))
     summary_BEF <- rbind(summary_BEF, temp)
   }
 }
 
-summary_BEF[, 3:9] <- as.data.frame(sapply(summary_BEF[, 3:9], as.numeric))
+summary_BEF[, 3:13] <- as.data.frame(sapply(summary_BEF[, 3:13], as.numeric))
 
 
 

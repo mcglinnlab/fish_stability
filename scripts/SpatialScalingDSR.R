@@ -9,9 +9,6 @@ library(svMisc)
 
 
 ####### PREP DATA SET
-  #LOAD DATA #    
-s_bio <- read.csv("~./fish_stability/data/s_bio.csv", header =  T)
-s_bio <- s_bio[ , -1]
 
 #ID.df is basic info on each event including event,  ID and yr cat
 ID.df <- read.csv("~./fish_stability/data/ID.df.csv", header =  T)
@@ -40,6 +37,11 @@ s_bio_flounder$ID <- ID.df$rasterID
 s_bio_flounder$yrcat <- ID.df$yrcat
 s_bio_flounder$ID_yrcat <- paste(s_bio_flounder$ID, "_", s_bio_flounder$yrcat)
 
+  #event_dat
+event_dat$ID <- ID.df$rasterID
+event_dat$yrcat <- ID.df$yrcat
+event_dat$ID_yrcat <- paste(event_dat$ID, "_", event_dat$yrcat)
+
   #pulling out 36 predetermined good IDs where we know theres at least 5 events in each time bin
 IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680, 
             1730, 1777, 1778, 1826, 1875, 1923, 1924, 1972, 1973, 2021, 2022, 
@@ -56,6 +58,8 @@ s_ind_sub <- s_ind[s_ind$ID %in% IDlist, ]
 s_bio_shrimp_sub <- s_bio_shrimp[s_bio_shrimp$ID %in% IDlist, ]
   #flounder biomass 
 s_bio_flounder_sub <- s_bio_flounder[s_bio_flounder$ID %in% IDlist, ]
+  #event dat subset
+event_dat_sub <- event_dat[event_dat$ID %in% IDlist, ]
 
 #list of unique raster IDs through time #this works for all three matrices
 uniqueID <- unique(s_bio_sub$ID_yrcat)
