@@ -14,7 +14,7 @@ raster_flounder <- NULL
 raster_environ <- NULL
 
 ##sampling loop ##
-for (f in 1:10) {  
+for (f in 1:1000) {  
   
   raster_bio_boot <- NULL
   raster_ind_boot <- NULL
@@ -141,7 +141,7 @@ temp <- NULL
 summary_BEF <- NULL
 
   #for number of iterations
-for (b in 1:10) {
+for (b in 1:1000) {
   
   #subsetting based on each bootstrap iteration
   boot_bio <- subset(raster_bio, raster_bio$boot == b)

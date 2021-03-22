@@ -274,6 +274,3 @@ s_bio_flounder[is.na(s_bio_flounder)] <-0
 #Export s_bio_flounder to csv
 #write.csv(s_bio_flounder, file = "./data/s_bio_flounder.csv")
 
-
-
-
