@@ -3,6 +3,8 @@ library(tidyr)
 library(raster)
 library(tmap)
 library(tmaptools)
+library(rgdal)
+library(QuantPsyc)
 
 #### BEF SCALE ONE ANALYSIS ####
 
@@ -23,6 +25,23 @@ IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680,
   #rasterID_coords - coordinate of center of raster region
 rasterID_coord <- read.csv("~/fish_stability/data/rasterID_coord.csv", header = T)
 rasterID_coord <- rasterID_coord[, -1]
+
+
+  #Ocean and Continents Shape File
+  # read in the ocean
+oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
+  # create a global raster layer
+oceans <- spTransform(oceans, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
+oceans_raster <- raster(oceans)
+  #Setting raster resolution
+  # res in units of decimal degrees ----- 0.1 decimal degrees ~ 11.132 km
+res(oceans_raster) <- .2
+  #crop extent of the oceans raster
+extent_oc <- extent(-85,-75,25,40)
+oc_raster <- crop(oceans_raster, extent_oc)
+  # making continents polygon  
+continents <- shapefile('./shapefiles/continent/continent/continent.shp')
+continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 
 
 #### Averaging across bootstrap iterations ####
@@ -96,8 +115,11 @@ Spie_yrsd <- with(BEF, tapply(Spie_av, list(ID), sd))
 sN_yrsd <- with(BEF, tapply(sN_av, list(ID), sd))
 Nind_yrsd <- with(BEF, tapply(Nind_av, list(ID), sd))
 b_shrimp_yrsd <- with(BEF, tapply(b_shrimp_av, list(ID), sd))
+b_shrimp_yrvar <- with(BEF, tapply(b_shrimp_av, list(ID), function(x)(var(x)/ (mean(x)^2))))
+b_shrimp_yrstab <- 1/ b_shrimp_yrvar
 b_flounder_yrsd <- with(BEF, tapply(b_flounder_av, list(ID), sd))
-
+b_flounder_yrvar <- with(BEF, tapply(b_flounder_av, list(ID), function(x)(var(x)/ (mean(x)^2))))
+b_flounder_yrstab <- 1/ b_flounder_yrvar
 
 
 
@@ -117,10 +139,11 @@ salS_yrsd <- with(BEF, tapply(salS, list(ID), sd, na.rm = T))
 
 
 BEF_yr <- as.data.frame(cbind(b_yrav, B_yrvar, B_yrstab, S_yrav, Spie_yrav, sN_yrav, 
-                           Nind_yrav, b_shrimp_yrav, b_flounder_yrav, B_yrsd,
-                           S_yrsd, Spie_yrsd, sN_yrsd, Nind_yrsd, b_shrimp_yrsd,
-                           b_flounder_yrsd, tempS_yr, tempB_yr, salB_yr, salS_yr,
-                           tempS_yrsd, tempB_yrsd, salB_yrsd, salS_yrsd))
+                           Nind_yrav, b_shrimp_yrav, b_shrimp_yrstab, b_flounder_yrav,
+                           b_flounder_yrstab, B_yrsd, S_yrsd, Spie_yrsd, sN_yrsd,
+                           Nind_yrsd, b_shrimp_yrsd,b_flounder_yrsd, tempS_yr,
+                           tempB_yr, salB_yr, salS_yr, tempS_yrsd, tempB_yrsd, 
+                           salB_yrsd, salS_yrsd))
 BEF_yr$ID <- rownames(BEF_yr)
 
 
@@ -236,7 +259,9 @@ tm_shape(Stability_Raster) +
   tm_scale_bar(position = c("left", "bottom")) +
   tm_compass()
 
-#e) average surface temperature
+
+####FIGURE 2#### - ENVIRONMENTAL MAPS
+#a) average surface temperature
 SurfaceTemp_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
                                 BEF_yr$tempS_yr)
 res(SurfaceTemp_Raster)
@@ -253,7 +278,7 @@ tm_shape(SurfaceTemp_Raster) +
   tm_layout(legend.text.size = 0.75, 
             legend.title.size = 2)
 
-#f) average surface salinity
+#b) average surface salinity
 SurfaceSal_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
                                BEF_yr$salS_yr)
 res(SurfaceSal_Raster)
@@ -269,4 +294,179 @@ tm_shape(SurfaceSal_Raster) +
   tm_compass() +
   tm_layout(legend.text.size = 0.75,
             legend.title.size = 2)
+
+#### TABLE 1?? #### - 
+
+#data prep
+#pulling columns from final_output that are used and log transforming bio, stab, and S
+moddat <- as.data.frame(cbind(log2(BEF_yr$b_yrav), log2(BEF_yr$B_yrstab), 
+                              log2(BEF_yr$b_shrimp_yrav), log2(BEF_yr$b_shrimp_yrstab),
+                              log2(BEF_yr$b_flounder_yrav), log2(BEF_yr$b_flounder_yrstab),
+                              log2(BEF_yr$S_yrav), as.numeric(BEF_yr$tempS_yr), as.numeric(BEF_yr$salS_yr)))
+moddat[] <- sapply(moddat, as.numeric)
+moddat <- as.data.frame(cbind(BEF_yr$ID, moddat))
+names(moddat) <- c("ID", "F_bio", "F_stab", "Sh_bio", "Sh_stab", "Fl_bio", 
+                    "Fl_stab", "Srich", "tempS", "salS")
+
+
+#Standardized beta coefficient models
+  #scaling variables (subtracting mean and dividing by standard deviation)
+moddat_S <- as.data.frame(scale(moddat[,-1], center = T, scale = T))
+  #adding startID column and renaming columns
+moddat_S[] <- sapply(moddat_S, as.numeric)
+moddat_S <- as.data.frame(cbind(BEF_yr$ID, moddat_S))
+names(moddat_S) <- c("ID", "F_bio", "F_stab", "Sh_bio", "Sh_stab", "Fl_bio", 
+                           "Fl_stab", "Srich", "tempS", "salS")
+
+
+#FISH
+  #biomass
+    #run model; log transformations built in before scaling step
+bioModel_S_fish <- lm(F_bio ~ Srich + tempS + salS, data = moddat_S)
+summary(bioModel_S_fish)
+    #standardized regression coefficients
+lm.beta(bioModel_S_fish)
+plot(bioModel_S_fish)
+
+  #stability
+    #model
+stabModel_S_fish <- lm(F_stab ~ Srich + tempS + salS, data = moddat_S)
+summary(stabModel_S_fish)
+    #standardized regression coefficients
+lm.beta(stabModel_S_fish)
+plot(stabModel_S_fish)
+
+
+#SHRIMP
+  #biomass
+    #run model; log transformations built in before scaling step
+bioModel_S_shrimp <- lm(Sh_bio ~ Srich + tempS + salS, data = moddat_S)
+summary(bioModel_S_shrimp)
+    #standardized regression coefficients
+lm.beta(bioModel_S_shrimp)
+plot(bioModel_S_shrimp)
+
+  #stability
+    #model
+stabModel_S_shrimp <- lm(Sh_stab ~ Srich + tempS + salS, data = moddat_S)
+summary(stabModel_S_shrimp)
+  #standardized regression coefficients
+lm.beta(stabModel_S_shrimp)
+plot(stabModel_S_shrimp)
+
+#FLOUNDER
+  #biomass
+    #run model; log transformations built in before scaling step
+bioModel_S_flounder <- lm(Fl_bio ~ Srich + tempS + salS, data = moddat_S)
+summary(bioModel_S_flounder)
+    #standardized regression coefficients
+lm.beta(bioModel_S_flounder)
+plot(bioModel_S_flounder)
+
+  #stability
+    #model
+stabModel_S_flounder <- lm(Fl_stab ~ Srich + tempS + salS, data = moddat_S)
+summary(stabModel_S_flounder)
+    #standardized regression coefficients
+lm.beta(stabModel_S_flounder)
+plot(stabModel_S_flounder)
+
+
+
+
+#### FIGURE THREE - PARTIAL RESIDUAL PLOTS ####
+
+bioModel <- lm(Bio ~ Srich + tempS + salS, data = moddat_F)
+summary(bioModel)
+stabModel <- lm(Stab ~ Srich + tempS + salS, data = moddat_F)
+summary(stabModel)
+
+#a) biomass ~ richness
+termplot(bioModel, terms = "Srich", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 2))
+axis(side=1, cex.axis=2, at = seq(5.0, 5.8, 0.1))
+axis(side=2, cex.axis=2)
+res = residuals(bioModel, 'partial')
+res = res[ , 'Srich', drop=FALSE]
+lines(lowess((moddat_F$Srich), res), col='red', lty=2, lwd=5)
+
+#b) stability ~ richness
+termplot(stabModel, terms = "Srich", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 2))
+axis(side=1, cex.axis=2, at = seq(5.0, 6.0, 0.1))
+axis(side=2, cex.axis=2)
+res = residuals(stabModel, 'partial')
+res = res[ , 'Srich', drop=FALSE]
+lines(lowess((moddat_F$Srich), res), col='red', lty=2, lwd=5)
+
+#c) biomass ~ salinity
+termplot(bioModel, terms = "salS", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-1, 1))
+axis(side=1, cex.axis=2, at = seq(31, 36, 1))
+axis(side=2, cex.axis=2)
+res = residuals(bioModel, 'partial')
+res = res[ , 'salS', drop=FALSE]
+lines(lowess(moddat_F$salS, res), col='red', lty=2, lwd=5)
+
+#d) stability ~ salinity
+termplot(stabModel, terms = "salS", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 2))
+axis(side=1, cex.axis=2, at = seq(27, 36, 1))
+axis(side=2, cex.axis=2)
+res = residuals(stabModel, 'partial')
+res = res[ , 'salS', drop=FALSE]
+lines(lowess(moddat_F$salS, res), col='red', lty=2, lwd=5)
+
+#e) biomass ~ temperature
+termplot(bioModel, terms = "tempS", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-1, 1))
+axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
+axis(side=2, cex.axis=2)
+res = residuals(bioModel, 'partial')
+res = res[ , 'tempS', drop=FALSE]
+lines(lowess(moddat_F$tempS, res), col='red', lty=2, lwd=5)
+
+#f) stability ~ temperature 
+termplot(stabModel, terms = "tempS", partial=T, se=T,
+         lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
+         col.term='blue', col.se='lightblue',
+         col.res = 'black', col.smth = "red",
+         frame.plot=F, axes=F, xlab='', ylab='',
+         ylim=c(-2, 3))
+axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
+axis(side=2, cex.axis=2, at = seq(-2, 3, 1))
+res = residuals(stabModel, 'partial')
+res = res[ , 'tempS', drop=FALSE]
+lines(lowess(moddat_F$tempS, res), col='red', lty=2, lwd=5)
+
+
+## complete these graphs for shrimp and flounder ##
+
+
+
+
+
+
+
+
 
