@@ -5,6 +5,7 @@ library(tmap)
 library(tmaptools)
 library(rgdal)
 library(QuantPsyc)
+library(USAboundaries)
 
 #### BEF SCALE ONE ANALYSIS ####
 
@@ -42,7 +43,8 @@ oc_raster <- crop(oceans_raster, extent_oc)
   # making continents polygon  
 continents <- shapefile('./shapefiles/continent/continent/continent.shp')
 continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
-
+  #states
+states <- us_states()
 
 #### Averaging across bootstrap iterations ####
 
@@ -201,7 +203,7 @@ trawl_num <- cbind(trawl_num, rasterID_coord$x, rasterID_coord$y)
 names(trawl_num) <- c("ID", "trawlnum", "long", "lat")
 
 #extent of maps
-new.extent <- c(-84, -75, 27, 38)
+new.extent <- c(-83.5, -75, 27.5, 37)
 
 #36 good raster regions
 Trawl_raster <- rasterize(trawl_num[,3:4], oc_raster, trawl_num$trawlnum)
@@ -210,15 +212,16 @@ plot(Trawl_raster)
 
 Trawl_raster <- crop(x = Trawl_raster, y = new.extent)
 
+
 tm_shape(Trawl_raster) +
-  tm_raster(title = "Number of Trawls") +
-  tm_layout(legend.title.size = 1) +
-  tm_shape(continents) +
+  tm_raster(title = "") +
+  tm_layout(legend.text.size = 1, legend.position = c("right", "bottom")) +
+  tm_shape(states) +
   tm_borders(lwd = 0.5) +
   tm_scale_bar(position = c("left", "bottom")) +
   tm_compass()
 
-#b) average rarefied richness to 5 trawls
+#b) average rarefied richness to 5 trawls #Species Richness
 Species_Raster <- rasterize(trawl_num[, 3:4], oc_raster, BEF_yr$S_yrav)
 res(Species_Raster)
 plot(Species_Raster)
@@ -226,14 +229,14 @@ plot(Species_Raster)
 Species_Raster <- crop( x = Species_Raster, y = new.extent)
 
 tm_shape(Species_Raster) +
-  tm_raster(title = "Number of Species (S)", palette = "Blues") +
-  tm_layout(legend.title.size = 1.5) +
-  tm_shape(continents) +
+  tm_raster(title = "", palette = "Blues") +
+  tm_layout(legend.text.size = 1, legend.position = c("right", "bottom")) +
+  tm_shape(states) +
   tm_borders(lwd = 0.5) +
   tm_scale_bar(position = c("left", "bottom")) +
   tm_compass()
 
-#c) average total biomass 5 trawls
+#c) average total biomass 5 trawls # Fish Productivity
 Biomass_Raster <- rasterize(trawl_num[, 3:4], oc_raster, BEF_yr$b_yrav)
 res(Biomass_Raster)
 plot(Biomass_Raster)
@@ -241,14 +244,14 @@ plot(Biomass_Raster)
 Biomass_Raster <- crop(x = Biomass_Raster, y = new.extent)
 
 tm_shape(Biomass_Raster) +
-  tm_raster(title = " Fish Productivity (kg)", palette = "Greens") +
-  tm_layout(legend.title.size = 1.5) +
-  tm_shape(continents) +
+  tm_raster(title = "", palette = "Greens") +
+  tm_layout(legend.text.size = 1, legend.position = c("right", "bottom")) +
+  tm_shape(states) +
   tm_borders(lwd = 0.5) +
   tm_scale_bar(position = c("left", "bottom")) +
   tm_compass()
 
-#d) average stability biomass at 5 trawls
+#d) average stability biomass at 5 trawls #Stability of Fish Productivity
 Stability_Raster <- rasterize(trawl_num[, 3:4], oc_raster, BEF_yr$B_yrstab)
 res(Stability_Raster)
 plot(Stability_Raster)
@@ -256,9 +259,9 @@ plot(Stability_Raster)
 Stability_Raster <- crop(x = Stability_Raster, y = new.extent)
 
 tm_shape(Stability_Raster) +
-  tm_raster(title = "Stability of Fish Productivity", palette = "PuRd") +
-  tm_layout(legend.title.size = 1) +
-  tm_shape(continents) +
+  tm_raster(title = "", palette = "PuRd") +
+  tm_layout(legend.text.size = 1, legend.position = c("right", "bottom")) +
+  tm_shape(states) +
   tm_borders(lwd = 0.5) +
   tm_scale_bar(position = c("left", "bottom")) +
   tm_compass()
@@ -274,13 +277,13 @@ plot(SurfaceTemp_Raster)
 SurfaceTemp_Raster <- crop(x = SurfaceTemp_Raster, y = new.extent)
 
 tm_shape(SurfaceTemp_Raster) +
-  tm_raster(title = "Surface Water Temperature (C)", palette = "-RdYlBu") +
-  tm_shape(continents) +
+  tm_raster(title = "", palette = "-RdYlBu") +
+  tm_shape(states) +
   tm_borders(lwd = 0.5) +
   tm_scale_bar(position = c("left", "bottom")) +
   tm_compass() +
-  tm_layout(legend.text.size = 0.75, 
-            legend.title.size = 1)
+  tm_layout(legend.text.size = 1, 
+            legend.position = c("right", "bottom"))
 
 #b) average surface salinity
 SurfaceSal_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
@@ -291,13 +294,13 @@ plot(SurfaceSal_Raster)
 SurfaceSal_Raster <- crop(x = SurfaceSal_Raster, y = new.extent)
 
 tm_shape(SurfaceSal_Raster) +
-  tm_raster(title = "Surface Salinity (ppt)", palette = "-RdYlGn") +
-  tm_shape(continents) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(states) +
   tm_borders(lwd = 0.5) +
   tm_scale_bar(position = c("left", "bottom")) +
   tm_compass() +
-  tm_layout(legend.text.size = 0.75,
-            legend.title.size = 1)
+  tm_layout(legend.text.size = 1,
+            legend.position = c("right", "bottom"))
 
 #### TABLE 1 #### 
 
@@ -342,6 +345,13 @@ plot(stabModel_S_fish)
 
 
 #SHRIMP
+
+
+
+modtest_shrimp <- lm(Sh_bio ~ Srich + tempS + salS + F_bio, data = moddat_S)
+summary(modtest_shrimp)
+lm.beta(modtest_shrimp)
+
   #biomass
     #run model; log transformations built in before scaling step
 bioModel_S_shrimp <- lm(Sh_bio ~ Srich + tempS + salS, data = moddat_S)
@@ -396,7 +406,7 @@ termplot(F_bioModel, terms = "Srich", partial=T, se=T,
          frame.plot=F, axes=F, xlab='', ylab='',
          ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(5.0, 5.8, 0.1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(F_bioModel, 'partial')
 res = res[ , 'Srich', drop=FALSE]
 lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
@@ -407,9 +417,9 @@ termplot(F_stabModel, terms = "Srich", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(5.0, 6.0, 0.1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(F_stabModel, 'partial')
 res = res[ , 'Srich', drop=FALSE]
 lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
@@ -420,9 +430,9 @@ termplot(F_bioModel, terms = "salS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-1, 1))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(31, 36, 1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(F_bioModel, 'partial')
 res = res[ , 'salS', drop=FALSE]
 lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
@@ -433,9 +443,9 @@ termplot(F_stabModel, terms = "salS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(27, 36, 1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(F_stabModel, 'partial')
 res = res[ , 'salS', drop=FALSE]
 lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
@@ -446,9 +456,9 @@ termplot(F_bioModel, terms = "tempS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-1, 1))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(F_bioModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
@@ -459,9 +469,9 @@ termplot(F_stabModel, terms = "tempS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 3))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
-axis(side=2, cex.axis=2, at = seq(-2, 3, 1))
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(F_stabModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
@@ -477,15 +487,18 @@ summary(Sh_bioModel)
 Sh_stabModel <- lm(Sh_stab ~ Srich + tempS + salS, data = moddat)
 summary(Sh_stabModel)
 
+
+
+
 #a) biomass ~ richness
 termplot(Sh_bioModel, terms = "Srich", partial=T, se=T,
          lwd.term=5,lwd.se=3.5, pch = 16, cex = 2,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-3, 2))
+         ylim=c(-5, 3))
 axis(side=1, cex.axis=2, at = seq(5.0, 5.8, 0.1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-5.0, 3.0, 1))
 res = residuals(Sh_bioModel, 'partial')
 res = res[ , 'Srich', drop=FALSE]
 lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
@@ -496,9 +509,9 @@ termplot(Sh_stabModel, terms = "Srich", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-3, 2))
+         ylim=c(-5, 3))
 axis(side=1, cex.axis=2, at = seq(5.0, 6.0, 0.1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-5.0, 3.0, 1))
 res = residuals(Sh_stabModel, 'partial')
 res = res[ , 'Srich', drop=FALSE]
 lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
@@ -509,9 +522,9 @@ termplot(Sh_bioModel, terms = "salS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2.5, 3))
+         ylim=c(-5, 3))
 axis(side=1, cex.axis=2, at = seq(31, 36, 1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-5.0, 3.0, 1))
 res = residuals(Sh_bioModel, 'partial')
 res = res[ , 'salS', drop=FALSE]
 lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
@@ -522,9 +535,9 @@ termplot(Sh_stabModel, terms = "salS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2.5, 3))
+         ylim=c(-5, 3))
 axis(side=1, cex.axis=2, at = seq(27, 36, 1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-5.0, 3.0, 1))
 res = residuals(Sh_stabModel, 'partial')
 res = res[ , 'salS', drop=FALSE]
 lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
@@ -535,9 +548,9 @@ termplot(Sh_bioModel, terms = "tempS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-5, 3))
 axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-5.0, 3.0, 1))
 res = residuals(Sh_bioModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
@@ -548,9 +561,9 @@ termplot(Sh_stabModel, terms = "tempS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-5, 3))
 axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
-axis(side=2, cex.axis=2, at = seq(-2, 3, 1))
+axis(side=2, cex.axis=2, at = seq(-5, 3, 1))
 res = residuals(Sh_stabModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
@@ -571,9 +584,9 @@ termplot(Fl_bioModel, terms = "Srich", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(5.0, 5.8, 0.1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(Fl_bioModel, 'partial')
 res = res[ , 'Srich', drop=FALSE]
 lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
@@ -584,9 +597,9 @@ termplot(Fl_stabModel, terms = "Srich", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2.5, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(5.0, 6.0, 0.1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(Fl_stabModel, 'partial')
 res = res[ , 'Srich', drop=FALSE]
 lines(lowess((moddat$Srich), res), col='red', lty=2, lwd=5)
@@ -597,9 +610,9 @@ termplot(Fl_bioModel, terms = "salS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(31, 36, 1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(Fl_bioModel, 'partial')
 res = res[ , 'salS', drop=FALSE]
 lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
@@ -610,9 +623,9 @@ termplot(Fl_stabModel, terms = "salS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(27, 36, 1))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(Fl_stabModel, 'partial')
 res = res[ , 'salS', drop=FALSE]
 lines(lowess(moddat$salS, res), col='red', lty=2, lwd=5)
@@ -623,9 +636,9 @@ termplot(Fl_bioModel, terms = "tempS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
-axis(side=2, cex.axis=2)
+axis(side=2, cex.axis=2, at = seq(-3.0, 2.0, 1))
 res = residuals(Fl_bioModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
@@ -636,9 +649,9 @@ termplot(Fl_stabModel, terms = "tempS", partial=T, se=T,
          col.term='blue', col.se='lightblue',
          col.res = 'black', col.smth = "red",
          frame.plot=F, axes=F, xlab='', ylab='',
-         ylim=c(-2.5, 2))
+         ylim=c(-3, 2))
 axis(side=1, cex.axis=2, at = seq(21.5, 25.5, 0.5))
-axis(side=2, cex.axis=2, at = seq(-2, 3, 1))
+axis(side=2, cex.axis=2, at = seq(-3, 2, 1))
 res = residuals(Fl_stabModel, 'partial')
 res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
