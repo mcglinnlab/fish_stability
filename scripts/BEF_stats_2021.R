@@ -477,8 +477,6 @@ res = res[ , 'tempS', drop=FALSE]
 lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
 
 
-## complete these graphs for shrimp and flounder ##
-
   ##SHRIMP##
 
 #all variables except temp and salinity previously log2 transformed
