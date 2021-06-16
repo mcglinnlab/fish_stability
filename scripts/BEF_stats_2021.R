@@ -334,6 +334,9 @@ summary(bioModel_S_fish)
     #standardized regression coefficients
 lm.beta(bioModel_S_fish)
 plot(bioModel_S_fish)
+    #raw coefficients
+bioModel_fish <- lm(F_bio ~ Srich + tempS + salS, data = moddat)
+summary(bioModel_fish)
 
   #stability
     #model
@@ -342,7 +345,9 @@ summary(stabModel_S_fish)
     #standardized regression coefficients
 lm.beta(stabModel_S_fish)
 plot(stabModel_S_fish)
-
+  #raw coefficients
+stabModel_fish <- lm(F_stab ~ Srich + tempS + salS, data = moddat)
+summary(stabModel_fish)
 
 #SHRIMP
 
@@ -359,6 +364,10 @@ summary(bioModel_S_shrimp)
     #standardized regression coefficients
 lm.beta(bioModel_S_shrimp)
 plot(bioModel_S_shrimp)
+  #raw coefficients
+bioModel_shrimp <- lm(Sh_bio ~ Srich + tempS + salS, data = moddat)
+summary(bioModel_shrimp)
+
 
   #stability
     #model
@@ -367,6 +376,9 @@ summary(stabModel_S_shrimp)
   #standardized regression coefficients
 lm.beta(stabModel_S_shrimp)
 plot(stabModel_S_shrimp)
+  #raw coefficients
+stabModel_shrimp <- lm(Sh_stab ~ Srich + tempS + salS, data = moddat)
+summary(stabModel_shrimp)
 
 #FLOUNDER
   #biomass
@@ -376,6 +388,9 @@ summary(bioModel_S_flounder)
     #standardized regression coefficients
 lm.beta(bioModel_S_flounder)
 plot(bioModel_S_flounder)
+  #raw coefficients
+bioModel_flounder <- lm(Fl_bio ~ Srich + tempS + salS, data = moddat)
+summary(bioModel_flounder)
 
   #stability
     #model
@@ -384,7 +399,9 @@ summary(stabModel_S_flounder)
     #standardized regression coefficients
 lm.beta(stabModel_S_flounder)
 plot(stabModel_S_flounder)
-
+  #raw coefficients
+stabModel_flounder <- lm(Fl_stab ~ Srich + tempS + salS, data = moddat)
+summary(stabModel_flounder)
 
 
 
