@@ -9,6 +9,7 @@ Objectives of my overall work:
 
 Key Scripts included in the scripts folder are as follows:
 
+
 data_processing
 rasterizing_polygons
 scaleone_bootstrapsampling
