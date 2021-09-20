@@ -50,7 +50,7 @@ continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.
     # data frame created in data_processing_Caughron
 
 #read in s_spread
-s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
+#s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
 
 
 #changing eventname and S to character and factor variables

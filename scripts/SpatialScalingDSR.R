@@ -129,9 +129,11 @@ IDorder <- IDorder[, -1]
 #null objects
 scale_pres <- NULL
 scale_bio <- NULL
+scalecom_pres <- NULL
+scalecom_bio <- NULL
 
 
-for (f in 1) {  
+for (f in 1:2) {  
   
   ### for loop to calculate community matrix at the raster scale with 
     #bio 5 event pull 
@@ -186,9 +188,9 @@ for (f in 1) {
   #null objects
     ID <- NULL
     yr_cat <- NULL
-    scalecom_pres <- NULL
+    #scalecom_pres <- NULL
     temp_pres <- NULL
-    scalecom_bio <- NULL
+    #scalecom_bio <- NULL
     temp_bio <- NULL
  
   

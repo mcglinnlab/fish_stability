@@ -9,7 +9,7 @@ library(purrr)
 #### Initial Data Processing ####
 
 #import fish species csv
-fish_species = read.csv('./fish_species.csv', header=FALSE, colClasses='character')
+fish_species = read.csv('./name_data_files/fish_species.csv', header=FALSE, colClasses='character')
 names(fish_species) = 'species'
 
 #import SEAMAP data
@@ -63,7 +63,7 @@ gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME
 
 
 #manually enter in small subset of species that lack common names
-gd_sci_names = read.csv('./good_sci_names.csv')
+gd_sci_names = read.csv('./name_data_files/good_sci_names.csv')
 names(gd_sci_names) = 'species'
 
 SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME
@@ -194,8 +194,8 @@ s_bio <- data.frame(left_join(event_dat, s_bio, by='EVENTNAME'))
 #### CREATING SHRIMP AND FLOUNDER DATA SETS ####
 
 #importing shrimp and flounder species lists
-shrimp_sp <- read.csv("./shrimp_sp.csv", header = T)
-flounder_sp <- read.csv("./flounder_sp.csv", header = T)
+shrimp_sp <- read.csv("./name_data_files/shrimp_sp.csv", header = T)
+flounder_sp <- read.csv("./name_data_files/flounder_sp.csv", header = T)
 
 #subset shrimp and flounder from SEAMAP
   #shrimp
