@@ -349,10 +349,9 @@ plot(stabModel_S_fish)
 stabModel_fish <- lm(F_stab ~ Srich + tempS + salS, data = moddat)
 summary(stabModel_fish)
 
+
+
 #SHRIMP
-
-
-
 modtest_shrimp <- lm(Sh_bio ~ Srich + tempS + salS + F_bio, data = moddat_S)
 summary(modtest_shrimp)
 lm.beta(modtest_shrimp)
@@ -379,6 +378,7 @@ plot(stabModel_S_shrimp)
   #raw coefficients
 stabModel_shrimp <- lm(Sh_stab ~ Srich + tempS + salS, data = moddat)
 summary(stabModel_shrimp)
+
 
 #FLOUNDER
   #biomass
@@ -673,7 +673,118 @@ lines(lowess(moddat$tempS, res), col='red', lty=2, lwd=5)
 
 
 
+#### SUPPLEMENTAL FIGURE - MAPPING MODEL RESIDUALS ####
 
+
+#FISH
+#plotting residuals of DPR model
+F_DPRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                                 F_bioModel$residuals)
+res(F_DPRresiduals_Raster)
+plot(F_DPRresiduals_Raster)
+
+F_DPRresiduals_Raster <- crop(x = F_DPRresiduals_Raster, y = new.extent)
+
+tm_shape(F_DPRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(states) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass() +
+  tm_layout(legend.text.size = 1,
+            legend.position = c("right", "bottom"))
+
+
+#plotting residuals of DSR model
+F_DSRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                                 F_stabModel$residuals)
+res(F_DSRresiduals_Raster)
+plot(F_DSRresiduals_Raster)
+
+F_DSRresiduals_Raster <- crop(x = F_DSRresiduals_Raster, y = new.extent)
+
+tm_shape(F_DSRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(states) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass() +
+  tm_layout(legend.text.size = 1,
+            legend.position = c("right", "bottom"))
+
+
+
+#SHRIMP
+#plotting residuals of DPR model
+Sh_DPRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                                 Sh_bioModel$residuals)
+res(Sh_DPRresiduals_Raster)
+plot(Sh_DPRresiduals_Raster)
+
+Sh_DPRresiduals_Raster <- crop(x = Sh_DPRresiduals_Raster, y = new.extent)
+
+tm_shape(Sh_DPRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(states) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass() +
+  tm_layout(legend.text.size = 1,
+            legend.position = c("right", "bottom"))
+
+#plotting residuals of DSR model
+Sh_DSRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                                 Sh_stabModel$residuals)
+res(Sh_DSRresiduals_Raster)
+plot(Sh_DSRresiduals_Raster)
+
+Sh_DSRresiduals_Raster <- crop(x = Sh_DSRresiduals_Raster, y = new.extent)
+
+tm_shape(Sh_DSRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(states) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass() +
+  tm_layout(legend.text.size = 1,
+            legend.position = c("right", "bottom"))
+
+
+
+#FLOUNDER
+#plotting residuals of DPR model
+Fl_DPRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                                 Fl_bioModel$residuals)
+res(Fl_DPRresiduals_Raster)
+plot(Fl_DPRresiduals_Raster)
+
+Fl_DPRresiduals_Raster <- crop(x = Fl_DPRresiduals_Raster, y = new.extent)
+
+tm_shape(Fl_DPRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(states) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass() +
+  tm_layout(legend.text.size = 1,
+            legend.position = c("right", "bottom"))
+
+#plotting residuals of DSR model
+Fl_DSRresiduals_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
+                                 Fl_stabModel$residuals)
+res(Fl_DSRresiduals_Raster)
+plot(Fl_DSRresiduals_Raster)
+
+Fl_DSRresiduals_Raster <- crop(x = Fl_DSRresiduals_Raster, y = new.extent)
+
+tm_shape(Fl_DSRresiduals_Raster) +
+  tm_raster(title = "", palette = "-RdYlGn") +
+  tm_shape(states) +
+  tm_borders(lwd = 0.5) +
+  tm_scale_bar(position = c("left", "bottom")) +
+  tm_compass() +
+  tm_layout(legend.text.size = 1,
+            legend.position = c("right", "bottom"))
 
 
 
