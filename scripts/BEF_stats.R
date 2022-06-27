@@ -189,7 +189,7 @@ summary(mod1)
 
 
 
-####FIGURE 1 - RASTER MAPS ####
+#### FIGURE 1 - RASTER MAPS ####
 
 #a) number of trawls per raster - uses ID.df
 ID.df$identity <- 1
@@ -267,7 +267,7 @@ tm_shape(Stability_Raster) +
   tm_compass()
 
 
-####FIGURE 2#### - ENVIRONMENTAL MAPS
+#### FIGURE 2 - ENVIRONMENTAL MAPS ####
 #a) average surface temperature
 SurfaceTemp_Raster <- rasterize(trawl_num[, 3:4], oc_raster,
                                 BEF_yr$tempS_yr)
@@ -352,6 +352,7 @@ summary(stabModel_fish)
 
 
 #SHRIMP
+  #also include fish bio - not included in table
 modtest_shrimp <- lm(Sh_bio ~ Srich + tempS + salS + F_bio, data = moddat_S)
 summary(modtest_shrimp)
 lm.beta(modtest_shrimp)
