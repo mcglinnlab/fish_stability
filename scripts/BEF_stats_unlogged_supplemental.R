@@ -4,7 +4,7 @@ library(QuantPsyc)
 #BEF_stats supplemental script
 
 #read data
-BEF_yr <- read.csv("./data/BEF_yr.csv", header = T)
+BEF_yr <- read.csv("./gitdat/BEF_yr.csv", header = T)
 BEF_yr <- BEF_yr[, -1]
 
 
