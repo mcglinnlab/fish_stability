@@ -11,16 +11,20 @@ library(svMisc)
 ####### PREP DATA SET
 
 #ID.df is basic info on each event including event,  ID and yr cat
-ID.df <- read.csv("~./fish_stability/data/ID.df.csv", header =  T)
+ID.df <- read.csv("./gitdat/ID.df.csv")
 ID.df <- ID.df[, -1]
 
+
     #s_bio for biomass
+s_bio <- read.csv("./gitdat/s_bio.csv")
 s_bio <- arrange(s_bio, EVENTNAME)
 s_bio$ID <- ID.df$rasterID
 s_bio$yrcat <- ID.df$yrcat
 s_bio$ID_yrcat <- paste(s_bio$ID, "_", s_bio$yrcat)
 
   #s_ind for number of individuals
+
+s_spread <- read.csv("./gitdat/s_spread.csv")
 s_ind <- s_spread
 s_ind$ID <- ID.df$rasterID
 s_ind$yrcat <- ID.df$yrcat
@@ -28,16 +32,19 @@ s_ind$ID_yrcat <- paste(s_ind$ID, "_", s_ind$yrcat)
 s_ind[is.na(s_ind)] <- 0
 
   #s_bio_shrimp
+s_bio_shrimp <- read.csv("./gitdat/s_bio_shrimp.csv")
 s_bio_shrimp$ID <- ID.df$rasterID
 s_bio_shrimp$yrcat <- ID.df$yrcat
 s_bio_shrimp$ID_yrcat <- paste(s_bio_shrimp$ID, "_", s_bio_shrimp$yrcat)
 
   #s_bio_flounder
+s_bio_flounder <- read.csv('./gitdat/s_bio_flounder.csv')
 s_bio_flounder$ID <- ID.df$rasterID
 s_bio_flounder$yrcat <- ID.df$yrcat
 s_bio_flounder$ID_yrcat <- paste(s_bio_flounder$ID, "_", s_bio_flounder$yrcat)
 
   #event_dat
+event_dat <- read.csv('./gitdat/event_dat.csv')
 event_dat$ID <- ID.df$rasterID
 event_dat$yrcat <- ID.df$yrcat
 event_dat$ID_yrcat <- paste(event_dat$ID, "_", event_dat$yrcat)
@@ -64,12 +71,14 @@ event_dat_sub <- event_dat[event_dat$ID %in% IDlist, ]
 #list of unique raster IDs through time #this works for all three matrices
 uniqueID <- unique(s_bio_sub$ID_yrcat)
 
-
+save(s_bio_sub, s_ind_sub, s_bio_shrimp_sub, s_bio_flounder_sub, event_dat_sub,
+     file = './gitdat/s_bio_sub_files.Rdata')
 
 ##### CREATE ORDER OF RASTER IDS
 #coordinates of raster cell centroid
+load('./gitdat/raster/oceans_raster.Rdata')
 oc_raster <- oceans_raster
-coordcenter <-as.matrix(xyFromCell(oc_raster, IDlist))
+coordcenter <- as.matrix(xyFromCell(oc_raster, IDlist))
 
 #using converting lat long to distances function (from mobr)
 sphere_dist = function(coords){
@@ -119,9 +128,8 @@ IDorder <- IDorder %>%
                 '31' = '2519', '32' = '2569','33' = '2620', '34' = '2670', 
                 '35' = '2721', '36' = '2771'))
 
-#load IDorder 
-IDorder <- read.csv("~/fish_stability/data/IDorder.csv", header = T)
-IDorder <- IDorder[, -1]
+#save IDorder 
+write.csv(IDorder, './gitdat/IDorder.csv', row.names = FALSE)
 
 #start bootstrap loop - pulls new comm matrix of 5 random trawls and completes
   #geographic merge before closing. 
@@ -246,8 +254,8 @@ for (f in 1:2) {
 
     #36 start ID with 36 scales within each and 9 time bins per scale = 11,664 rows
 
-    #write.csv(scalecom_mat_pres, "~/fish_stability/data/scalecom_mat_pres.csv")
-    #write.csv(scalecom_mat_bio, "~/fish_stability/data/scalecom_mat_bio.csv")
+write.csv(scalecom_pres, "./gitdat/scalecom_pres.csv", row.names = FALSE)
+write.csv(scalecom_bio, "./gitdat/scalecom_bio.csv", row.names = FALSE)
 
 
 
@@ -266,7 +274,7 @@ tempscale_output <- NULL
 scale_output <- NULL
 
 #subsetting for bootstrap iteration
-for (h in 1:20) {
+for (h in 1:2) {
   progress(h)
   
   boot_sub_pres <- scalecom_pres[scale_compres$boot == h, ]
@@ -310,5 +318,5 @@ for (h in 1:20) {
   }
 }
   
-#write.csv(scale_output, "~/fish_stability/data/scale_output.csv")  #. instead ~/fish_stability
+write.csv(scale_output, "./gitdat/scale_output.csv", row.names = FALSE)
   

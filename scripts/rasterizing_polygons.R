@@ -14,7 +14,7 @@ library(maptools)
 
 # read in the ocean
 
-oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
+oceans <- readOGR(dsn = "./gitdat/shapefiles/ocean_raster", layer = "ne_10m_ocean")
 
 # create a global raster layer
 
@@ -33,13 +33,13 @@ oceans_raster <- crop(oceans_raster, extent_oc)
 
 # saving the world raster grid
 
-#save(oceans_raster, file = './data/raster/oceans_raster.Rdata')
-#load('./Data/raster/oceans_raster.Rdata')
+#save(oceans_raster, file = './gitdat/raster/oceans_raster.Rdata')
+#load('./gitdat/raster/oceans_raster.Rdata')
 
 
 # making continents polygon  
 
-continents <- shapefile('./shapefiles/continent/continent/continent.shp')
+continents <- shapefile('./gitdat/shapefiles/continent/continent/continent.shp')
 continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 
 
@@ -47,16 +47,14 @@ continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.
 
 
 #### Rasterizing SEAMAP-SA Data ####
-    # data frame created in data_processing_Caughron
+# data frame created in ./scripts/data_processing.R
 
 #read in s_spread
-#s_spread <- read.csv("~./fish_stability/data/s_spread.csv", header = T)
-
+s_spread <- read.csv("./gitdat/s_spread.csv")
 
 #changing eventname and S to character and factor variables
 s_spread$EVENTNAME <- as.character(s_spread$EVENTNAME)
 s_spread$S <- as.numeric(s_spread$S)
-
 
 #adding identity column called trawl number
 s_spread$TRAWLNUMBER <- 1
@@ -65,7 +63,6 @@ s_spread$TRAWLNUMBER <- 1
 s_spread$lat <- as.numeric(s_spread$lat)
 s_spread$long <- as.numeric(s_spread$long)
 coordinates(s_spread) <- ~ long + lat
-
 
 #Creating Trawl Density Raster 
 Trawl_raster <- rasterize(s_spread, oceans_raster, s_spread$TRAWLNUMBER, fun = "sum")
@@ -102,7 +99,7 @@ coord_trawls <- SpatialPoints(coord_trawls,
 raster_vals <-raster::extract(oceans_raster, coord_trawls, df = T)
 
 
-#write.csv(raster_vals, "~./fish_stability/data/raster_vals.csv")
+write.csv(raster_vals, "./gitdat/raster_vals.csv")
 
 
 
