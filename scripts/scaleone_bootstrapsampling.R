@@ -1,7 +1,38 @@
 
 library(mobr)
+library(dplyr)
 
 #Input: s_bio_sub, s_ind_sub s_shrimp_sub and s_flounder_sub from SpatialScalingDSR
+ID.df <- read.csv("./gitdat/ID.df.csv")
+ID.df <- ID.df[, -1]
+
+#s_bio for biomass
+s_bio <- read.csv("./gitdat/s_bio.csv")
+s_bio <- arrange(s_bio, EVENTNAME)
+s_bio$ID <- ID.df$rasterID
+s_bio$yrcat <- ID.df$yrcat
+s_bio$ID_yrcat <- paste(s_bio$ID, "_", s_bio$yrcat)
+
+#s_ind for number of individuals
+
+s_spread <- read.csv("./gitdat/s_spread.csv")
+s_ind <- s_spread
+s_ind$ID <- ID.df$rasterID
+s_ind$yrcat <- ID.df$yrcat
+s_ind$ID_yrcat <- paste(s_ind$ID, "_", s_ind$yrcat)
+s_ind[is.na(s_ind)] <- 0
+
+#s_bio_shrimp
+s_bio_shrimp <- read.csv("./gitdat/s_bio_shrimp.csv")
+s_bio_shrimp$ID <- ID.df$rasterID
+s_bio_shrimp$yrcat <- ID.df$yrcat
+s_bio_shrimp$ID_yrcat <- paste(s_bio_shrimp$ID, "_", s_bio_shrimp$yrcat)
+
+#s_bio_flounder
+s_bio_flounder <- read.csv('./gitdat/s_bio_flounder.csv')
+s_bio_flounder$ID <- ID.df$rasterID
+s_bio_flounder$yrcat <- ID.df$yrcat
+s_bio_flounder$ID_yrcat <- paste(s_bio_flounder$ID, "_", s_bio_flounder$yrcat)
 
 
 
@@ -13,8 +44,12 @@ raster_shrimp <- NULL
 raster_flounder <- NULL
 raster_environ <- NULL
 
+load('./gitdat/s_bio_sub_files.Rdata')
+uniqueID <- unique(s_bio_sub$ID_yrcat)
+
+
 ##sampling loop ##
-for (f in 1:1000) {  
+for (b in 1:20) {  
   
   raster_bio_boot <- NULL
   raster_ind_boot <- NULL
@@ -93,12 +128,12 @@ for (f in 1:1000) {
     #environment
     raster_environ_boot <- rbind(raster_environ_boot, rastercolav_environment)
   
-    }
+  }
   
 #turning output into a data frame and adding column with IDs back
   
   #logging the iteration number
-  boot <- f
+  boot <- b
   
   
   #prep data storage 
@@ -131,8 +166,10 @@ for (f in 1:1000) {
   
 }
 
+save(raster_bio, raster_ind, raster_shrimp, raster_flounder, raster_environ, 
+     file = './gitdat/raster_bootstrap_results.Rdata')
 
-
+load('./gitdat/raster_bootstrap_results.Rdata')
 
 
 ## summary loop ##
@@ -141,7 +178,7 @@ temp <- NULL
 summary_BEF <- NULL
 
   #for number of iterations
-for (b in 1:1000) {
+for (b in 1:20) {
   
   #subsetting based on each bootstrap iteration
   boot_bio <- subset(raster_bio, raster_bio$boot == b)
@@ -164,7 +201,11 @@ for (b in 1:1000) {
     unique_ID <- c
     
     #calc biomass
-    biomass <- rowSums(raster_bio_sub[, -(1:2)])
+    biomass <- rowSums(raster_bio_sub[, -(1:3)], na.rm = TRUE)
+    if (sum(is.na(raster_bio_sub[, -(1:3)])) > 0) {
+        na_sp <- which(is.na(raster_bio_sub[, -(1:3)]))
+        print('id=',c, 'sp=', names(raster_bio_sub[, -(1:3)])[na_sp])
+    }
     
     #calc shrimp biomass
     shrimp_bio <- rowSums(raster_shrimp_sub[, -(1:2)])
@@ -172,19 +213,26 @@ for (b in 1:1000) {
     #calc flounder biomass 
     flounder_bio <- rowSums(raster_flounder_sub[, -(1:2)])
     
+    #calcN
+    N <- rowSums(raster_ind_sub[ , -(1:2)])
+    
     #calcS 
     raster_pres_sub <- raster_bio_sub
     raster_pres_sub[raster_pres_sub > 0] <- 1
     S <- rowSums(raster_pres_sub[, -(1:2)])
     
     #calcSpie
-    sPIE <- calc_PIE(raster_ind_sub[, -(1:2)], ENS = T)
+    sad <- raster_ind_sub[, -(1:2)]
+    sad <- sad[sad > 0]
+    sPIE <- calc_SPIE(sad)
     
     #rarefaction
-    s_N <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 100) 
-    
+    s_N <- rarefaction(sad, method = "IBR", effort = 5000, 
+                       extrapolate = TRUE, quiet_mode = TRUE) 
+    s_Hill <- vegan::renyi(sad, hill = TRUE, scales = -1)
+    s_asym <- calc_chao1(sad)
     #number of individuals
-    Nind <- rowSums(raster_ind_sub[, -(1:2)])
+    Nind <- sum(sad)
     
     #surface temp
     tempS <- raster_environ_sub$tempS
@@ -197,14 +245,16 @@ for (b in 1:1000) {
    
      #storage
       #temp
-    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, s_N, Nind, biomass, shrimp_bio, flounder_bio, tempS, tempB, salS, salB))
+    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, s_N, s_Hill, s_asym,
+                             Nind, biomass,
+                             shrimp_bio, flounder_bio, tempS, tempB, salS, salB))
     summary_BEF <- rbind(summary_BEF, temp)
   }
 }
 
 summary_BEF[, 3:13] <- as.data.frame(sapply(summary_BEF[, 3:13], as.numeric))
-
-
+names(summary_BEF)
+write.csv(summary_BEF, file = './gitdat/summary_BEF3.csv', row.names = FALSE)
 
 #quick graphs
 with(summary_BEF, plot(biomass ~ S))
@@ -217,14 +267,18 @@ with(summary_BEF, plot(log(flounder_bio) ~ log(S)))
 with(summary_BEF, plot(log(biomass) ~ log(S)))
 
 with(summary_BEF, plot(log(biomass) ~ log(sPIE)))
+with(summary_BEF, lines(lowess(log(sPIE), log(biomass)), col ='red', lwd =2))
+
 with(summary_BEF, plot(log(shrimp_bio) ~ sPIE))
 with(summary_BEF, plot(log(flounder_bio) ~ sPIE))
 
 with(summary_BEF, plot(log(biomass) ~ log(Nind)))
 
 with(summary_BEF, plot(log(biomass) ~ log(s_N)))
+with(summary_BEF, lines(lowess(log(s_N), log(biomass), f = 1), col ='red', lwd =2))
 
 
+plot(log(biomass
 
 summary(summary_BEF$Nind)
 
