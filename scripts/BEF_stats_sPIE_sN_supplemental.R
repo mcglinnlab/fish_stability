@@ -11,11 +11,17 @@ library(USAboundaries)
 
 #DATA SETS
 #SUMMARY_BEF - 324,000  rows, 1,000 iterations, 36 rasters, 9 time bins
-summary_BEF <- read.csv("~/fish_stability/data/BEF/summary_BEF.csv", header = T)
-summary_BEF <- summary_BEF[, -1]
+summary_BEF <- read.csv("./gitdat/summary_BEF3.csv")
+
+plot(S ~ Nind, data = BEF)
+lines(lowess(summary_BEF$Nind, summary_BEF$S), col='red', lwd =2)
+plot(biomass ~ N, data = summary_BEF)
+plot(biomass ~ Nind, data = summary_BEF)
+lines(lowess(summary_BEF$Nind, summary_BEF$biomass), col='red', lwd =2)
+
 
 #ID.df - Information about each raster IDs
-ID.df <- read.csv("~/fish_stability/data/ID.df.csv", header = T)
+ID.df <- read.csv("./gitdat/ID.df.csv")
 ID.df <- ID.df[, -1]
 
 #ID list - list of good raster IDs
@@ -34,6 +40,8 @@ b_av <- with(summary_BEF, tapply(biomass, list(unique_ID), mean))
 S_av <- with(summary_BEF, tapply(S, list(unique_ID), mean))
 Spie_av <- with(summary_BEF, tapply(sPIE, list(unique_ID), mean))
 sN_av <- with(summary_BEF, tapply(s_N, list(unique_ID), mean))
+sHill_av <- with(summary_BEF, tapply(s_Hill, list(unique_ID), mean))
+sasym_av <- with(summary_BEF, tapply(s_asym, list(unique_ID), mean))
 Nind_av <- with(summary_BEF, tapply(Nind, list(unique_ID), mean))
 b_shrimp_av <- with(summary_BEF, tapply(shrimp_bio, list(unique_ID), mean))
 b_flounder_av <- with(summary_BEF, tapply(flounder_bio, list(unique_ID), mean))
@@ -67,7 +75,7 @@ salSsd <- with(summary_BEF, tapply(salS, list(unique_ID), sd, na.rm = T))
 
 
 
-BEF <- as.data.frame(cbind(b_av, S_av, Spie_av, sN_av, Nind_av, b_shrimp_av,
+BEF <- as.data.frame(cbind(b_av, S_av, Spie_av, sN_av, sasym_av, sHill_av, Nind_av, b_shrimp_av,
                            b_flounder_av, B_bootsd, S_bootsd, Spie_bootsd, 
                            sN_bootsd, Nind_bootsd, b_shrimp_bootsd, b_flounder_bootsd, 
                            tempS, tempB, salB, salS, tempSsd, tempBsd, salBsd, salSsd))
@@ -75,6 +83,39 @@ BEF$unique_ID <- rownames(BEF)
 
 BEF <- BEF %>%
   separate(unique_ID, c("ID", "yr_cat"))
+
+par(mfrow=c(2,3))
+plot(b_av ~ S_av, data = BEF)
+with(BEF, lines(lowess(S_av, b_av), col='red', lwd =2))
+plot(b_av ~ Spie_av, data = BEF)
+with(BEF, lines(lowess(Spie_av, b_av), col='red', lwd =2))
+plot(b_av ~ sN_av, data = BEF, log='xy')
+with(BEF, lines(lowess(sN_av, b_av), col='red', lwd =2))
+
+plot(b_av ~ sHill_av, data = BEF, log='xy')
+with(BEF, lines(lowess(sHill_av, b_av), col='red', lwd =2))
+
+plot(b_av ~ sasym_av, data = BEF, log='xy')
+with(BEF, lines(lowess(sasym_av, b_av), col='red', lwd =2))
+
+with(BEF, cor(log(sasym_av), log(b_av)))
+with(BEF, cor(log(S_av), log(b_av), use = 'complete.obs'))
+
+summary(lm(log(b_av) ~ log(sasym_av) + tempS + salS, data = BEF))
+
+
+
+plot(S_av ~ Nind_av, data = BEF)
+with(BEF, lines(lowess(Nind_av, S_av), col='red', lwd =2))
+plot(b_av ~ Nind_av, data = BEF)
+with(BEF, lines(lowess(Nind_av, b_av), col='red', lwd =2))
+
+
+plot(biomass ~ Nind, data = summary_BEF)
+lines(lowess(summary_BEF$Nind, summary_BEF$biomass), col='red', lwd =2)
+
+
+
 
 #### Averaging across time bins ####
 #biologic  
@@ -235,6 +276,7 @@ plot(bioModel_S_fish)
 bioModel_fish <- lm(F_bio ~ Spie + tempS + salS, data = moddat)
 summary(bioModel_fish)
 
+
   #s_N
 #run model; log transformations built in before scaling step
 bioModel_S_fish <- lm(F_bio ~ s_N + tempS + salS, data = moddat_S)
@@ -245,6 +287,9 @@ plot(bioModel_S_fish)
 #raw coefficients
 bioModel_fish <- lm(F_bio ~ s_N + tempS + salS, data = moddat)
 summary(bioModel_fish)
+
+par(mfrow=c(1,3))
+termplot(bioModel_S_fish, partial.resid = T, se = T)
 
 
 
