@@ -141,7 +141,7 @@ temp <- NULL
 summary_BEF <- NULL
 
   #for number of iterations
-for (b in 1:1000) {
+for (b in 1:50) {
   
   #subsetting based on each bootstrap iteration
   boot_bio <- subset(raster_bio, raster_bio$boot == b)
@@ -181,7 +181,10 @@ for (b in 1:1000) {
     sPIE <- calc_PIE(raster_ind_sub[, -(1:2)], ENS = T)
     
     #rarefaction
-    s_N <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 100) 
+    s_N_100 <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 100) 
+    s_N_500 <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 500)
+    s_N_1000 <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 1000)
+    s_N_2500 <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 2500)
     
     #number of individuals
     Nind <- rowSums(raster_ind_sub[, -(1:2)])
@@ -197,14 +200,19 @@ for (b in 1:1000) {
    
      #storage
       #temp
-    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, s_N, Nind, biomass, shrimp_bio, flounder_bio, tempS, tempB, salS, salB))
+    temp <- data.frame(cbind(unique_ID, boot, S, sPIE, s_N_100, s_N_500, s_N_1000, 
+        s_N_2500, Nind, biomass, shrimp_bio, flounder_bio, tempS, tempB, salS, salB))
     summary_BEF <- rbind(summary_BEF, temp)
   }
 }
 
-summary_BEF[, 3:13] <- as.data.frame(sapply(summary_BEF[, 3:13], as.numeric))
+summary_BEF[, 3:16] <- as.data.frame(sapply(summary_BEF[, 3:16], as.numeric))
+
+#10/15/23 - stopped loop for time sake andtruncate at 50 boot iterations temporarily 
 
 
+#writing new summary_BEF with different N iterations included. Boot iterations = 250.
+write.csv(summary_BEF, "./data/BEF/summary_BEF_sNiterations.csv")
 
 #quick graphs
 with(summary_BEF, plot(biomass ~ S))
@@ -228,6 +236,45 @@ with(summary_BEF, plot(log(biomass) ~ log(s_N)))
 
 summary(summary_BEF$Nind)
 
+
+
+#take a look at different s_N graphs
+  #N=100
+with(summary_BEF, plot(log(biomass) ~ log(s_N_100)))
+with(summary_BEF, lines(lowess(log(s_N_100), log(biomass)), col = "red"))
+     
+  #N=500
+with(summary_BEF, plot(log(biomass) ~ log(s_N_500)))
+with(summary_BEF, lines(lowess(log(s_N_500), log(biomass)), col = "red"))
+
+  #N=1000
+with(summary_BEF, plot(log(biomass) ~ log(s_N_1000)))
+with(summary_BEF, lines(lowess(log(s_N_1000), log(biomass)), col = "red"))
+
+  #N=2500
+with(summary_BEF, plot(log(biomass) ~ log(s_N_2500)))
+with(summary_BEF, lines(lowess(log(s_N_2500), log(biomass)), col = "red"))
+
+
+#averaging across bootstraps
+b_av <- with(summary_BEF, tapply(biomass, list(unique_ID), mean))
+sN100_av <- with(summary_BEF, tapply(s_N_100, list(unique_ID), mean))
+sN500_av <- with(summary_BEF, tapply(s_N_500, list(unique_ID), mean))
+sN1000_av <- with(summary_BEF, tapply(s_N_1000, list(unique_ID), mean))
+sN2500_av <- with(summary_BEF, tapply(s_N_2500, list(unique_ID), mean))
+
+#plots averaged across bootstraps
+plot(log(b_av) ~ log(sN100_av))
+lines(lowess(log(sN100_av), log(b_av)), col = "red")
+
+plot(log(b_av) ~ log(sN500_av))
+lines(lowess(log(sN500_av), log(b_av)), col = "red")
+
+plot(log(b_av) ~ log(sN1000_av))
+lines(lowess(log(sN1000_av), log(b_av)), col = "red")
+
+plot(log(b_av) ~ log(sN2500_av))
+lines(lowess(log(sN2500_av), log(b_av)), col = "red")
 
 
 
