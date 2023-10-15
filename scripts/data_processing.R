@@ -9,11 +9,16 @@ library(purrr)
 #### Initial Data Processing ####
 
 #import fish species csv
-fish_species = read.csv('./name_data_files/fish_species.csv', header=FALSE, colClasses='character')
+fish_species <- read.csv('./name_data_files/fish_species.csv', header=FALSE, colClasses='character')
 names(fish_species) = 'species'
 
-#import SEAMAP data
-SEAMAP<-read.csv("~./fish_stability/data/SEAMAPData.csv", header = T)
+#import SEAMAP data, 
+#note last several lines of the csv has info on the query used
+#to pull the data. Here we have specifically not pulled those 
+#lines in
+SEAMAP <- readr::read_csv("./gitdat/SEAMAPData.csv", n_max = 359261)
+# now drop columsn 46 and 47 which are empty
+SEAMAP <- SEAMAP[ , -(46:47)]
 
 #determining number of unique nets (collection number) for each trawl (event name)
 n = NULL
@@ -36,7 +41,7 @@ for (i in 1:length(SEAMAP$EVENTNAME)){
 
 sum(out!=2)
 
-
+#djmnote: this doesn't seem to be needed...but maybe it is 
 #this part removes the =\" from entry names"
 SEAMAP = as.data.frame(SEAMAP)
 for (i in 1:ncol(SEAMAP)) {
@@ -54,7 +59,8 @@ uni_sp[!(uni_sp %in% fish_species$species)]
 gd_sci_names = unique(SEAMAP$SPECIESSCIENTIFICNAME[SEAMAP$SPECIESCOMMONNAME
                                                    %in% gd_common_names])
 
-#write.csv(gd_sci_names, './good_sci_names.csv', row.names=F)
+#write.csv(gd_sci_names, './name_data_files/good_sci_names.csv',
+#          row.names=F)
 
 #output names that we have filtered out of the dataset
 #uni_sci_sp = unique(SEAMAP$SPECIESSCIENTIFICNAME)
@@ -68,7 +74,7 @@ names(gd_sci_names) = 'species'
 
 SEAMAP_sub = subset(SEAMAP, SEAMAP$SPECIESSCIENTIFICNAME
                     %in% gd_sci_names$species)
-
+# this drops about 30% of the data
 
 #Merge species names that were inconsistently used scientific names
 anchoa_rows_sci = grep('ANCHOA', SEAMAP_sub$SPECIESSCIENTIFICNAME)
@@ -85,9 +91,11 @@ SEAMAP_sub$SPECIESCOMMONNAME[anchoa_rows_com] = 'ANCHOA SPP'
 #find and remove rows with nonlogical coordinates
 apply(SEAMAP_sub[,c("LONGITUDESTART","LATITUDESTART", "COLLECTIONNUMBER")],2, summary)
 SEAMAP_sub <- subset(SEAMAP_sub, LONGITUDESTART < -90 & LATITUDESTART < 90)
+#no samples lost
 
 #removing deep strata collection events
 SEAMAP_sub <- subset(SEAMAP_sub, DEPTHZONE == "INNER")
+#7% lost
 
 #selecting only needed columns 
 SEAMAP_sub <- SEAMAP_sub[,c("DATE", "Year", "LONGITUDESTART",
@@ -126,17 +134,17 @@ event_dat <- SEAMAP_sub %>%
 event_dat$EVENTNAME <-as.character(event_dat$EVENTNAME)
 event_dat$long <- as.numeric(event_dat$long)
 
-
+write.csv(event_dat, file = './gitdat/event_dat.csv', row.names = FALSE)
 
 ##creating number of individuals community matrix##
 
 ## changing species total numbers from long form to wide form ##
-s_wide <- SEAMAP_sub[,c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
+s_wide <- SEAMAP_sub[ , c("EVENTNAME","SPECIESCOMMONNAME","NUMBERTOTAL")]
 
 #changing variable classes
-s_wide$EVENTNAME <-as.character(s_wide$EVENTNAME)
-s_wide$SPECIESCOMMONNAME <-as.character(s_wide$SPECIESCOMMONNAME)
-s_wide$NUMBERTOTAL <-as.numeric(s_wide$NUMBERTOTAL)
+s_wide$EVENTNAME <- as.character(s_wide$EVENTNAME)
+s_wide$SPECIESCOMMONNAME <- as.character(s_wide$SPECIESCOMMONNAME)
+s_wide$NUMBERTOTAL <- as.numeric(s_wide$NUMBERTOTAL)
 
 s_wide <- s_wide %>%
   pivot_wider(id_cols = EVENTNAME, names_from = SPECIESCOMMONNAME, values_from = NUMBERTOTAL, values_fn = sum)
@@ -147,7 +155,7 @@ s_wide <- s_wide %>%
 s_spread <- data.frame(left_join(event_dat, s_wide, by='EVENTNAME'))
 
 #Export s_spread to csv
-#write.csv(s_spread, file = "./data/s_spread.csv")
+write.csv(s_spread, file = "./gitdat/s_spread.csv", row.names = FALSE)
 
 
 
@@ -155,7 +163,7 @@ s_spread <- data.frame(left_join(event_dat, s_wide, by='EVENTNAME'))
 
 
 ##Creating presence/absence community matrix ## 
-s_pres <- data.frame(s_wide[,2:198])
+s_pres <- data.frame(s_wide[ , 2:198])
 s_pres[is.na(s_pres)] <- 0
 s_pres[s_pres > 0] <- 1
 s_pres <- cbind(s_wide$EVENTNAME, s_pres)
@@ -163,7 +171,7 @@ colnames(s_pres)[colnames(s_pres)== 's_wide$EVENTNAME'] <- "EVENTNAME"
 s_pres <- data.frame(left_join(event_dat, s_pres, by='EVENTNAME'))
 
 #Export s_pres to csv
-#write.csv(s_pres, file = "./data/s_pres.csv")
+write.csv(s_pres, file = "./gitdat/s_pres.csv", row.names = FALSE)
 
 
 
@@ -187,8 +195,7 @@ s_bio[is.na(s_bio)] <-0
 s_bio <- data.frame(left_join(event_dat, s_bio, by='EVENTNAME'))
 
 #Export s_bio to csv
-#write.csv(s_bio, file = "./data/s_bio.csv")
-
+write.csv(s_bio, file = "./gitdat/s_bio.csv")
 
 
 #### CREATING SHRIMP AND FLOUNDER DATA SETS ####
@@ -255,7 +262,7 @@ s_bio_shrimp <- data.frame(merge(event_dat, s_bio_shrimp, all = T))
 
 s_bio_shrimp[is.na(s_bio_shrimp)] <-0
 #Export s_bio_shrimp to csv
-#write.csv(s_bio_shrimp, file = "./data/s_bio_shrimp.csv")
+write.csv(s_bio_shrimp, file = "./gitdat/s_bio_shrimp.csv", row.names = FALSE)
 
   #flounder
 s_bio_flounder <- SEAMAP_flounder[,c("EVENTNAME","SPECIESCOMMONNAME","SPECIESTOTALWEIGHT")]
@@ -272,5 +279,5 @@ s_bio_flounder <- data.frame(merge(event_dat, s_bio_flounder, all = T))
 
 s_bio_flounder[is.na(s_bio_flounder)] <-0
 #Export s_bio_flounder to csv
-#write.csv(s_bio_flounder, file = "./data/s_bio_flounder.csv")
+write.csv(s_bio_flounder, file = "./gitdat/s_bio_flounder.csv", row.names = FALSE)
 

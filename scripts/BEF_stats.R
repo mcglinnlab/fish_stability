@@ -11,11 +11,10 @@ library(USAboundaries)
 
 #DATA SETS
   #SUMMARY_BEF - 324,000  rows, 1,000 iterations, 36 rasters, 9 time bins
-summary_BEF <- read.csv("~/fish_stability/data/BEF/summary_BEF.csv", header = T)
-summary_BEF <- summary_BEF[, -1]
+summary_BEF <- read.csv("./gitdat/summary_BEF3.csv")
 
-  #ID.df - Information about each raster IDs
-ID.df <- read.csv("~/fish_stability/data/ID.df.csv", header = T)
+#ID.df - Information about each raster IDs
+ID.df <- read.csv("./gitdat/ID.df.csv")
 ID.df <- ID.df[, -1]
 
   #ID list - list of good raster IDs
@@ -24,13 +23,13 @@ IDlist <- c(1246, 1294, 1340, 1486, 1532, 1534, 1536, 1582, 1586, 1630, 1680,
             2120, 2169, 2170, 2219, 2269, 2318, 2319, 2419, 2519, 2569, 2620, 
             2670, 2721, 2771)
   #rasterID_coords - coordinate of center of raster region
-rasterID_coord <- read.csv("~/fish_stability/data/rasterID_coord.csv", header = T)
+rasterID_coord <- read.csv("./gitdat/rasterID_coord.csv")
 rasterID_coord <- rasterID_coord[, -1]
 
 
   #Ocean and Continents Shape File
   # read in the ocean
-oceans <- readOGR(dsn = "./shapefiles/ocean_raster", layer = "ne_10m_ocean")
+oceans <- readOGR(dsn = "./gitdat/shapefiles/ocean_raster", layer = "ne_10m_ocean")
   # create a global raster layer
 oceans <- spTransform(oceans, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
 oceans_raster <- raster(oceans)
@@ -41,7 +40,7 @@ res(oceans_raster) <- .2
 extent_oc <- extent(-85,-75,25,40)
 oc_raster <- crop(oceans_raster, extent_oc)
   # making continents polygon  
-continents <- shapefile('./shapefiles/continent/continent/continent.shp')
+continents <- shapefile('./gitdat/shapefiles/continent/continent/continent.shp')
 continents <- spTransform(continents, CRS("+proj=longlat +lat_0=32.4 +lon_0=-79.6"))
   #states
 states <- us_states()
@@ -54,9 +53,12 @@ b_av <- with(summary_BEF, tapply(biomass, list(unique_ID), mean))
 S_av <- with(summary_BEF, tapply(S, list(unique_ID), mean))
 Spie_av <- with(summary_BEF, tapply(sPIE, list(unique_ID), mean))
 sN_av <- with(summary_BEF, tapply(s_N, list(unique_ID), mean))
+sHill_av <- with(summary_BEF, tapply(s_Hill, list(unique_ID), mean))
+sasym_av <- with(summary_BEF, tapply(s_asym, list(unique_ID), mean))
 Nind_av <- with(summary_BEF, tapply(Nind, list(unique_ID), mean))
 b_shrimp_av <- with(summary_BEF, tapply(shrimp_bio, list(unique_ID), mean))
 b_flounder_av <- with(summary_BEF, tapply(flounder_bio, list(unique_ID), mean))
+
 
 
   #sd over bootstraps
@@ -87,10 +89,11 @@ salSsd <- with(summary_BEF, tapply(salS, list(unique_ID), sd, na.rm = T))
 
 
 
-BEF <- as.data.frame(cbind(b_av, S_av, Spie_av, sN_av, Nind_av, b_shrimp_av,
+BEF <- as.data.frame(cbind(b_av, S_av, Spie_av, sN_av, sasym_av, sHill_av, Nind_av, b_shrimp_av,
                            b_flounder_av, B_bootsd, S_bootsd, Spie_bootsd, 
                            sN_bootsd, Nind_bootsd, b_shrimp_bootsd, b_flounder_bootsd, 
                            tempS, tempB, salB, salS, tempSsd, tempBsd, salBsd, salSsd))
+
 BEF$unique_ID <- rownames(BEF)
 
 BEF <- BEF %>%
@@ -103,6 +106,8 @@ b_yrav <- with(BEF, tapply(b_av, list(ID), mean))
 S_yrav <- with(BEF, tapply(S_av, list(ID), mean))
 Spie_yrav <- with(BEF, tapply(Spie_av, list(ID), mean))
 sN_yrav <- with(BEF, tapply(sN_av, list(ID), mean))
+sHill_yrav <- with(BEF, tapply(sHill_av, list(ID), mean))
+sasym_yrav <- with(BEF, tapply(sasym_av, list(ID), mean))
 Nind_yrav <- with(BEF, tapply(Nind_av, list(ID), mean))
 b_shrimp_yrav <- with(BEF, tapply(b_shrimp_av, list(ID), mean))
 b_flounder_yrav <- with(BEF, tapply(b_flounder_av, list(ID), mean))
@@ -140,7 +145,8 @@ salS_yrsd <- with(BEF, tapply(salS, list(ID), sd, na.rm = T))
 
 
 
-BEF_yr <- as.data.frame(cbind(b_yrav, B_yrvar, B_yrstab, S_yrav, Spie_yrav, sN_yrav, 
+BEF_yr <- as.data.frame(cbind(b_yrav, B_yrvar, B_yrstab, S_yrav, Spie_yrav, sN_yrav,
+                              sHill_yrav, sasym_yrav,
                            Nind_yrav, b_shrimp_yrav, b_shrimp_yrstab, b_flounder_yrav,
                            b_flounder_yrstab, B_yrsd, S_yrsd, Spie_yrsd, sN_yrsd,
                            Nind_yrsd, b_shrimp_yrsd,b_flounder_yrsd, tempS_yr,
@@ -309,11 +315,13 @@ tm_shape(SurfaceSal_Raster) +
 moddat <- as.data.frame(cbind(log2(BEF_yr$b_yrav), log2(BEF_yr$B_yrstab), 
                               log2(BEF_yr$b_shrimp_yrav), log2(BEF_yr$b_shrimp_yrstab),
                               log2(BEF_yr$b_flounder_yrav), log2(BEF_yr$b_flounder_yrstab),
-                              log2(BEF_yr$S_yrav), as.numeric(BEF_yr$tempS_yr), as.numeric(BEF_yr$salS_yr)))
+                              log2(BEF_yr$S_yrav), log2(BEF_yr$sHill_yrav),
+                              log2(BEF_yr$sasym_yrav), log2(BEF_yr$Nind_yrav),
+                              as.numeric(BEF_yr$tempS_yr), as.numeric(BEF_yr$salS_yr)))
 moddat[] <- sapply(moddat, as.numeric)
 moddat <- as.data.frame(cbind(BEF_yr$ID, moddat))
 names(moddat) <- c("ID", "F_bio", "F_stab", "Sh_bio", "Sh_stab", "Fl_bio", 
-                    "Fl_stab", "Srich", "tempS", "salS")
+                    "Fl_stab", "Srich", "Shill", "Sasym", "N", "tempS", "salS")
 
 
 #Standardized beta coefficient models
@@ -322,8 +330,8 @@ moddat_S <- as.data.frame(scale(moddat[,-1], center = T, scale = T))
   #adding startID column and renaming columns
 moddat_S[] <- sapply(moddat_S, as.numeric)
 moddat_S <- as.data.frame(cbind(BEF_yr$ID, moddat_S))
-names(moddat_S) <- c("ID", "F_bio", "F_stab", "Sh_bio", "Sh_stab", "Fl_bio", 
-                           "Fl_stab", "Srich", "tempS", "salS")
+names(moddat_S) <-  c("ID", "F_bio", "F_stab", "Sh_bio", "Sh_stab", "Fl_bio", 
+                       "Fl_stab", "Srich", "Shill", "Sasym", "N", "tempS", "salS")
 
 
 #FISH
@@ -337,6 +345,18 @@ plot(bioModel_S_fish)
     #raw coefficients
 bioModel_fish <- lm(F_bio ~ Srich + tempS + salS, data = moddat)
 summary(bioModel_fish)
+
+
+bioModel_S_fish <- lm(F_bio ~ Sasym + N + tempS + salS, data = moddat_S)
+summary(bioModel_S_fish)
+
+bioModel_S_fish <- lm(F_bio ~ Sasym + N + tempS + salS, data = moddat_S)
+summary(bioModel_S_fish)
+
+par(mfrow=c(1,4))
+termplot(bioModel_S_fish, partial.resid = T, se = T)
+
+
 
   #stability
     #model
