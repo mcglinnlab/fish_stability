@@ -53,6 +53,8 @@ b_av <- with(summary_BEF, tapply(biomass, list(unique_ID), mean))
 S_av <- with(summary_BEF, tapply(S, list(unique_ID), mean))
 Spie_av <- with(summary_BEF, tapply(sPIE, list(unique_ID), mean))
 sN_av <- with(summary_BEF, tapply(s_N, list(unique_ID), mean))
+sN_500_av <- with(summary_BEF, tapply(s_N_500, list(unique_ID), mean))
+sN_1000_av <- with(summary_BEF, tapply(s_N_1000, list(unique_ID), mean))
 sHill_av <- with(summary_BEF, tapply(s_Hill, list(unique_ID), mean))
 sasym_av <- with(summary_BEF, tapply(s_asym, list(unique_ID), mean))
 Nind_av <- with(summary_BEF, tapply(Nind, list(unique_ID), mean))
@@ -66,6 +68,8 @@ S_bootsd <- with(summary_BEF, tapply(S, list(unique_ID), sd))
 B_bootsd <- with(summary_BEF, tapply(biomass, list(unique_ID), sd))
 Spie_bootsd <- with(summary_BEF, tapply(sPIE, list(unique_ID), sd))
 sN_bootsd <- with(summary_BEF, tapply(s_N, list(unique_ID), sd))
+sN_500_bootsd <- with(summary_BEF, tapply(s_N_500, list(unique_ID), sd))
+sN_1000_bootsd <- with(summary_BEF, tapply(s_N_1000, list(unique_ID), sd))
 Nind_bootsd <- with(summary_BEF, tapply(Nind, list(unique_ID), sd))
 b_shrimp_bootsd <- with(summary_BEF, tapply(shrimp_bio, list(unique_ID), sd))
 b_flounder_bootsd <- with(summary_BEF, tapply(flounder_bio, list(unique_ID), sd))
@@ -89,9 +93,11 @@ salSsd <- with(summary_BEF, tapply(salS, list(unique_ID), sd, na.rm = T))
 
 
 
-BEF <- as.data.frame(cbind(b_av, S_av, Spie_av, sN_av, sasym_av, sHill_av, Nind_av, b_shrimp_av,
+BEF <- as.data.frame(cbind(b_av, S_av, Spie_av, sN_av, sN_500_av, sN_1000_av,
+                           sasym_av, sHill_av, Nind_av, b_shrimp_av,
                            b_flounder_av, B_bootsd, S_bootsd, Spie_bootsd, 
-                           sN_bootsd, Nind_bootsd, b_shrimp_bootsd, b_flounder_bootsd, 
+                           sN_bootsd, sN_500_bootsd, sN_1000_bootsd,
+                           Nind_bootsd, b_shrimp_bootsd, b_flounder_bootsd, 
                            tempS, tempB, salB, salS, tempSsd, tempBsd, salBsd, salSsd))
 
 BEF$unique_ID <- rownames(BEF)
@@ -106,6 +112,8 @@ b_yrav <- with(BEF, tapply(b_av, list(ID), mean))
 S_yrav <- with(BEF, tapply(S_av, list(ID), mean))
 Spie_yrav <- with(BEF, tapply(Spie_av, list(ID), mean))
 sN_yrav <- with(BEF, tapply(sN_av, list(ID), mean))
+sN500_yrav <- with(BEF, tapply(sN_500_av, list(ID), mean))
+sN1000_yrav <- with(BEF, tapply(sN_1000_av, list(ID), mean))
 sHill_yrav <- with(BEF, tapply(sHill_av, list(ID), mean))
 sasym_yrav <- with(BEF, tapply(sasym_av, list(ID), mean))
 Nind_yrav <- with(BEF, tapply(Nind_av, list(ID), mean))
@@ -120,6 +128,8 @@ B_yrvar <- with(BEF, tapply(b_av, list(ID), function(x)(var(x)/ (mean(x)^2))))
 B_yrstab <- 1/ B_yrvar
 Spie_yrsd <- with(BEF, tapply(Spie_av, list(ID), sd))
 sN_yrsd <- with(BEF, tapply(sN_av, list(ID), sd))
+sN500_yrsd <- with(BEF, tapply(sN_500_av, list(ID), sd))
+sN1000_yrsd <- with(BEF, tapply(sN_1000_av, list(ID), sd))
 Nind_yrsd <- with(BEF, tapply(Nind_av, list(ID), sd))
 b_shrimp_yrsd <- with(BEF, tapply(b_shrimp_av, list(ID), sd))
 b_shrimp_yrvar <- with(BEF, tapply(b_shrimp_av, list(ID), function(x)(var(x)/ (mean(x)^2))))
@@ -146,12 +156,12 @@ salS_yrsd <- with(BEF, tapply(salS, list(ID), sd, na.rm = T))
 
 
 BEF_yr <- as.data.frame(cbind(b_yrav, B_yrvar, B_yrstab, S_yrav, Spie_yrav, sN_yrav,
-                              sHill_yrav, sasym_yrav,
+                              sN500_yrav, sN1000_yrav, sHill_yrav, sasym_yrav,
                            Nind_yrav, b_shrimp_yrav, b_shrimp_yrstab, b_flounder_yrav,
                            b_flounder_yrstab, B_yrsd, S_yrsd, Spie_yrsd, sN_yrsd,
-                           Nind_yrsd, b_shrimp_yrsd,b_flounder_yrsd, tempS_yr,
-                           tempB_yr, salB_yr, salS_yr, tempS_yrsd, tempB_yrsd, 
-                           salB_yrsd, salS_yrsd))
+                           sN500_yrsd, sN1000_yrsd, Nind_yrsd, b_shrimp_yrsd,
+                           b_flounder_yrsd, tempS_yr, tempB_yr, salB_yr, salS_yr, 
+                           tempS_yrsd, tempB_yrsd, salB_yrsd, salS_yrsd))
 BEF_yr$ID <- rownames(BEF_yr)
 
 
@@ -315,13 +325,15 @@ tm_shape(SurfaceSal_Raster) +
 moddat <- as.data.frame(cbind(log2(BEF_yr$b_yrav), log2(BEF_yr$B_yrstab), 
                               log2(BEF_yr$b_shrimp_yrav), log2(BEF_yr$b_shrimp_yrstab),
                               log2(BEF_yr$b_flounder_yrav), log2(BEF_yr$b_flounder_yrstab),
-                              log2(BEF_yr$S_yrav), log2(BEF_yr$sHill_yrav),
-                              log2(BEF_yr$sasym_yrav), log2(BEF_yr$Nind_yrav),
-                              as.numeric(BEF_yr$tempS_yr), as.numeric(BEF_yr$salS_yr)))
+                              log2(BEF_yr$S_yrav), log2(BEF_yr$sN500_yrav), log2(BEF_yr$sN1000_yrav),
+                              log2(BEF_yr$sHill_yrav), log2(BEF_yr$sasym_yrav),
+                              log2(BEF_yr$Nind_yrav), as.numeric(BEF_yr$tempS_yr),
+                              as.numeric(BEF_yr$salS_yr)))
 moddat[] <- sapply(moddat, as.numeric)
 moddat <- as.data.frame(cbind(BEF_yr$ID, moddat))
 names(moddat) <- c("ID", "F_bio", "F_stab", "Sh_bio", "Sh_stab", "Fl_bio", 
-                    "Fl_stab", "Srich", "Shill", "Sasym", "N", "tempS", "salS")
+                    "Fl_stab", "Srich", "sN500", "sN1000", "Shill", "Sasym", 
+                   "N", "tempS", "salS")
 
 
 #Standardized beta coefficient models
@@ -331,7 +343,8 @@ moddat_S <- as.data.frame(scale(moddat[,-1], center = T, scale = T))
 moddat_S[] <- sapply(moddat_S, as.numeric)
 moddat_S <- as.data.frame(cbind(BEF_yr$ID, moddat_S))
 names(moddat_S) <-  c("ID", "F_bio", "F_stab", "Sh_bio", "Sh_stab", "Fl_bio", 
-                       "Fl_stab", "Srich", "Shill", "Sasym", "N", "tempS", "salS")
+                       "Fl_stab", "Srich", "sN500", "sN1000", "Shill", "Sasym",
+                      "N", "tempS", "salS")
 
 
 #FISH

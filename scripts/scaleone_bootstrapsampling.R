@@ -219,12 +219,12 @@ for (b in 1:20) {
     #calcS 
     raster_pres_sub <- raster_bio_sub
     raster_pres_sub[raster_pres_sub > 0] <- 1
-    S <- rowSums(raster_pres_sub[, -(1:2)])
+    S <- rowSums(raster_pres_sub[, -(1:3)])
     
     #calcSpie
     sad <- raster_ind_sub[, -(1:2)]
     sad <- sad[sad > 0]
-    sPIE <- calc_SPIE(sad)
+    sPIE <- calc_PIE(sad, ENS = T)
     
     #rarefaction
     s_N_100 <- rarefaction(raster_ind_sub[, -(1:2)], method = "IBR", effort = 100) 
@@ -257,9 +257,9 @@ for (b in 1:20) {
   }
 }
 
-summary_BEF[, 3:17] <- as.data.frame(sapply(summary_BEF[, 3:17], as.numeric))
+summary_BEF[, 3:19] <- as.data.frame(sapply(summary_BEF[, 3:19], as.numeric))
 
-#10/15/23 - stopped loop for time sake andtruncate at 50 boot iterations temporarily 
+#10/15/23 - stopped loop for time sake and truncate at 50 boot iterations temporarily 
 
 
 #writing new summary_BEF with different N iterations included. Boot iterations = 250.
@@ -311,6 +311,14 @@ with(summary_BEF, lines(lowess(log(s_N_1000), log(biomass)), col = "red"))
 with(summary_BEF, plot(log(biomass) ~ log(s_N_2500)))
 with(summary_BEF, lines(lowess(log(s_N_2500), log(biomass)), col = "red"))
 
+  #biomass ~ s_asym
+with(summary_BEF, plot(log(biomass) ~ log(s_asym)))
+with(summary_BEF, lines(lowess(log(s_asym), log(biomass)), col = "red"))
+
+  #biomass ~ s_Hill
+with(summary_BEF, plot(log(biomass) ~ log(s_Hill)))
+with(summary_BEF, lines(lowess(log(s_Hill), log(biomass)), col = "red"))
+
 
 #averaging across bootstraps
 b_av <- with(summary_BEF, tapply(biomass, list(unique_ID), mean))
@@ -318,6 +326,8 @@ sN100_av <- with(summary_BEF, tapply(s_N_100, list(unique_ID), mean))
 sN500_av <- with(summary_BEF, tapply(s_N_500, list(unique_ID), mean))
 sN1000_av <- with(summary_BEF, tapply(s_N_1000, list(unique_ID), mean))
 sN2500_av <- with(summary_BEF, tapply(s_N_2500, list(unique_ID), mean))
+s_asym_av <- with(summary_BEF, tapply(s_asym, list(unique_ID), mean))
+s_Hill_av <- with(summary_BEF, tapply(s_Hill, list(unique_ID), mean))
 
 #plots averaged across bootstraps
 plot(log(b_av) ~ log(sN100_av))
@@ -332,5 +342,10 @@ lines(lowess(log(sN1000_av), log(b_av)), col = "red")
 plot(log(b_av) ~ log(sN2500_av))
 lines(lowess(log(sN2500_av), log(b_av)), col = "red")
 
+plot(log(b_av) ~ log(s_asym_av))
+lines(lowess(log(s_asym_av), log(b_av)), col = "red")
+
+plot(log(b_av) ~ log(s_Hill_av))
+lines(lowess(log(s_Hill_av), log(b_av)), col = "red")
 
 
