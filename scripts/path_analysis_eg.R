@@ -10,10 +10,10 @@ summary(model, .progressBar = F)
   #models included
   
 
-dat <- with(moddat_S, data.frame(y1 = F_bio, y2=F_stab, x1=Srich, x2=Sasym, x3=Shill, x4 = sN500,
+dat <- with(moddat_S, data.frame(y1 = F_bio, y2=F_stab, x1=Srich, x2=Sasym, x3=Shill,
                                  x5 = tempS, x6= salS))
 
-model <- psem(lm(y1 ~ x1, dat), lm(x1~x5+x6, dat))
+model <- psem(lm(y1 ~ x2 + x5 + x6, dat), lm(y2~ x2 +x5 +x6, dat))
 summary(model,.progressbar = T)
 
 basisSet(model)
@@ -26,31 +26,30 @@ library(semPlot)
 #https://tutorials.methodsconsultants.com/posts/structural-equation-models-using-the-lavaan-package-in-r/
 # for interpretation of fit statistics see: 
 # https://m-clark.github.io/sem/sem.html
-set.seed(1234)
-X <- rnorm(100)
-M <- 0.5*X + rnorm(100)
-Y <- 0.7*M + rnorm(100)
-Data <- data.frame(X = X, Y = Y, M = M)
-model <- ' # direct effect
-             Y ~ c*X
+
+
+model1 <- ' # direct effect
+             y1 ~ c*x2
            # mediator
-             M ~ a*X
-             Y ~ b*M
+             x5 ~ a*x2
+             x6 ~ a*x2
+             y1 ~ b*x5
+             y1 ~ d*x6
            # indirect effect (a*b)
-             ab := a*b
+             abd := a*b*d
            # total effect
-             total := c + (a*b)
+             total := c + (a*b*d)
          '
-fit <- sem(model, data = Data)
+fit <- sem(model1, data = dat)
 summary(fit, fit=T, standardized=T, rsquare=T)
 
 semPaths(fit, 'std', layout='tree2')
 
 
-summary(lm(Y ~ X + M))
+with(dat, summary(lm(y1 ~ x2 + x5 + x6)))
 
-model_dir <- 'Y ~ X + M'
-fit_dir <- sem(model_dir, data = Data)
+model_dir <- 'y1 ~ x2 + x5 + x6'
+fit_dir <- sem(model_dir, data = dat)
 summary(fit_dir)
 
 # compare true model with direct only model
@@ -61,26 +60,11 @@ AIC(fit_dir)
 anova(fit, fit_dir)
 
 
-### --
-x1 <- 1:100
-x2 <- sample(seq(0.01, 1, .01))
-#x3 <- rep(0:1, 50)
-
-y <- 10 + 0.3 * x1 - 25 * x2 + rnorm(100, 0, 1)
-
-dat <- data.frame(y, x1, x2)
-
-plot(y ~ x1)
-plot(y ~ x2)
-
-mod <- lm(y ~ x1 + x2)
-summary(mod)
-
 # path analysis setup
 # include intercept explicitly
-model <- 'y ~ 1 + x1 + x2'
+model2 <- 'y1 ~ 1 + x2 + x5 + x6'
 
-results <- sem(model, data = dat)
+results <- sem(model2, data = dat)
 summary(results, standardized=T, fit=T, rsquare=T)
 
 # this returns the same result as the linear model on the simulated data
